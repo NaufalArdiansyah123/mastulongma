@@ -22,4 +22,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('/profile/edit', 'profile')->name('profile.edit');
 });
 
+// Super Admin routes - require super_admin role only
+Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::get('/dashboard', \App\Livewire\SuperAdmin\Dashboard::class)->name('dashboard');
+    Route::get('/users', \App\Livewire\SuperAdmin\Users::class)->name('users');
+    Route::get('/cities', \App\Livewire\SuperAdmin\Cities::class)->name('cities');
+    Route::get('/categories', \App\Livewire\SuperAdmin\Categories::class)->name('categories');
+    Route::view('/subscriptions', 'superadmin.subscriptions')->name('subscriptions');
+    Route::get('/helps', \App\Livewire\SuperAdmin\Helps::class)->name('helps');
+    Route::get('/verifications', \App\Livewire\SuperAdmin\Verifications::class)->name('verifications');
+});
+
+// Admin routes - require admin role only (for moderasi)
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', \App\Livewire\Admin\Dashboard::class)->name('dashboard');
+    Route::get('/helps', \App\Livewire\Admin\Helps\Index::class)->name('helps');
+    Route::get('/verifications', \App\Livewire\Admin\Verifications\Index::class)->name('verifications');
+});
+
 require __DIR__ . '/auth.php';

@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Forms\LoginForm;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -17,6 +18,13 @@ new #[Layout('layouts.guest')] class extends Component {
 
         $this->form->authenticate();
 
+        // Redirect admins to admin login page
+        if (in_array(auth()->user()->role, ['admin', 'super_admin'])) {
+            Auth::logout();
+            $this->addError('email', 'Admin users must login at /admin/login');
+            return;
+        }
+
         Session::regenerate();
 
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
@@ -26,7 +34,7 @@ new #[Layout('layouts.guest')] class extends Component {
 <div class="bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 flex flex-col overflow-hidden shadow-2xl"
     style="height: 100vh; max-height: 100vh;">
 
-    
+
 
     <!-- Header -->
     <div class="flex-shrink-0 pt-8 pb-6 text-center">
@@ -126,7 +134,7 @@ new #[Layout('layouts.guest')] class extends Component {
             </div>
 
             <!-- Sign Up Link - Push ke bawah -->
-            <div class="text-center mt-auto pt-4">
+            <div class="text-center mt-auto pt-4 space-y-3">
                 <p class="text-sm text-gray-600">
                     Don't have an account?
                     <a href="{{ route('register') }}" wire:navigate
@@ -134,6 +142,18 @@ new #[Layout('layouts.guest')] class extends Component {
                         Sign Up
                     </a>
                 </p>
+
+                <!-- Admin Login Link -->
+                <div class="pt-3 border-t border-gray-200">
+                    <a href="{{ route('admin.login') }}" wire:navigate
+                        class="inline-flex items-center text-sm text-gray-700 hover:text-primary-600 font-medium">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Admin Login
+                    </a>
+                </div>
             </div>
         </form>
     </div>

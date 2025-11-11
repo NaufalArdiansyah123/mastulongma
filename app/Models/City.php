@@ -9,12 +9,18 @@ class City extends Model
     protected $fillable = [
         'name',
         'province',
+        'admin_id',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
+    }
 
     public function users()
     {
