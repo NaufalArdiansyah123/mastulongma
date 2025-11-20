@@ -1,115 +1,155 @@
-<?php
+<div>
+    @if(session()->has('message'))
+        <div class="mb-3 p-2.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-600 flex items-center">
+            <svg class="w-4 h-4 mr-1.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            {{ session('message') }}
+        </div>
+    @endif
 
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Validation\Rule;
-use Livewire\Volt\Component;
-
-new class extends Component
-{
-    public string $name = '';
-    public string $email = '';
-
-    /**
-     * Mount the component.
-     */
-    public function mount(): void
-    {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
-    }
-
-    /**
-     * Update the profile information for the currently authenticated user.
-     */
-    public function updateProfileInformation(): void
-    {
-        $user = Auth::user();
-
-        $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
-        ]);
-
-        $user->fill($validated);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
-
-        $this->dispatch('profile-updated', name: $user->name);
-    }
-
-    /**
-     * Send an email verification notification to the current user.
-     */
-    public function sendVerification(): void
-    {
-        $user = Auth::user();
-
-        if ($user->hasVerifiedEmail()) {
-            $this->redirectIntended(default: route('dashboard', absolute: false));
-
-            return;
-        }
-
-        $user->sendEmailVerificationNotification();
-
-        Session::flash('status', 'verification-link-sent');
-    }
-}; ?>
-
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
-
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
-
-    <form wire:submit="updateProfileInformation" class="mt-6 space-y-6">
+    <form wire:submit.prevent="updateProfileInformation" class="space-y-4">
+        <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+            <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                <span class="flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    Name
+                    <span class="text-red-500 ml-1">*</span>
+                </span>
+            </label>
+            <input type="text" wire:model="name" required
+                class="w-full px-3.5 py-3 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm"
+                placeholder="Your name">
+            @error('name')
+                <p class="mt-1.5 text-xs text-red-600 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ $message }}
+                </p>
+            @enderror
         </div>
 
+        <!-- Email -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" name="email" type="email" class="mt-1 block w-full" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
-
-            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
+            <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                <span class="flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                    </svg>
+                    Email
+                    <span class="text-red-500 ml-1">*</span>
+                </span>
+            </label>
+            <input type="email" wire:model="email" required
+                class="w-full px-3.5 py-3 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm"
+                placeholder="your@email.com">
+            @error('email')
+                <p class="mt-1.5 text-xs text-red-600 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ $message }}
+                </p>
+            @enderror
         </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-            <x-action-message class="me-3" on="profile-updated">
-                {{ __('Saved.') }}
-            </x-action-message>
+        <!-- Phone -->
+        <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                <span class="flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                    </svg>
+                    Phone
+                    <span class="text-gray-400 text-xs ml-1">(Opsional)</span>
+                </span>
+            </label>
+            <input type="tel" wire:model="phone"
+                class="w-full px-3.5 py-3 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm"
+                placeholder="08xxxxxxxxxx">
+            @error('phone')
+                <p class="mt-1.5 text-xs text-red-600 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ $message }}
+                </p>
+            @enderror
         </div>
+
+        <!-- City -->
+        <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                <span class="flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                    </svg>
+                    City
+                    <span class="text-gray-400 text-xs ml-1">(Opsional)</span>
+                </span>
+            </label>
+            <select wire:model="city_id"
+                class="w-full px-3.5 py-3 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm">
+                <option value="">Select City</option>
+                @foreach($cities as $city)
+                    <option value="{{ $city->id }}">{{ $city->name }}</option>
+                @endforeach
+            </select>
+            @error('city_id')
+                <p class="mt-1.5 text-xs text-red-600 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ $message }}
+                </p>
+            @enderror
+        </div>
+
+        <!-- Address -->
+        <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                <span class="flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                    </svg>
+                    Address
+                    <span class="text-gray-400 text-xs ml-1">(Opsional)</span>
+                </span>
+            </label>
+            <textarea wire:model="address" rows="3"
+                class="w-full px-3.5 py-3 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition resize-none bg-white shadow-sm"
+                placeholder="Your address"></textarea>
+            @error('address')
+                <p class="mt-1.5 text-xs text-red-600 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ $message }}
+                </p>
+            @enderror
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" wire:loading.attr="disabled"
+            class="w-full bg-gradient-to-r from-primary-400 to-primary-600 text-white font-bold text-sm py-3.5 rounded-xl hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
+            <span wire:loading.remove wire:target="updateProfileInformation" class="flex items-center justify-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Update Profile
+            </span>
+            <span wire:loading wire:target="updateProfileInformation" class="flex items-center justify-center">
+                <svg class="animate-spin h-4 w-4 mr-2 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Updating...
+            </span>
+        </button>
     </form>
-</section>
+</div>

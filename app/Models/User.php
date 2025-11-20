@@ -27,6 +27,22 @@ class User extends Authenticatable
         'status',
         'phone',
         'address',
+        // KTP Fields
+        'nik',
+        'place_of_birth',
+        'date_of_birth',
+        'gender',
+        'rt',
+        'rw',
+        'kelurahan',
+        'kecamatan',
+        'city',
+        'province',
+        'religion',
+        'marital_status',
+        'occupation',
+        'ktp_photo',
+        'selfie_photo',
     ];
 
     /**
@@ -50,6 +66,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'verified' => 'boolean',
+            'date_of_birth' => 'date',
         ];
     }
 
@@ -84,6 +101,16 @@ class User extends Authenticatable
         return $this->hasMany(Log::class);
     }
 
+    public function balance()
+    {
+        return $this->hasOne(UserBalance::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(BalanceTransaction::class);
+    }
+
     // Helper methods
     public function isSuperAdmin()
     {
@@ -97,12 +124,18 @@ class User extends Authenticatable
 
     public function isKustomer()
     {
-        return $this->role === 'kustomer';
+        return $this->isCustomer();
     }
 
     public function isMitra()
     {
         return $this->role === 'mitra';
+    }
+
+    public function isCustomer()
+    {
+        // Accept both 'customer' (new) and 'kustomer' (legacy) values
+        return in_array($this->role, ['customer', 'kustomer']);
     }
 
     public function isVerified()

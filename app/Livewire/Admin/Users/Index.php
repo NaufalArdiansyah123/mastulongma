@@ -22,7 +22,7 @@ class Index extends Component
     public $name = '';
     public $email = '';
     public $phone = '';
-    public $role = 'kustomer';
+    public $role = 'customer';
     public $city_id = '';
     public $status = 'active';
     public $password = '';
@@ -68,7 +68,7 @@ class Index extends Component
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . ($this->userId ?? 'NULL'),
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:super_admin,admin,kustomer,mitra',
+            'role' => 'required|in:super_admin,admin,customer,mitra',
             'city_id' => 'nullable|exists:cities,id',
             'status' => 'required|in:active,inactive,blocked',
         ];

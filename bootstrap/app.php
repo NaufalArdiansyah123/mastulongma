@@ -11,11 +11,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+
+        // Add global middleware for role-based redirects
+        $middleware->web(append: [
+            \App\Http\Middleware\RedirectBasedOnRole::class,
+        ]);
+
         $middleware->alias([
             'super_admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'kustomer' => \App\Http\Middleware\EnsureKustomer::class,
             'mitra' => \App\Http\Middleware\EnsureMitra::class,
+        ]);
+
+        // Exclude Midtrans webhook from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'topup/notification',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

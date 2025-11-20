@@ -1,198 +1,194 @@
-<div>
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div class="px-8 py-6">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Moderasi Bantuan</h1>
-                <p class="text-sm text-gray-600 mt-1">Kelola dan moderasi permintaan bantuan dari customer</p>
-            </div>
-        </div>
-    </header>
+<div class="min-h-screen bg-gradient-to-b from-blue-500 to-blue-600">
+    <!-- Mobile Container -->
+    <div class="max-w-md mx-auto min-h-screen pb-24">
 
-    <div class="p-12">
-        <!-- Filter Cards -->
-        <div class="grid grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                    <svg class="w-5 h-5 inline mr-2 text-primary-600" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <!-- Header -->
+        <div class="bg-blue-500 px-6 pt-8 pb-6">
+            <div class="flex items-center justify-between text-white mb-6">
+                <button onclick="window.history.back()" class="p-2 -ml-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                     </svg>
-                    Cari Bantuan
-                </label>
-                <input type="text" wire:model.live="search" placeholder="Cari judul atau deskripsi..."
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </button>
+                <div class="flex-1 text-center">
+                    <h1 class="text-xl font-bold">Permintaan Saya</h1>
+                    <p class="text-sm text-blue-100 mt-1">Kelola permintaan bantuan Anda</p>
+                </div>
+                <div class="w-10"></div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                    <svg class="w-5 h-5 inline mr-2 text-primary-600" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Filter Status
-                </label>
-                <select wire:model.live="statusFilter"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="">Semua Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="active">Aktif</option>
-                    <option value="completed">Selesai</option>
-                    <option value="rejected">Ditolak</option>
-                </select>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                    <svg class="w-5 h-5 inline mr-2 text-primary-600" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    Per Halaman
-                </label>
-                <select wire:model.live="perPage"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="10">10 Data</option>
-                    <option value="25">25 Data</option>
-                    <option value="50">50 Data</option>
-                    <option value="100">100 Data</option>
-                </select>
+            <!-- Filter Tabs -->
+            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <button wire:click="$set('statusFilter', '')"
+                    class="px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all
+                    {{ $statusFilter === '' ? 'bg-white text-blue-600 shadow-lg' : 'bg-blue-400 bg-opacity-40 text-white' }}">
+                    Semua
+                </button>
+                <button wire:click="$set('statusFilter', 'pending')"
+                    class="px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all
+                    {{ $statusFilter === 'pending' ? 'bg-white text-blue-600 shadow-lg' : 'bg-blue-400 bg-opacity-40 text-white' }}">
+                    Pending
+                </button>
+                <button wire:click="$set('statusFilter', 'active')"
+                    class="px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all
+                    {{ $statusFilter === 'active' ? 'bg-white text-blue-600 shadow-lg' : 'bg-blue-400 bg-opacity-40 text-white' }}">
+                    Disetujui
+                </button>
+                <button wire:click="$set('statusFilter', 'completed')"
+                    class="px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all
+                    {{ $statusFilter === 'completed' ? 'bg-white text-blue-600 shadow-lg' : 'bg-blue-400 bg-opacity-40 text-white' }}">
+                    Selesai
+                </button>
             </div>
         </div>
 
-        <!-- Table Card -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">ID
-                            </th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Judul Bantuan</th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Customer</th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Kategori</th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Kota</th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Status</th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Dibuat</th>
-                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($helps as $help)
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    #{{ $help->id }}
-                                </td>
-                                <td class="px-6 py-5">
-                                    <div class="text-sm font-semibold text-gray-900 max-w-xs truncate">
-                                        {{ $help->title }}</div>
-                                    <div class="text-xs text-gray-500 mt-1 max-w-xs truncate">
-                                        {{ Str::limit($help->description, 50) }}</div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $help->customer->name ?? '-' }}</div>
-                                    <div class="text-xs text-gray-500">{{ $help->customer->email ?? '-' }}</div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                        {{ $help->category->name ?? '-' }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $help->city->name ?? '-' }}</div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    @php
-                                        $statusColors = [
-                                            'pending' => 'bg-yellow-100 text-yellow-800',
-                                            'active' => 'bg-green-100 text-green-800',
-                                            'completed' => 'bg-blue-100 text-blue-800',
-                                            'rejected' => 'bg-red-100 text-red-800',
-                                        ];
-                                        $statusLabels = [
-                                            'pending' => 'Pending',
-                                            'active' => 'Aktif',
-                                            'completed' => 'Selesai',
-                                            'rejected' => 'Ditolak',
-                                        ];
-                                    @endphp
-                                    <span
-                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$help->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                        {{ $statusLabels[$help->status] ?? ucfirst($help->status) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $help->created_at->format('d M Y') }}
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-center text-sm font-medium">
-                                    <div class="flex items-center justify-center space-x-2">
-                                        <button wire:click="viewHelp({{ $help->id }})"
-                                            class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition"
-                                            title="Lihat Detail">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </button>
-                                        @if ($help->status === 'pending')
-                                            <button wire:click="approveHelp({{ $help->id }})"
-                                                class="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg transition"
-                                                title="Setujui">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            </button>
-                                            <button wire:click="rejectHelp({{ $help->id }})"
-                                                class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition"
-                                                title="Tolak">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="px-6 py-12 text-center">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <p class="text-gray-500 text-lg font-medium">Tidak ada data bantuan</p>
-                                        <p class="text-gray-400 text-sm mt-1">Belum ada permintaan bantuan</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        <!-- Content Area -->
+        <div class="bg-gray-50 min-h-screen px-6 pt-6 -mt-4 rounded-t-3xl">
+
+            <!-- Helps List -->
+            <div class="space-y-4">
+                @forelse($helps as $help)
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                        <!-- Category Badge & Status -->
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                                    {{ $help->category_id == 1 ? 'bg-orange-100 text-orange-700' : '' }}
+                                    {{ $help->category_id == 2 ? 'bg-pink-100 text-pink-700' : '' }}
+                                    {{ $help->category_id == 3 ? 'bg-purple-100 text-purple-700' : '' }}
+                                    {{ !in_array($help->category_id, [1, 2, 3]) ? 'bg-blue-100 text-blue-700' : '' }}">
+                                <svg class="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                                    <path
+                                        d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                                </svg>
+                                {{ $help->category->name ?? 'Umum' }}
+                            </span>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                                    {{ $help->status === 'pending' ? 'bg-gray-100 text-gray-700' : '' }}
+                                    {{ $help->status === 'active' ? 'bg-blue-100 text-blue-700' : '' }}
+                                    {{ $help->status === 'completed' ? 'bg-green-100 text-green-700' : '' }}
+                                    {{ $help->status === 'rejected' ? 'bg-red-100 text-red-700' : '' }}">
+                                {{ $help->status === 'active' ? 'Approved' : ucfirst($help->status) }}
+                            </span>
+                        </div>
+
+                        <!-- Title -->
+                        <h3 class="font-bold text-gray-900 text-base leading-tight mb-2">
+                            {{ $help->title }}
+                        </h3>
+
+                        <!-- Description -->
+                        <p class="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2">
+                            {{ $help->description }}
+                        </p>
+
+                        <!-- Location & Date -->
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                {{ $help->city->name ?? 'Jakarta' }}
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    {{ $help->address ?? 'Alamat lengkap bantuan' }}
+                                </div>
+                                <span class="text-gray-400">{{ $help->created_at->diffForHumans() }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons for Pending -->
+                        @if($help->status === 'pending')
+                            <div class="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                                <button wire:click="approveHelp({{ $help->id }})"
+                                    class="flex-1 px-4 py-2.5 bg-blue-500 text-white text-sm font-semibold rounded-xl hover:bg-blue-600 transition">
+                                    Setujui
+                                </button>
+                                <button wire:click="rejectHelp({{ $help->id }})"
+                                    class="px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition">
+                                    Tolak
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                @empty
+                    <div class="bg-white rounded-2xl p-12 text-center shadow-sm">
+                        <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                        <p class="text-gray-500 font-medium text-base">Tidak ada permintaan</p>
+                        <p class="text-gray-400 text-sm mt-1">Belum ada permintaan bantuan yang masuk</p>
+                    </div>
+                @endforelse
             </div>
 
             <!-- Pagination -->
             @if ($helps->hasPages())
-                <div class="bg-gray-50 px-6 py-5 border-t border-gray-200">
+                <div class="mt-6 pb-4">
                     {{ $helps->links() }}
                 </div>
             @endif
         </div>
+
+        <!-- Bottom Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl">
+            <div class="max-w-md mx-auto flex items-center justify-around px-4 py-3">
+                <a href="{{ route('admin.dashboard') }}"
+                    class="flex flex-col items-center py-2 text-gray-400 hover:text-blue-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </a>
+                <a href="{{ route('admin.helps') }}" class="flex flex-col items-center py-2 relative">
+                    <div class="absolute -top-6 bg-blue-500 rounded-full p-4 shadow-xl">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                </a>
+                <a href="#" class="flex flex-col items-center py-2 text-gray-400 hover:text-blue-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                </a>
+                <a href="#" class="flex flex-col items-center py-2 text-gray-400 hover:text-blue-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

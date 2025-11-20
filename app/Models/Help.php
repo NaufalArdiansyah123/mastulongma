@@ -8,9 +8,9 @@ class Help extends Model
 {
     protected $fillable = [
         'user_id',
-        'category_id',
         'city_id',
         'title',
+        'amount',
         'description',
         'photo',
         'location',
@@ -24,6 +24,7 @@ class Help extends Model
     protected $casts = [
         'taken_at' => 'datetime',
         'completed_at' => 'datetime',
+        'amount' => 'decimal:2',
     ];
 
     public function user()
@@ -31,14 +32,14 @@ class Help extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
     public function city()
     {
         return $this->belongsTo(City::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     public function mitra()
@@ -49,6 +50,20 @@ class Help extends Model
     public function ratings()
     {
         return $this->hasMany(Rating::class);
+    }
+
+    /**
+     * The rating left by the owner of this help (if any).
+     * This is useful to eager-load the single rating that belongs to the help's creator.
+     */
+    public function rating()
+    {
+        return $this->hasOne(Rating::class);
+    }
+
+    public function chatMessages()
+    {
+        return $this->hasMany(Chat::class);
     }
 
     public function scopeApproved($query)

@@ -53,7 +53,7 @@ class Helps extends Component
     public function render()
     {
         $helps = Help::query()
-            ->with(['customer', 'category', 'city'])
+            ->with(['customer', 'city'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('title', 'like', '%' . $this->search . '%')

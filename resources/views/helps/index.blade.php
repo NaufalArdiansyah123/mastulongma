@@ -1,4 +1,4 @@
 <x-app-layout>
     <x-slot name="title">Daftar Bantuan</x-slot>
-    <livewire:helps.index />
+    <livewire:customer.helps.index />
 </x-app-layout>

@@ -1,4 +1,4 @@
 <x-app-layout>
     <x-slot name="title">Buat Permintaan Bantuan</x-slot>
-    <livewire:helps.create />
+    <livewire:customer.helps.create />
 </x-app-layout>

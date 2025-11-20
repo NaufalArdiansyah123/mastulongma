@@ -75,7 +75,7 @@
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Customer</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Kategori</th>
+                                Nominal</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Kota</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -103,8 +103,8 @@
                                     <div class="text-xs text-gray-500">{{ $help->customer->email ?? '-' }}</div>
                                 </td>
                                 <td class="px-6 py-5 whitespace-nowrap">
-                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                        {{ $help->category->name ?? '-' }}
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        💰 Rp {{ number_format($help->amount ?? 0, 0, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-5 whitespace-nowrap">

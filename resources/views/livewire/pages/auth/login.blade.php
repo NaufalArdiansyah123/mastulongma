@@ -27,7 +27,20 @@ new #[Layout('layouts.guest')] class extends Component {
 
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        // Determine redirect destination based on user role
+        $user = auth()->user();
+
+        // Redirect to role-specific dashboard
+        if ($user->role === 'mitra') {
+            $redirect = route('mitra.dashboard', absolute: false);
+        } elseif ($user->role === 'kustomer') {
+            $redirect = route('customer.dashboard', absolute: false);
+        } else {
+            // Default fallback
+            $redirect = route('dashboard', absolute: false);
+        }
+
+        $this->redirectIntended(default: $redirect, navigate: true);
     }
 }; ?>
 
@@ -100,9 +113,9 @@ new #[Layout('layouts.guest')] class extends Component {
 
             <!-- Fingerprint Section -->
             <div class="text-center my-4">
-                <p class="text-sm text-gray-600">Use <span class="text-primary-600 font-semibold">Fingerprint</span> To
-                    Access</p>
-                <p class="text-xs text-gray-500 mt-2">or sign up with</p>
+                <p class="text-sm text-gray-600">or sign up with
+                </p>
+                <p class="text-xs text-gray-500 mt-2"></p>
             </div>
 
             <!-- Social Login -->

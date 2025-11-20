@@ -16,7 +16,7 @@ class EnsureKustomer
     public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check() || !auth()->user()->isKustomer()) {
-            abort(403, 'Unauthorized. Kustomer access only.');
+            abort(403, 'Unauthorized. Customer access only.');
         }
 
         return $next($request);

@@ -30,11 +30,32 @@ class LoginForm extends Form
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
+        if (!Auth::attempt($this->only(['email', 'password']), $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'form.email' => trans('auth.failed'),
+            ]);
+        }
+
+        // Check user status after successful authentication
+        $user = Auth::user();
+
+        // Allow admin and super_admin to login regardless of registration pending flag
+        $isPrivileged = in_array($user->role, ['admin', 'super_admin']);
+
+        // Only block non-privileged users who are pending or inactive
+        if (!$isPrivileged && ($user->status === 'pending' || $user->status === 'inactive')) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'form.email' => 'Akun Anda masih menunggu verifikasi dari admin. Silakan tunggu hingga akun Anda disetujui.',
+            ]);
+        }
+
+        if ($user->status === 'blocked') {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'form.email' => 'Akun Anda telah diblokir. Silakan hubungi administrator.',
             ]);
         }
 
@@ -46,7 +67,7 @@ class LoginForm extends Form
      */
     protected function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -67,6 +88,6 @@ class LoginForm extends Form
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->email) . '|' . request()->ip());
     }
 }

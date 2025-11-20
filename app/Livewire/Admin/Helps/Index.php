@@ -7,7 +7,7 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\Help;
 
-#[Layout('layouts.admin')]
+#[Layout('layouts.blank')]
 class Index extends Component
 {
     use WithPagination;
@@ -60,12 +60,17 @@ class Index extends Component
                         ->orWhere('description', 'like', '%' . $this->search . '%');
                 });
             })
-            ->when($this->statusFilter, function ($query) {
+            ->when($this->statusFilter !== '', function ($query) {
                 $query->where('status', $this->statusFilter);
             })
             ->latest()
             ->paginate($this->perPage);
 
-        return view('admin.helps', compact('helps'));
+        // Statistics
+        $totalHelps = Help::count();
+        $pendingHelps = Help::where('status', 'pending')->count();
+        $completedHelps = Help::where('status', 'completed')->count();
+
+        return view('admin.helps', compact('helps', 'totalHelps', 'pendingHelps', 'completedHelps'));
     }
 }

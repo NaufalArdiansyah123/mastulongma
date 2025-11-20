@@ -9,29 +9,10 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('layouts.guest')] class extends Component {
-    public string $name = '';
-    public string $email = '';
-    public string $password = '';
-    public string $password_confirmation = '';
-
-    /**
-     * Handle an incoming registration request.
-     */
-    public function register(): void
+    public function startRegistration(): void
     {
-        $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
-            'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-        ]);
-
-        $validated['password'] = Hash::make($validated['password']);
-
-        event(new Registered($user = User::create($validated)));
-
-        Auth::login($user);
-
-        $this->redirect(route('dashboard', absolute: false), navigate: true);
+        // Redirect ke step 1 untuk registrasi multi-step
+        $this->redirect(route('register.choose-role'), navigate: true);
     }
 }; ?>
 
@@ -40,115 +21,120 @@ new #[Layout('layouts.guest')] class extends Component {
 
     <!-- Header -->
     <div class="flex-shrink-0 pt-8 pb-6 text-center">
-        <h1 class="text-3xl font-bold text-gray-900">Create Account</h1>
+        <h1 class="text-3xl font-bold text-white">Daftar Akun Baru</h1>
+        <p class="text-white/90 text-sm mt-2">Lengkapi data untuk verifikasi</p>
     </div>
 
-    <!-- Card Container - Flex grow untuk fill space -->
+    <!-- Card Container -->
     <div class="flex-1 flex flex-col bg-gray-50 rounded-t-[2.5rem] overflow-y-auto px-6 py-8">
-        <form wire:submit="register" class="space-y-4 flex-1 flex flex-col">
-            <!-- Full Name -->
-            <div>
-                <label for="name" class="block text-xs font-semibold text-gray-700 mb-2">Full Name</label>
-                <input wire:model="name" id="name" type="text" name="name" required autofocus autocomplete="name"
-                    placeholder="example@example.com"
-                    class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm">
-                <x-input-error :messages="$errors->get('name')" class="mt-2" />
-            </div>
-
-            <!-- Email -->
-            <div>
-                <label for="email" class="block text-xs font-semibold text-gray-700 mb-2">Email</label>
-                <input wire:model="email" id="email" type="email" name="email" required autocomplete="username"
-                    placeholder="example@example.com"
-                    class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm">
-                <x-input-error :messages="$errors->get('email')" class="mt-2" />
-            </div>
-
-            <!-- Mobile Number (Optional - untuk future) -->
-            <div>
-                <label for="phone" class="block text-xs font-semibold text-gray-700 mb-2">Mobile Number</label>
-                <input type="tel" id="phone" name="phone" placeholder="+ 123 456 789"
-                    class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm">
-            </div>
-
-            <!-- Date of Birth (Optional - untuk future) -->
-            <div>
-                <label for="dob" class="block text-xs font-semibold text-gray-700 mb-2">Date Of Birth</label>
-                <input type="text" id="dob" name="dob" placeholder="DD / MM / YYY"
-                    class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm">
-            </div>
-
-            <!-- Password -->
-            <div>
-                <label for="password" class="block text-xs font-semibold text-gray-700 mb-2">Password</label>
-                <div class="relative">
-                    <input wire:model="password" id="password" type="password" name="password" required
-                        autocomplete="new-password" placeholder="••••••••"
-                        class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm">
-                    <button type="button" onclick="togglePassword('password')"
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex-1 flex flex-col justify-between">
+            <!-- Info Section -->
+            <div class="space-y-6">
+                <!-- Welcome Message -->
+                <div class="text-center mb-8">
+                    <div class="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-12 h-12 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                    </button>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Siapkan Dokumen Anda</h2>
+                    <p class="text-gray-600 text-sm">Proses registrasi memerlukan beberapa dokumen untuk verifikasi
+                        identitas</p>
                 </div>
-                <x-input-error :messages="$errors->get('password')" class="mt-2" />
-            </div>
 
-            <!-- Confirm Password -->
-            <div>
-                <label for="password_confirmation" class="block text-xs font-semibold text-gray-700 mb-2">Confirm
-                    Password</label>
-                <div class="relative">
-                    <input wire:model="password_confirmation" id="password_confirmation" type="password"
-                        name="password_confirmation" required autocomplete="new-password" placeholder="••••••••"
-                        class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm">
-                    <button type="button" onclick="togglePassword('password_confirmation')"
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <!-- Requirements List -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                clip-rule="evenodd" />
                         </svg>
-                    </button>
+                        Yang Perlu Disiapkan:
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <span class="text-green-600 font-bold text-sm">1</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 text-sm">Data KTP</h4>
+                                <p class="text-xs text-gray-600">NIK, nama lengkap, alamat, dan data lainnya sesuai KTP
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-blue-600 font-bold text-sm">2</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 text-sm">Foto KTP</h4>
+                                <p class="text-xs text-gray-600">Foto KTP yang jelas dan terbaca</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                <span class="text-purple-600 font-bold text-sm">3</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 text-sm">Foto Selfie + KTP</h4>
+                                <p class="text-xs text-gray-600">Foto selfie sambil memegang KTP Anda</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                <span class="text-orange-600 font-bold text-sm">4</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 text-sm">Email & Password</h4>
+                                <p class="text-xs text-gray-600">Email aktif untuk akun login Anda</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+
+                <!-- Info Banner -->
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="flex gap-3">
+                        <div class="flex-shrink-0">
+                            <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-blue-900 mb-1">Informasi Penting</h4>
+                            <p class="text-xs text-blue-800">Data yang Anda berikan akan digunakan untuk verifikasi
+                                identitas dan keamanan akun. Pastikan semua data yang dimasukkan benar dan sesuai dengan
+                                KTP asli.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Terms -->
-            <div class="text-center text-xs text-gray-600 mt-2">
-                By continuing, you agree to<br>
-                <a href="#" class="text-gray-800 font-semibold hover:text-primary-600">Terms of Use</a> and
-                <a href="#" class="text-gray-800 font-semibold hover:text-primary-600">Privacy Policy</a>.
-            </div>
+            <!-- Action Buttons -->
+            <div class="space-y-3 mt-6">
+                <button wire:click="startRegistration" type="button"
+                    class="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-3.5 rounded-full shadow-lg hover:shadow-xl transition">
+                    Mulai Pendaftaran
+                </button>
 
-            <!-- Sign Up Button -->
-            <button type="submit" wire:loading.attr="disabled"
-                class="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-3.5 rounded-full shadow-lg hover:shadow-xl transition disabled:opacity-50 mt-6">
-                Sign Up
-            </button>
-
-            <!-- Log In Link - Push ke bawah -->
-            <div class="text-center mt-auto pt-4">
-                <p class="text-sm text-gray-600">
-                    Already have an account?
-                    <a href="{{ route('login') }}" wire:navigate
-                        class="text-primary-600 font-semibold hover:text-primary-700">
-                        Log In
-                    </a>
-                </p>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">
+                        Sudah punya akun?
+                        <a href="{{ route('login') }}" wire:navigate
+                            class="text-primary-600 font-semibold hover:text-primary-700">
+                            Login
+                        </a>
+                    </p>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
-
-<script>
-    function togglePassword(id) {
-        const input = document.getElementById(id);
-        input.type = input.type === 'password' ? 'text' : 'password';
-    }
-</script>
