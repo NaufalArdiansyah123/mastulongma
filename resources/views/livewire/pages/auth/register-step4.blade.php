@@ -55,6 +55,8 @@ new #[Layout('layouts.guest')] class extends Component {
 
         $this->step2_data = ['ktp_photo_path' => $registration->ktp_photo_path];
         $this->step3_data = ['selfie_photo_path' => $registration->selfie_photo_path];
+        // Prefill email if user previously entered it
+        $this->email = $registration->email ?? $this->email;
     }
 
     public function complete(): void
@@ -76,7 +78,7 @@ new #[Layout('layouts.guest')] class extends Component {
         $userData = [
             'name' => $registration->full_name,
             'email' => $validated['email'],
-            'role' => $registration->role ?? 'kustomer',
+            'role' => $registration->role ?? 'customer',
             'password' => Hash::make($validated['password']),
             'nik' => $registration->nik,
             'place_of_birth' => $registration->place_of_birth,
@@ -97,8 +99,9 @@ new #[Layout('layouts.guest')] class extends Component {
         ];
 
         // Buat user baru tetapi jangan login — akun perlu verifikasi admin
-        // Set status default 'pending' and verified = false
-        $userData['status'] = 'pending';
+        // Set status to an allowed users enum value and mark unverified
+        // (registrations are tracked separately with 'pending_verification')
+        $userData['status'] = 'inactive';
         $userData['verified'] = false;
 
         $user = User::create($userData);
@@ -115,6 +118,9 @@ new #[Layout('layouts.guest')] class extends Component {
 
         // Hapus UUID session
         Session::forget('registration_uuid');
+
+        // Clear client-side saved draft for step4 (email)
+        $this->dispatch('clear-registration-step4');
 
         // Redirect to a success/awaiting-verification page
         $this->redirect(route('registration.success'), navigate: true);
@@ -293,3 +299,36 @@ new #[Layout('layouts.guest')] class extends Component {
         </form>
     </div>
 </div>
+
+<script>
+    (function () {
+        const key = 'registration_step4_email';
+        const el = document.getElementById('email');
+        // Load saved email (if any) into input
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                const val = localStorage.getItem(key);
+                if (val !== null && el) {
+                    el.value = val;
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            } catch (e) { }
+        });
+
+        // Save on input
+        if (el) {
+            el.addEventListener('input', (ev) => {
+                try { localStorage.setItem(key, ev.target.value); } catch (e) { }
+            });
+        }
+
+        // Clear saved draft when Livewire triggers event
+        document.addEventListener('livewire:load', function () {
+            if (window.Livewire) {
+                window.Livewire.on('clear-registration-step4', () => {
+                    try { localStorage.removeItem(key); } catch (e) { }
+                });
+            }
+        });
+    })();
+</script>

@@ -278,7 +278,7 @@ class Index extends Component
     {
         $user = auth()->user();
 
-        if ($user->isKustomer()) {
+        if ($user->isCustomer()) {
             $helps = Help::where('user_id', $user->id)
                 ->with([
                     'city',

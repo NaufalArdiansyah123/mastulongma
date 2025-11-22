@@ -84,11 +84,12 @@
     <!-- Menu Items -->
     <div class="px-5 pt-6 pb-24">
         <div class="space-y-3">
-            {{-- Mount the update-photo Livewire component so it can listen for events --}}
+            {{-- Mount the update-photo Livewire component and the edit-profile modal so they can listen for events --}}
             <livewire:mitra.update-profile-photo />
+            <livewire:mitra.profile.edit />
 
             <!-- Edit Profil -->
-            <a href="#"
+            <a href="#" onclick="openMitraEditProfile(); return false;"
                 class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
                 <div class="bg-gradient-to-br from-blue-400 to-blue-600 text-white p-3 rounded-full">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,8 +214,8 @@
         }
     </script>
     <script>
-        // Robust helper to emit Livewire event 'openModal' for mitra photo.
-        function openMitraPhotoModal() {
+        // Expose robust helpers on the window so onclick handlers can call them reliably.
+        window.openMitraPhotoModal = function () {
             const tryEmit = () => {
                 if (window.livewire && typeof window.livewire.emit === 'function') {
                     window.livewire.emit('openModal');
@@ -247,6 +248,42 @@
                     console.warn('openMitraPhotoModal: Livewire emit not available.');
                 }
             }, 200);
-        }
+        };
+
+        // Helper to open mitra profile edit modal by emitting 'openEditProfile'
+        window.openMitraEditProfile = function () {
+            const tryEmit = () => {
+                if (window.livewire && typeof window.livewire.emit === 'function') {
+                    window.livewire.emit('openEditProfile');
+                    return true;
+                }
+                if (window.Livewire) {
+                    if (typeof window.Livewire.emit === 'function') {
+                        window.Livewire.emit('openEditProfile');
+                        return true;
+                    }
+                    if (typeof window.Livewire.dispatch === 'function') {
+                        window.Livewire.dispatch('openEditProfile');
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            if (tryEmit()) return;
+
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts++;
+                if (tryEmit()) {
+                    clearInterval(interval);
+                    return;
+                }
+                if (attempts >= 10) {
+                    clearInterval(interval);
+                    console.warn('openMitraEditProfile: Livewire emit not available.');
+                }
+            }, 200);
+        };
     </script>
 </div>

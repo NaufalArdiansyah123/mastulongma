@@ -19,6 +19,9 @@ class Index extends Component
     public $perPage = 10;
     public $selectedRegistration = null;
     public $previewPhoto = null;
+    public $showModal = false;
+    public $selectedUser = null;
+    public $rejectReason = '';
 
     public function updatedSearch()
     {
@@ -42,7 +45,30 @@ class Index extends Component
         if (!$this->selectedRegistration) {
             Log::warning('Livewire: viewKtp - registration not found', ['id' => $id]);
             session()->flash('message', 'Registrasi tidak ditemukan');
+            return;
         }
+
+        // Try to find a User associated with this registration (by email)
+        $user = User::where('email', $this->selectedRegistration->email)->first();
+
+        if ($user) {
+            // Ensure we provide ktp_path property expected by the view
+            $user->ktp_path = $this->selectedRegistration->ktp_photo_path ?? $this->selectedRegistration->ktp_path ?? null;
+            $this->selectedUser = $user;
+        } else {
+            // Create a lightweight object to represent the registration in the modal
+            $this->selectedUser = (object) [
+                'id' => $this->selectedRegistration->id,
+                'name' => $this->selectedRegistration->full_name,
+                'email' => $this->selectedRegistration->email,
+                'phone' => null,
+                'status' => $this->selectedRegistration->status ?? 'pending',
+                'verified' => ($this->selectedRegistration->status ?? '') === 'approved',
+                'ktp_path' => $this->selectedRegistration->ktp_photo_path ?? null,
+            ];
+        }
+
+        $this->showModal = true;
     }
 
     public function showPhoto($url)
@@ -61,12 +87,29 @@ class Index extends Component
     {
         Log::info('Livewire: closeModal called', ['user_id' => auth()->id()]);
         $this->selectedRegistration = null;
+        $this->selectedUser = null;
+        $this->showModal = false;
+        $this->rejectReason = '';
     }
 
     public function approveKtp($id)
     {
         Log::info('Livewire: approveKtp called', ['id' => $id, 'user_id' => auth()->id()]);
-        $reg = Registration::findOrFail($id);
+        // Accept either registration id or user id
+        $reg = Registration::find($id);
+        if (!$reg) {
+            // try resolving by user id
+            $user = User::find($id);
+            if ($user) {
+                $reg = Registration::where('email', $user->email)->first();
+            }
+        }
+
+        if (!$reg) {
+            session()->flash('message', 'Registrasi tidak ditemukan');
+            return;
+        }
+
         $user = User::where('email', $reg->email)->first();
         if ($user) {
             $user->update([
@@ -87,7 +130,20 @@ class Index extends Component
     public function rejectKtp($id)
     {
         Log::info('Livewire: rejectKtp called', ['id' => $id, 'user_id' => auth()->id()]);
-        $reg = Registration::findOrFail($id);
+        // Accept either registration id or user id
+        $reg = Registration::find($id);
+        if (!$reg) {
+            $user = User::find($id);
+            if ($user) {
+                $reg = Registration::where('email', $user->email)->first();
+            }
+        }
+
+        if (!$reg) {
+            session()->flash('message', 'Registrasi tidak ditemukan');
+            return;
+        }
+
         $user = User::where('email', $reg->email)->first();
         if ($user) {
             $user->update(['status' => 'blocked']);

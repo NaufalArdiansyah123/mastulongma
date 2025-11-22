@@ -91,7 +91,7 @@ class Dashboard extends Component
                     ->take(10)
                     ->get();
             } else {
-                // Untuk kustomer, tampilkan bantuan yang sudah selesai atau dibatalkan
+                // Untuk customer, tampilkan bantuan yang sudah selesai atau dibatalkan
                 $availableHelps = Help::where('user_id', $user->id)
                     ->whereIn('status', ['selesai', 'dibatalkan'])
                     ->with(['mitra', 'city'])
@@ -101,7 +101,7 @@ class Dashboard extends Component
             }
         }
 
-        if ($user->isKustomer()) {
+        if ($user->isCustomer()) {
             $stats = [
                 'total_helps' => Help::where('user_id', $user->id)->count(),
                 'pending_helps' => Help::where('user_id', $user->id)->where('status', 'menunggu_mitra')->count(),

@@ -14,8 +14,8 @@
     </header>
 
     <div class="p-12">
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-3 gap-8 mb-8">
+        <!-- Stats Grid: Bantuan -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <!-- Total Helps -->
             <div class="bg-white rounded-2xl shadow-lg p-10 border-l-4 border-primary-600">
                 <div class="flex items-center justify-between">
@@ -68,8 +68,8 @@
             </div>
         </div>
 
-        <!-- Second Row Stats -->
-        <div class="grid grid-cols-3 gap-8 mb-8">
+        <!-- Second Row Stats: KTP & Mitra -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <!-- Completed Helps -->
             <div class="bg-white rounded-2xl shadow-lg p-10 border-l-4 border-blue-600">
                 <div class="flex items-center justify-between">
@@ -104,7 +104,7 @@
                 </div>
             </div>
 
-            <!-- Verified Mitras -->
+            <!-- Verified / Blocked Mitras -->
             <div class="bg-white rounded-2xl shadow-lg p-10 border-l-4 border-teal-600">
                 <div class="flex items-center justify-between">
                     <div>
@@ -118,6 +118,121 @@
                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Check Sistem -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Health Check Sistem</h2>
+            <p class="text-xs text-gray-500 mb-4">Ringkasan kondisi sistem aplikasi. Data ini hanya indikatif dan
+                diambil
+                langsung
+                dari server.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                <!-- Server -->
+                <div class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 bg-gray-50">
+                    <div>
+                        <p class="font-semibold text-gray-800">Server</p>
+                        <p class="text-xs text-gray-500">Aplikasi berjalan</p>
+                    </div>
+                    <span
+                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                        <span class="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                        Online
+                    </span>
+                </div>
+
+                <!-- Database -->
+                <div class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 bg-gray-50">
+                    <div>
+                        <p class="font-semibold text-gray-800">Database</p>
+                        <p class="text-xs text-gray-500">Koneksi MySQL</p>
+                    </div>
+                    @if ($health['database']['status'] === 'ok')
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                            <span class="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                            Normal
+                        </span>
+                    @else
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                            <span class="w-2 h-2 rounded-full bg-red-500 mr-1"></span>
+                            Gangguan
+                        </span>
+                    @endif
+                </div>
+
+                <!-- Queue -->
+                <div class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 bg-gray-50">
+                    <div>
+                        <p class="font-semibold text-gray-800">Queue</p>
+                        <p class="text-xs text-gray-500">
+                            @if (!is_null($health['queue']['pending']))
+                                {{ $health['queue']['pending'] }} tugas tertunda
+                            @else
+                                Tabel jobs tidak ditemukan
+                            @endif
+                        </p>
+                    </div>
+                    @if ($health['queue']['status'] === 'warning')
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 mr-1"></span>
+                            Perlu dicek
+                        </span>
+                    @elseif ($health['queue']['status'] === 'ok')
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                            <span class="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                            Normal
+                        </span>
+                    @else
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                            Tidak aktif
+                        </span>
+                    @endif
+                </div>
+
+                <!-- Disk -->
+                <div class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 bg-gray-50">
+                    <div>
+                        <p class="font-semibold text-gray-800">Disk</p>
+                        <p class="text-xs text-gray-500">
+                            @if (!is_null($health['disk']['usage']))
+                                Penggunaan {{ $health['disk']['usage'] }}%
+                            @else
+                                Tidak dapat membaca
+                            @endif
+                        </p>
+                    </div>
+                    @if ($health['disk']['status'] === 'critical')
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                            <span class="w-2 h-2 rounded-full bg-red-500 mr-1"></span>
+                            Kritikal
+                        </span>
+                    @elseif ($health['disk']['status'] === 'warning')
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 mr-1"></span>
+                            Hampir penuh
+                        </span>
+                    @elseif ($health['disk']['status'] === 'ok')
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                            <span class="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                            Normal
+                        </span>
+                    @else
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                            Tidak diketahui
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>

@@ -114,6 +114,9 @@ class Topup extends Component
             $transaction->snap_token = $this->snapToken;
             $transaction->save();
 
+            // Store last order id in session so finish callback can use it if Midtrans doesn't include order_id
+            session()->put('midtrans_last_order_id', $this->orderId);
+
             // Dispatch event to open Midtrans Snap
             $this->dispatch('openMidtransSnap', snapToken: $this->snapToken);
 

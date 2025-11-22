@@ -96,6 +96,11 @@ class User extends Authenticatable
         return $this->hasMany(Rating::class, 'mitra_id');
     }
 
+    public function partnerReports()
+    {
+        return $this->hasMany(\App\Models\PartnerReport::class);
+    }
+
     public function logs()
     {
         return $this->hasMany(Log::class);

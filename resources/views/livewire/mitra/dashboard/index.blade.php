@@ -50,8 +50,7 @@
                         <div>
                             <div class="text-xs text-white/90 font-medium tracking-wide uppercase mb-1">Saldo Tersedia
                             </div>
-                            <div class="text-3xl font-bold text-white mt-1 drop-shadow-sm">Rp
-                                {{ number_format($balance ?? 0, 0, ',', '.') }}</div>
+                            <div class="text-3xl font-bold text-white mt-1 drop-shadow-sm">Rp 0</div>
                         </div>
                         <div class="ml-4 flex-shrink-0">
                             <button type="button"

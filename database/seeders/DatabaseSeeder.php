@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             UserSeeder::class,
             HelpSeeder::class,
+            \Database\Seeders\UserBalancesSeeder::class,
         ]);
     }
 }

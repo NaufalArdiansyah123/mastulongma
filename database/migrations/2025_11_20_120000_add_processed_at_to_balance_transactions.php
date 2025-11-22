@@ -10,9 +10,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('balance_transactions', function (Blueprint $table) {
-            $table->timestamp('processed_at')->nullable()->after('status')->index();
-        });
+       Schema::table('balance_transactions', function (Blueprint $table) {
+    $table->timestamp('processed_at')->nullable()->after('status');
+    });
+
     }
 
     /**

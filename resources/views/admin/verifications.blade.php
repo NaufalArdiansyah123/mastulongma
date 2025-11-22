@@ -69,61 +69,75 @@
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">ID
                             </th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Nama</th>
+                                Nama Mitra</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Email</th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">NIK
-                            </th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">TTL
-                            </th>
+                                NIK</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Lokasi</th>
+                                No. HP</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Role</th>
+                                Foto KTP</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Status</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Dibuat</th>
+                                Upload</th>
                             <th class="px-6 py-5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($verifications as $reg)
+                        @forelse($verifications as $mitra)
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-900">{{ $reg->id }}
+                                <td class="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    #{{ $mitra->id }}
                                 </td>
                                 <td class="px-6 py-5">
-                                    <div class="text-sm font-semibold text-gray-900">{{ $reg->full_name }}</div>
+                                    <div class="flex items-center">
+                                        <div class="h-12 w-12 flex-shrink-0">
+                                            <div
+                                                class="h-12 w-12 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-lg">
+                                                {{ substr($mitra->name, 0, 1) }}
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-semibold text-gray-900">{{ $mitra->name }}</div>
+                                            <div class="text-sm text-gray-500">{{ $mitra->email }}</div>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td class="px-6 py-5 text-sm text-gray-500">{{ $reg->email }}</td>
-                                <td class="px-6 py-5 text-sm font-mono">{{ $reg->nik ?? '-' }}</td>
-                                <td class="px-6 py-5 text-sm">{{ $reg->place_of_birth ?? '-' }},
-                                    {{ $reg->date_of_birth ? date('d/m/Y', strtotime($reg->date_of_birth)) : '-' }}
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 font-mono">{{ $mitra->nik ?? '-' }}</div>
                                 </td>
-                                <td class="px-6 py-5 text-sm">{{ $reg->city ?? '-' }}, {{ $reg->province ?? '-' }}</td>
-                                <td class="px-6 py-5 text-sm">{{ $reg->role ?? 'customer' }}</td>
-                                <td class="px-6 py-5 text-sm">
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ $mitra->phone ?? '-' }}</div>
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    @if ($mitra->ktp_path)
+                                        <button wire:click="viewKtp({{ $mitra->id }})"
+                                            class="text-blue-600 hover:text-blue-900 text-sm font-medium flex items-center space-x-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <span>Lihat</span>
+                                        </button>
+                                    @else
+                                        <span class="text-gray-400 text-sm">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap">
                                     <span
-                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $reg->status === 'approved' ? 'bg-green-100 text-green-800' : ($reg->status === 'pending_verification' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                        {{ $reg->status === 'approved' ? 'Terverifikasi' : ($reg->status === 'pending_verification' ? 'Pending' : 'Ditolak') }}
+                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $mitra->verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                        {{ $mitra->verified ? 'Terverifikasi' : 'Pending' }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-5 text-sm text-gray-500">
-                                    {{ optional($reg->created_at)->format('d M Y') }}
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $mitra->created_at->format('d M Y') }}
                                 </td>
-                                <td class="px-6 py-5 text-center text-sm font-medium">
+                                <td class="px-6 py-5 whitespace-nowrap text-center text-sm font-medium">
                                     <div class="flex items-center justify-center space-x-2">
-                                        <button type="button" wire:click.prevent="viewKtp({{ $reg->id }})"
-                                            class="js-view-detail text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition"
-                                            title="Lihat Detail" data-id="{{ $reg->id }}"
-                                            data-name="{{ htmlspecialchars($reg->full_name, ENT_QUOTES) }}"
-                                            data-email="{{ htmlspecialchars($reg->email, ENT_QUOTES) }}"
-                                            data-nik="{{ htmlspecialchars($reg->nik ?? '-', ENT_QUOTES) }}"
-                                            data-address="{{ htmlspecialchars($reg->address ?? '-', ENT_QUOTES) }}"
-                                            data-status="{{ $reg->status }}"
-                                            data-ktp="{{ $reg->ktp_photo_path ? Storage::url($reg->ktp_photo_path) : '' }}"
-                                            data-selfie="{{ $reg->selfie_photo_path ? Storage::url($reg->selfie_photo_path) : '' }}">
+                                        <button wire:click="viewKtp({{ $mitra->id }})"
+                                            class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition"
+                                            title="Lihat KTP">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -131,18 +145,20 @@
                                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
                                         </button>
-                                        @if ($reg->status === 'pending_verification')
-                                            <button type="button" wire:click.prevent="approveKtp({{ $reg->id }})"
+                                        @if (!$mitra->verified)
+                                            <button wire:click="approveKtp({{ $mitra->id }})"
                                                 class="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg transition"
-                                                title="Setujui">
+                                                title="Verifikasi">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M9 12l2 2 4-4" />
+                                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                                 </svg>
                                             </button>
-                                            <button type="button" wire:click.prevent="rejectKtp({{ $reg->id }})"
+                                        @endif
+                                        @if ($mitra->verified)
+                                            <button wire:click="rejectKtp({{ $mitra->id }})"
                                                 class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition"
-                                                title="Tolak">
+                                                title="Batalkan Verifikasi">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M6 18L18 6M6 6l12 12" />
@@ -180,182 +196,106 @@
         </div>
     </div>
 
-    @if(isset($selectedRegistration) && $selectedRegistration)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+    @if ($showModal && $selectedUser)
+        <div class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Detail KTP Mitra</h2>
+                        <p class="text-sm text-gray-500 mt-1">Periksa kecocokan data sebelum memverifikasi.</p>
+                    </div>
+                    <button wire:click="$set('showModal', false)" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
-            <div class="bg-white max-w-3xl w-full rounded-xl shadow-xl z-10 overflow-hidden">
-                <div class="p-6">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h3 class="text-lg font-bold">Detail Registrasi: {{ $selectedRegistration->full_name }}</h3>
-                            <p class="text-sm text-gray-500">Email: {{ $selectedRegistration->email }}</p>
-                            <p class="text-sm text-gray-500">NIK: {{ $selectedRegistration->nik ?? '-' }}</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            @if($selectedRegistration->status === 'pending_verification')
-                                <button type="button" wire:click.prevent="approveKtp({{ $selectedRegistration->id }})"
-                                    class="px-3 py-2 bg-green-600 text-white rounded">Setujui</button>
-                                <button type="button" wire:click.prevent="rejectKtp({{ $selectedRegistration->id }})"
-                                    class="px-3 py-2 bg-red-600 text-white rounded">Tolak</button>
+                <div class="grid grid-cols-2 gap-6 p-6">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3">Data Mitra</h3>
+                        <dl class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <dt class="text-gray-500">Nama</dt>
+                                <dd class="font-medium text-gray-900">{{ $selectedUser->name }}</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-500">Email</dt>
+                                <dd class="font-medium text-gray-900">{{ $selectedUser->email }}</dd>
+                            </div>
+                            @if ($selectedUser->phone)
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">No. HP</dt>
+                                    <dd class="font-medium text-gray-900">{{ $selectedUser->phone }}</dd>
+                                </div>
                             @endif
-                            <button type="button" wire:click.prevent="closeModal"
-                                class="px-3 py-2 bg-gray-200 rounded">Tutup</button>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-500">Status Akun</dt>
+                                <dd>
+                                    <span
+                                        class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $selectedUser->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700' }}">
+                                        {{ ucfirst($selectedUser->status) }}
+                                    </span>
+                                </dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-500">Status KTP</dt>
+                                <dd>
+                                    <span
+                                        class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $selectedUser->verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                        {{ $selectedUser->verified ? 'Terverifikasi' : 'Pending' }}
+                                    </span>
+                                </dd>
+                            </div>
+                        </dl>
+
+                        <div class="mt-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Alasan penolakan
+                                (opsional)</label>
+                            <textarea wire:model.live="rejectReason" rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                placeholder="Tuliskan alasan jika Anda menolak verifikasi KTP ini..."></textarea>
                         </div>
                     </div>
 
-                    <div class="mt-4 grid grid-cols-2 gap-4">
-                        <div>
-                            <h4 class="text-sm font-semibold text-gray-700 mb-2">Foto KTP</h4>
-                            @if($selectedRegistration->ktp_photo_path)
-                                <img src="{{ Storage::url($selectedRegistration->ktp_photo_path) }}" alt="KTP"
-                                    class="w-full rounded cursor-pointer object-contain max-h-96"
-                                    wire:click.prevent="showPhoto('{{ Storage::url($selectedRegistration->ktp_photo_path) }}')" />
-                            @else
-                                <div class="text-sm text-gray-400">Tidak ada foto KTP</div>
-                            @endif
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-semibold text-gray-700 mb-2">Foto Selfie</h4>
-                            @if($selectedRegistration->selfie_photo_path)
-                                <img src="{{ Storage::url($selectedRegistration->selfie_photo_path) }}" alt="Selfie"
-                                    class="w-full rounded cursor-pointer object-contain max-h-96"
-                                    wire:click.prevent="showPhoto('{{ Storage::url($selectedRegistration->selfie_photo_path) }}')" />
-                            @else
-                                <div class="text-sm text-gray-400">Tidak ada foto selfie</div>
-                            @endif
-                        </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3">Foto KTP</h3>
+                        @if ($selectedUser->ktp_path)
+                            <div class="border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                                <img src="{{ Storage::url($selectedUser->ktp_path) }}" alt="KTP {{ $selectedUser->name }}"
+                                    class="w-full max-h-[420px] object-contain bg-black" />
+                            </div>
+                        @else
+                            <div
+                                class="border border-dashed border-gray-300 rounded-xl h-64 flex items-center justify-center text-gray-400 text-sm">
+                                Mitra belum mengunggah foto KTP.
+                            </div>
+                        @endif
                     </div>
+                </div>
 
-                    <div class="mt-4">
-                        <h5 class="text-sm font-semibold text-gray-700">Alamat</h5>
-                        <p class="text-sm text-gray-600">{{ $selectedRegistration->address ?? '-' }}</p>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                    <div class="text-xs text-gray-500">Tinjau dengan teliti sebelum menyetujui demi keamanan platform.</div>
+                    <div class="flex space-x-3">
+                        @if (!$selectedUser->verified)
+                            <button wire:click="rejectKtp({{ $selectedUser->id }})"
+                                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-100">
+                                Tolak
+                            </button>
+                            <button wire:click="approveKtp({{ $selectedUser->id }})"
+                                class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700">
+                                Verifikasi
+                            </button>
+                        @else
+                            <button wire:click="rejectKtp({{ $selectedUser->id }})"
+                                class="px-4 py-2 border border-red-300 text-red-700 rounded-xl text-sm font-medium hover:bg-red-50">
+                                Batalkan Verifikasi
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     @endif
-
-    @if(isset($previewPhoto) && $previewPhoto)
-        <div class="fixed inset-0 z-60 flex items-center justify-center">
-            <div class="fixed inset-0 bg-black/70" wire:click.prevent="closePreview"></div>
-
-            <div class="relative z-70 max-w-4xl w-full px-4">
-                <button type="button" wire:click.prevent="closePreview"
-                    class="absolute -top-2 -right-2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100">
-                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-
-                <div class="bg-white rounded-lg overflow-hidden shadow-lg">
-                    <img src="{{ $previewPhoto }}" alt="Preview" class="w-full h-auto object-contain max-h-[80vh]" />
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- JS fallback modal (shows when Livewire isn't responding) -->
-    <div id="js-detail-modal" class="hidden fixed inset-0 z-70 items-center justify-center">
-        <div id="js-detail-overlay" class="fixed inset-0 bg-black/50"></div>
-
-        <div class="bg-white max-w-3xl w-full rounded-xl shadow-xl z-10 overflow-hidden relative">
-            <div class="p-6">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <h3 id="js-detail-name" class="text-lg font-bold">Detail Registrasi</h3>
-                        <p id="js-detail-email" class="text-sm text-gray-500"></p>
-                        <p id="js-detail-nik" class="text-sm text-gray-500"></p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button id="js-approve-btn" type="button"
-                            class="px-3 py-2 bg-green-600 text-white rounded hidden">Setujui</button>
-                        <button id="js-reject-btn" type="button"
-                            class="px-3 py-2 bg-red-600 text-white rounded hidden">Tolak</button>
-                        <button id="js-close-btn" type="button" class="px-3 py-2 bg-gray-200 rounded">Tutup</button>
-                    </div>
-                </div>
-
-                <div class="mt-4 grid grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Foto KTP</h4>
-                        <img id="js-detail-ktp" src="" alt="KTP" class="w-full rounded object-contain max-h-96" />
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Foto Selfie</h4>
-                        <img id="js-detail-selfie" src="" alt="Selfie" class="w-full rounded object-contain max-h-96" />
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <h5 class="text-sm font-semibold text-gray-700">Alamat</h5>
-                    <p id="js-detail-address" class="text-sm text-gray-600"></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        (function () {
-            function qs(selector, ctx) { return (ctx || document).querySelector(selector); }
-            function qsa(selector, ctx) { return Array.from((ctx || document).querySelectorAll(selector)); }
-
-            function openModal(data) {
-                var modal = qs('#js-detail-modal');
-                qs('#js-detail-name').textContent = 'Detail Registrasi: ' + data.name;
-                qs('#js-detail-email').textContent = 'Email: ' + data.email;
-                qs('#js-detail-nik').textContent = 'NIK: ' + data.nik;
-                qs('#js-detail-address').textContent = data.address;
-                qs('#js-detail-ktp').src = data.ktp || '';
-                qs('#js-detail-selfie').src = data.selfie || '';
-
-                // Show/hide approve/reject based on status
-                var approve = qs('#js-approve-btn');
-                var reject = qs('#js-reject-btn');
-                if (data.status === 'pending_verification') {
-                    approve.classList.remove('hidden');
-                    reject.classList.remove('hidden');
-                } else {
-                    approve.classList.add('hidden');
-                    reject.classList.add('hidden');
-                }
-
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-
-                // wire events if Livewire available
-                approve.onclick = function () { if (window.livewire && window.livewire.emit) { window.livewire.emit('approveKtp', data.id); } };
-                reject.onclick = function () { if (window.livewire && window.livewire.emit) { window.livewire.emit('rejectKtp', data.id); } };
-            }
-
-            function closeModal() {
-                var modal = qs('#js-detail-modal');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-
-            // Attach handlers
-            document.addEventListener('click', function (e) {
-                var btn = e.target.closest && e.target.closest('.js-view-detail');
-                if (btn) {
-                    e.preventDefault();
-                    var data = {
-                        id: btn.dataset.id,
-                        name: btn.dataset.name || '',
-                        email: btn.dataset.email || '',
-                        nik: btn.dataset.nik || '',
-                        address: btn.dataset.address || '',
-                        status: btn.dataset.status || '',
-                        ktp: btn.dataset.ktp || '',
-                        selfie: btn.dataset.selfie || ''
-                    };
-                    openModal(data);
-                }
-            }, false);
-
-            qs('#js-close-btn').addEventListener('click', closeModal);
-            qs('#js-detail-overlay').addEventListener('click', closeModal);
-        })();
-    </script>
-
 </div>

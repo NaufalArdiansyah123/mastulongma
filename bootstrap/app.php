@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'super_admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'kustomer' => \App\Http\Middleware\EnsureKustomer::class,
+            // New alias: use 'customer' everywhere going forward
+            'customer' => \App\Http\Middleware\EnsureCustomer::class,
             'mitra' => \App\Http\Middleware\EnsureMitra::class,
         ]);
 

@@ -6,19 +6,90 @@ use App\Models\Help;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 #[Layout('layouts.admin')]
 class Dashboard extends Component
 {
     public function render()
     {
+        $totalHelps = Help::count();
+        $pendingHelps = Help::where('status', 'pending')->count();
+        $activeHelps = Help::where('status', 'active')->count();
+        $completedHelps = Help::where('status', 'completed')->count();
+        $pendingVerifications = 0;
+        $verifiedMitras = User::where('role', 'mitra')->count();
+
+        // Health check
+        $health = [
+            'database' => [
+                'status' => 'unknown',
+            ],
+            'queue' => [
+                'status' => 'inactive',
+                'pending' => null,
+            ],
+            'disk' => [
+                'status' => 'unknown',
+                'usage' => null,
+            ],
+        ];
+
+        try {
+            DB::select('select 1');
+            $health['database']['status'] = 'ok';
+        } catch (\Throwable $e) {
+            $health['database']['status'] = 'down';
+        }
+
+        if (Schema::hasTable('jobs')) {
+            try {
+                $pending = DB::table('jobs')->count();
+                $health['queue']['pending'] = $pending;
+                $health['queue']['status'] = $pending > 0 ? 'warning' : 'ok';
+            } catch (\Throwable $e) {
+                $health['queue']['pending'] = null;
+                $health['queue']['status'] = 'inactive';
+            }
+        } else {
+            $health['queue']['pending'] = null;
+            $health['queue']['status'] = 'inactive';
+        }
+
+        try {
+            $path = base_path();
+            $total = @disk_total_space($path);
+            $free = @disk_free_space($path);
+            if ($total > 0 && $free !== false) {
+                $used = $total - $free;
+                $usagePct = (int) round(($used / $total) * 100);
+                $health['disk']['usage'] = $usagePct;
+                if ($usagePct >= 90) {
+                    $health['disk']['status'] = 'critical';
+                } elseif ($usagePct >= 75) {
+                    $health['disk']['status'] = 'warning';
+                } else {
+                    $health['disk']['status'] = 'ok';
+                }
+            } else {
+                $health['disk']['usage'] = null;
+                $health['disk']['status'] = 'unknown';
+            }
+        } catch (\Throwable $e) {
+            $health['disk']['usage'] = null;
+            $health['disk']['status'] = 'unknown';
+        }
+
         return view('admin.dashboard', [
-            'totalHelps' => Help::count(),
-            'pendingHelps' => Help::where('status', 'pending')->count(),
-            'activeHelps' => Help::where('status', 'active')->count(),
-            'completedHelps' => Help::where('status', 'completed')->count(),
-            'pendingVerifications' => 0, // Will be implemented when KTP verification is ready
-            'verifiedMitras' => User::where('role', 'mitra')->count(),
+            'totalHelps' => $totalHelps,
+            'pendingHelps' => $pendingHelps,
+            'activeHelps' => $activeHelps,
+            'completedHelps' => $completedHelps,
+            'pendingVerifications' => $pendingVerifications,
+            'verifiedMitras' => $verifiedMitras,
+            'health' => $health,
+            'title' => 'Dashboard Admin',
         ]);
     }
 }

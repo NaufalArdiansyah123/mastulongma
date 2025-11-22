@@ -37,7 +37,7 @@ class RedirectBasedOnRole
             }
 
             // Allow customer to access dashboard and other authenticated routes
-            if ($user->role === 'customer' || $user->role === 'kustomer') {
+            if ($user->role === 'customer') {
                 // Customer can access most routes normally
                 return $next($request);
             }

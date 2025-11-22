@@ -6,104 +6,86 @@ use App\Models\BalanceTransaction;
 use App\Models\UserBalance;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Livewire\Livewire;
 
 class BalanceTransactionObserver
 {
-    /**
-     * Handle the BalanceTransaction "created" event.
-     */
     public function created(BalanceTransaction $transaction): void
     {
-        $this->processIfCompleted($transaction, null);
+        Log::info('BalanceTransactionObserver: created', [
+            'transaction_id' => $transaction->id,
+            'status' => $transaction->status,
+        ]);
+
+        $this->handleCompletion($transaction, null);
     }
 
-    /**
-     * Handle the BalanceTransaction "updated" event.
-     */
     public function updated(BalanceTransaction $transaction): void
     {
-        $originalStatus = $transaction->getOriginal('status');
-        $this->processIfCompleted($transaction, $originalStatus);
+        $original = $transaction->getOriginal('status');
+
+        Log::info('BalanceTransactionObserver: updated', [
+            'transaction_id' => $transaction->id,
+            'original' => $original,
+            'current' => $transaction->status,
+        ]);
+
+        $this->handleCompletion($transaction, $original);
     }
 
-    /**
-     * Process topup when transaction becomes completed.
-     *
-     * @param BalanceTransaction $transaction
-     * @param string|null $originalStatus
-     * @return void
-     */
-    protected function processIfCompleted(BalanceTransaction $transaction, ?string $originalStatus): void
+    protected function handleCompletion(BalanceTransaction $transaction, ?string $originalStatus): void
     {
         try {
-            // Only process topup transactions
             if ($transaction->type !== 'topup') {
                 return;
             }
 
-            // Normalize possible typo 'complate' to 'completed'
-            $currentStatus = strtolower(trim($transaction->status ?? ''));
-            $originalStatusNormalized = $originalStatus ? strtolower(trim($originalStatus)) : null;
+            // Normalize
+            $normalize = fn ($s) => strtolower(trim($s ?? ''));
+            $curr = $normalize($transaction->status);
+            $orig = $normalize($originalStatus);
 
-            if ($originalStatusNormalized === 'complate') {
-                $originalStatusNormalized = 'completed';
-            }
+            if ($orig === 'completed') return;
+            if ($curr !== 'completed') return;
 
-            if ($currentStatus === 'complate') {
-                $currentStatus = 'completed';
-            }
-
-            // If originalStatus provided and already completed, skip (prevents double process)
-            if ($originalStatusNormalized === 'completed') {
-                return;
-            }
-
-            // Only act when current status is 'completed'
-            if ($currentStatus !== 'completed') {
-                return;
-            }
-
-            // Amount must be positive
             $amount = (float) $transaction->amount;
-            if ($amount <= 0) {
+            if ($amount <= 0) return;
+
+            // prevent double processing
+            $fresh = $transaction->fresh();
+            if ($fresh && $fresh->processed_at) {
+                Log::info("BalanceTransactionObserver: already processed, skip", [
+                    'transaction_id' => $transaction->id,
+                    'processed_at' => $fresh->processed_at,
+                ]);
                 return;
             }
 
             DB::transaction(function () use ($transaction, $amount) {
-                // Get or create user balance record
+                Log::info('BalanceTransactionObserver: processing topup', [
+                    'transaction_id' => $transaction->id,
+                    'user_id' => $transaction->user_id,
+                    'amount' => $amount,
+                ]);
+
                 $userBalance = UserBalance::firstOrCreate(
                     ['user_id' => $transaction->user_id],
                     ['balance' => 0]
                 );
 
-                // Increment balance by amount
                 $userBalance->increment('balance', $amount);
 
-                // Emit Livewire event so dashboard components can refresh immediately
-                try {
-                    Livewire::emit('balance-updated');
-                } catch (\Throwable $e) {
-                    // ignore if Livewire not available in this context
-                }
+                $transaction->processed_at = now();
+                $transaction->save();
 
-                // Mark transaction as processed (if column exists)
-                if (property_exists($transaction, 'processed_at') || array_key_exists('processed_at', $transaction->getAttributes())) {
-                    $transaction->processed_at = now();
-                    $transaction->save();
-                }
-
-                // Optional: Log the change for traceability
-                Log::info('BalanceTransaction processed: added topup to user balance', [
+                Log::info("BalanceTransactionObserver: completed", [
                     'transaction_id' => $transaction->id,
-                    'user_id' => $transaction->user_id,
-                    'amount' => $amount,
+                    'balance_after' => $userBalance->balance,
                 ]);
             });
         } catch (\Throwable $e) {
-            Log::error('Failed to process BalanceTransaction observer', [
-                'transaction_id' => $transaction->id ?? null,
-                'error' => $e->getMessage(),
+            Log::error('BalanceTransactionObserver ERROR', [
+                'transaction_id' => $transaction->id,
+                'msg' => $e->getMessage(),
             ]);
         }
     }

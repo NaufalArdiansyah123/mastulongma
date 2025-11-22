@@ -50,6 +50,42 @@
                     </svg>
                     Verifikasi KTP
                 </a>
+
+                <a href="{{ route('admin.users.index') }}"
+                    class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('admin.users.*') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5V10l-5-5m-5 15h5V10l-5-5m0 15H7a2 2 0 01-2-2V7a2 2 0 012-2h5" />
+                    </svg>
+                    Kelola Pengguna
+                </a>
+
+                <a href="{{ route('admin.partners.activity') }}"
+                    class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('admin.partners.activity') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 13l4 4L19 7M9 5a3 3 0 00-3 3v10h12V8a3 3 0 00-3-3H9z" />
+                    </svg>
+                    Aktivitas Mitra
+                </a>
+
+                <a href="{{ route('admin.partners.report') }}"
+                    class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('admin.partners.report') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                    </svg>
+                    Laporan Mitra
+                </a>
+
+                <a href="{{ route('admin.partners.blocked') }}"
+                    class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('admin.partners.blocked') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 5.636l-12.728 12.728M6.343 6.343l11.314 11.314M9 5h6a2 2 0 012 2v10a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z" />
+                    </svg>
+                    Blokir Mitra
+                </a>
             </nav>
 
             <div class="absolute bottom-0 w-64 p-4 border-t border-gray-200 bg-white">
@@ -79,7 +115,11 @@
 
         <!-- Main Content -->
         <main class="flex-1 ml-64 overflow-y-auto min-h-screen">
-            {{ $slot }}
+            @hasSection('content')
+                @yield('content')
+            @elseif(isset($slot))
+                {{ $slot }}
+            @endif
         </main>
     </div>
 

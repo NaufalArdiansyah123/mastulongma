@@ -33,6 +33,36 @@ new #[Layout('layouts.guest')] class extends Component {
         }
     }
 
+    // Preload saved registration values if a registration UUID exists in session
+    public function mount(): void
+    {
+        $uuid = Session::get('registration_uuid');
+        if (!$uuid) {
+            return;
+        }
+
+        $registration = Registration::where('uuid', $uuid)->first();
+        if (!$registration) {
+            return;
+        }
+
+        $this->nik = $registration->nik ?? $this->nik;
+        $this->full_name = $registration->full_name ?? $this->full_name;
+        $this->place_of_birth = $registration->place_of_birth ?? $this->place_of_birth;
+        $this->date_of_birth = $registration->date_of_birth ?? $this->date_of_birth;
+        $this->gender = $registration->gender ?? $this->gender;
+        $this->address = $registration->address ?? $this->address;
+        $this->rt = $registration->rt ?? $this->rt;
+        $this->rw = $registration->rw ?? $this->rw;
+        $this->kelurahan = $registration->kelurahan ?? $this->kelurahan;
+        $this->kecamatan = $registration->kecamatan ?? $this->kecamatan;
+        $this->city = $registration->city ?? $this->city;
+        $this->province = $registration->province ?? $this->province;
+        $this->religion = $registration->religion ?? $this->religion;
+        $this->marital_status = $registration->marital_status ?? $this->marital_status;
+        $this->occupation = $registration->occupation ?? $this->occupation;
+    }
+
     public function nextStep(): void
     {
         $validated = $this->validate([
@@ -74,6 +104,9 @@ new #[Layout('layouts.guest')] class extends Component {
             ]));
             Session::put('registration_uuid', $registration->uuid);
         }
+
+        // Clear client-side saved draft for step1 (if any)
+        $this->dispatch('clear-registration-step1');
 
         $this->redirect(route('register.step2'), navigate: true);
     }
@@ -202,6 +235,54 @@ new #[Layout('layouts.guest')] class extends Component {
                     class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm">
                 <x-input-error :messages="$errors->get('kecamatan')" class="mt-2" />
             </div>
+
+            <script>
+                (function () {
+                    const prefix = 'registration_step1_';
+                    const fields = ['nik', 'full_name', 'place_of_birth', 'date_of_birth', 'gender', 'address', 'rt', 'rw', 'kelurahan', 'kecamatan', 'city', 'province', 'religion', 'marital_status', 'occupation'];
+
+                    // Load saved draft from localStorage into inputs
+                    window.addEventListener('DOMContentLoaded', () => {
+                        try {
+                            fields.forEach(name => {
+                                const key = prefix + name;
+                                const el = document.getElementById(name);
+                                if (!el) return;
+                                const val = localStorage.getItem(key);
+                                if (val !== null) {
+                                    el.value = val;
+                                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            });
+                        } catch (e) {
+                            // ignore
+                        }
+                    });
+
+                    // Save changes to localStorage on input
+                    fields.forEach(name => {
+                        const el = document.getElementById(name);
+                        if (!el) return;
+                        el.addEventListener('input', (ev) => {
+                            try { localStorage.setItem(prefix + name, ev.target.value); } catch (e) { }
+                        });
+                    });
+
+                    // Clear saved draft when Livewire dispatches clear-registration-step1
+                    document.addEventListener('clear-registration-step1', () => {
+                        try { fields.forEach(name => localStorage.removeItem(prefix + name)); } catch (e) { }
+                    });
+
+                    // Livewire will trigger a custom event name when dispatch() is called server-side
+                    document.addEventListener('livewire:load', function () {
+                        if (window.Livewire) {
+                            window.Livewire.on('clear-registration-step1', () => {
+                                try { fields.forEach(name => localStorage.removeItem(prefix + name)); } catch (e) { }
+                            });
+                        }
+                    });
+                })();
+            </script>
 
             <!-- Kota/Kabupaten -->
             <div>

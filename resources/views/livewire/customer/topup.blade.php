@@ -141,7 +141,28 @@
             window.snap.pay(snapToken, {
                 onSuccess: function (result) {
                     console.log('Payment success:', result);
-                    window.location.href = '{{ route("customer.topup") }}?status=success';
+
+                    // Notify server immediately so it can fetch Midtrans status and update transaction
+                    try {
+                        fetch('{{ route('topup.client-callback') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ order_id: result.order_id })
+                        }).then(resp => resp.json()).then(data => {
+                            console.log('Client callback response', data);
+                            // Redirect after server acknowledged (or immediately)
+                            window.location.href = '{{ route("customer.topup") }}?status=success';
+                        }).catch(err => {
+                            console.warn('Client callback failed, redirecting anyway', err);
+                            window.location.href = '{{ route("customer.topup") }}?status=success';
+                        });
+                    } catch (e) {
+                        console.warn('Failed to call client callback', e);
+                        window.location.href = '{{ route("customer.topup") }}?status=success';
+                    }
                 },
                 onPending: function (result) {
                     console.log('Payment pending:', result);

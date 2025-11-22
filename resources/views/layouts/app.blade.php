@@ -24,7 +24,11 @@
         <div class="w-full max-w-md bg-gray-50 relative shadow-2xl">
             <!-- Content -->
             <main class="pb-20">
-                {{ $slot }}
+                @if($__env->hasSection('content'))
+                    @yield('content')
+                @else
+                    {{ $slot ?? '' }}
+                @endif
             </main>
 
             <!-- Bottom Navigation (styled like mitra layout) -->
@@ -84,6 +88,76 @@
     </div>
 
     @livewireScripts
+    <script>
+        // Listen for Livewire dispatch to open Midtrans Snap
+        window.addEventListener('openMidtransSnap', function (e) {
+            try {
+                var token = e.detail?.snapToken || e.detail?.detail?.snapToken || e.detail;
+                if (!token && e?.detail?.snapToken) token = e.detail.snapToken;
+
+                if (!token) {
+                    console.warn('openMidtransSnap called without snap token', e);
+                    return;
+                }
+
+                if (typeof snap === 'undefined' || !snap.pay) {
+                    console.warn('Midtrans snap.js not loaded. Cannot open snap.pay.');
+                    return;
+                }
+
+                snap.pay(token, {
+                    onSuccess: function (result) {
+                        console.info('Snap success callback', result);
+                        // send a quick client callback to server so we can update status immediately
+                        fetch("{{ route('topup.client-callback') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({ order_id: result.order_id, result: result })
+                        }).then(function (resp) {
+                            return resp.json();
+                        }).then(function (json) {
+                            console.info('Client callback response', json);
+                            // Optionally reload or notify Livewire to refresh
+                            if (window.Livewire) {
+                                try { window.Livewire.emit('balance-updated'); } catch (e) { }
+                            }
+
+                            // Redirect user to success page (include order_id)
+                            try {
+                                var successUrl = "{{ route('topup.success') }}" + '?order_id=' + encodeURIComponent(result.order_id);
+                                // small delay to give server a moment to process queued job
+                                setTimeout(function () {
+                                    window.location.href = successUrl;
+                                }, 800);
+                            } catch (e) {
+                                console.warn('Failed to redirect to success page', e);
+                            }
+                        }).catch(function (err) {
+                            console.warn('Client callback failed', err);
+                            // still redirect to success page as fallback
+                            try {
+                                window.location.href = "{{ route('topup.success') }}" + '?order_id=' + encodeURIComponent(result.order_id);
+                            } catch (e) { }
+                        });
+                    },
+                    onPending: function (result) {
+                        console.info('Snap pending callback', result);
+                    },
+                    onError: function (result) {
+                        console.error('Snap error callback', result);
+                    },
+                    onClose: function () {
+                        console.info('Snap widget closed by user');
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to open Midtrans snap', err);
+            }
+        });
+    </script>
 </body>
 
 </html>

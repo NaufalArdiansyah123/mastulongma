@@ -31,9 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/chat/{help}', [\App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
 
     // ========================================
-    // CUSTOMER ROUTES (Kustomer/Penerima Bantuan)
+    // CUSTOMER ROUTES (Customer/Penerima Bantuan)
     // ========================================
-    Route::prefix('customer')->name('customer.')->middleware('kustomer')->group(function () {
+    Route::prefix('customer')->name('customer.')->middleware('customer')->group(function () {
         // Dashboard
         Route::get('/dashboard', \App\Livewire\Customer\Dashboard::class)->name('dashboard');
 
@@ -132,6 +132,29 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/dashboard', \App\Livewire\Admin\Dashboard::class)->name('dashboard');
     Route::get('/helps', \App\Livewire\Admin\Helps\Index::class)->name('helps');
     Route::get('/verifications', \App\Livewire\Admin\Verifications\Index::class)->name('verifications');
+
+    // Users management (Admin area)
+    Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}', [\App\Http\Controllers\Admin\AdminUserController::class, 'show'])->name('users.show');
+
+    // Partners activity and exports
+    Route::get('/partners/activity', [\App\Http\Controllers\Admin\PartnerActivityController::class, 'index'])->name('partners.activity');
+    Route::get('/partners/activity/export/csv', [\App\Http\Controllers\Admin\PartnerActivityController::class, 'exportCsv'])->name('partners.activity.export.csv');
+    Route::get('/partners/activity/export/excel', [\App\Http\Controllers\Admin\PartnerActivityController::class, 'exportExcel'])->name('partners.activity.export.excel');
+    Route::get('/partners/activity/export/print', [\App\Http\Controllers\Admin\PartnerActivityController::class, 'exportPrint'])->name('partners.activity.export.print');
+    Route::post('/partners/activity/{user}/reset-sessions', [\App\Http\Controllers\Admin\PartnerActivityController::class, 'resetSessions'])->name('partners.activity.reset_sessions');
+    Route::post('/partners/activity/{user}/reset-password', [\App\Http\Controllers\Admin\PartnerActivityController::class, 'resetPassword'])->name('partners.activity.reset_password');
+
+    // Partner reports and summaries
+    Route::get('/partners/report', [\App\Http\Controllers\Admin\PartnerReportController::class, 'index'])->name('partners.report');
+    Route::get('/partners/reports', [\App\Http\Controllers\Admin\PartnerReportController::class, 'reportsIndex'])->name('partners.reports');
+    Route::post('/partners/reports/{report}/status', [\App\Http\Controllers\Admin\PartnerReportController::class, 'updateStatus'])->name('partners.reports.update');
+
+    // Blocked partners
+    Route::get('/partners/blocked', [\App\Http\Controllers\Admin\BlockedPartnerController::class, 'index'])->name('partners.blocked');
+    Route::post('/partners/blocked/{id}/toggle', [\App\Http\Controllers\Admin\BlockedPartnerController::class, 'toggle'])->name('partners.blocked.toggle');
+    // Backwards-compatible toggle route used by views: route('admin.partners.toggle', $id)
+    Route::post('/partners/toggle/{id}', [\App\Http\Controllers\Admin\BlockedPartnerController::class, 'toggle'])->name('partners.toggle');
 });
 
 // ========================================
@@ -141,7 +164,10 @@ Route::prefix('topup')->name('topup.')->group(function () {
     Route::get('/finish', [\App\Http\Controllers\TopupController::class, 'finish'])->name('finish');
     Route::get('/unfinish', [\App\Http\Controllers\TopupController::class, 'unfinish'])->name('unfinish');
     Route::get('/error', [\App\Http\Controllers\TopupController::class, 'error'])->name('error');
+    Route::get('/success', [\App\Http\Controllers\TopupController::class, 'success'])->name('success');
     Route::post('/notification', [\App\Http\Controllers\TopupController::class, 'notification'])->name('notification');
+    // Client-side callback (AJAX) used to notify server immediately when Snap reports success
+    Route::post('/client-callback', [\App\Http\Controllers\TopupController::class, 'clientCallback'])->name('client-callback');
 });
 
 require __DIR__ . '/auth.php';
