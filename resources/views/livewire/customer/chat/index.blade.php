@@ -45,6 +45,10 @@
                                 </h3>
                                 <p class="text-xs text-gray-500 truncate">{{ $selected_help->description }}</p>
                             </div>
+                            @if(optional($selected_help->mitra)->id)
+                                <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.user', optional($selected_help->mitra)->id) : route('customer.reports.create.user', optional($selected_help->mitra)->id) }}"
+                                    class="ml-2 p-2 text-sm text-red-600 rounded-lg hover:bg-red-50">Laporkan</a>
+                            @endif
                         </div>
                     </div>
 

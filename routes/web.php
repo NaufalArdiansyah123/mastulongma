@@ -53,6 +53,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Chat (optional help id for opening detail directly)
         Route::get('/chat/{help?}', \App\Livewire\Customer\Chat::class)->name('chat');
+
+        // Reports
+        Route::get('/reports/create', \App\Livewire\Customer\Reports\Create::class)->name('reports.create');
+        Route::get('/reports/create/user/{user_id}', \App\Livewire\Customer\Reports\Create::class)->name('reports.create.user');
+        Route::get('/reports/create/help/{help_id}', \App\Livewire\Customer\Reports\Create::class)->name('reports.create.help');
     });
 
     // ========================================
@@ -69,15 +74,37 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Profile
         Route::get('/profile', \App\Livewire\Mitra\Profile\Index::class)->name('profile');
+        // Edit profile page for mitra (full page, not modal)
+        Route::get('/profile/edit', \App\Livewire\Mitra\Profile\EditPage::class)->name('profile.edit');
 
         // Chat (optional help id for opening detail directly)
         Route::get('/chat/{help?}', \App\Livewire\Mitra\Chat\Index::class)->name('chat');
+
+        // Reports
+        Route::get('/reports/create', \App\Livewire\Mitra\Reports\Create::class)->name('reports.create');
+        Route::get('/reports/create/user/{user_id}', \App\Livewire\Mitra\Reports\Create::class)->name('reports.create.user');
+        Route::get('/reports/create/help/{help_id}', \App\Livewire\Mitra\Reports\Create::class)->name('reports.create.help');
+        // Show a submitted report (mitra can view their own submitted report status)
+        Route::get('/reports/{report}', function (\App\Models\PartnerReport $report) {
+            // simple ownership check: only reporter or admin can view; mitra middleware ensures auth
+            if ($report->reporter_id !== auth()->id()) {
+                abort(403);
+            }
+            return view('livewire.mitra.reports.show', ['report' => $report]);
+        })->name('reports.show');
 
         // Processing helps (in-progress) - page for mitra to manage helps they are currently handling
         Route::get('/helps/processing', \App\Livewire\Mitra\Helps\ProcessingHelps::class)->name('helps.processing');
 
         // Ratings
         Route::get('/ratings', \App\Livewire\Mitra\Ratings\Index::class)->name('ratings');
+
+        // Withdraw (Mitra) - form & history
+        Route::get('/withdraw', [\App\Http\Controllers\WithdrawController::class, 'showForm'])->name('withdraw.form');
+        Route::post('/withdraw', [\App\Http\Controllers\WithdrawController::class, 'requestWithdraw'])->name('withdraw.request');
+        Route::get('/withdraw/history', [\App\Http\Controllers\WithdrawController::class, 'withdrawHistory'])->name('withdraw.history');
+        Route::get('/withdraw/success/{withdraw}', [\App\Http\Controllers\WithdrawController::class, 'showSuccess'])->name('withdraw.success');
+        Route::get('/withdraw/rejected/{withdraw}', [\App\Http\Controllers\WithdrawController::class, 'showRejected'])->name('withdraw.rejected');
     });
 
     // ========================================
@@ -133,6 +160,14 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/helps', \App\Livewire\Admin\Helps\Index::class)->name('helps');
     Route::get('/verifications', \App\Livewire\Admin\Verifications\Index::class)->name('verifications');
 
+    // Withdraw management (Admin)
+    Route::get('/withdraws', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'index'])->name('withdraws.index');
+    // Modal endpoint to load withdraw details into a modal (AJAX)
+    Route::get('/withdraws/{withdraw}/modal', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'modal'])->name('withdraws.modal');
+    Route::get('/withdraws/{withdraw}', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'show'])->name('withdraws.show');
+    Route::post('/withdraws/{withdraw}/approve', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'approve'])->name('withdraws.approve');
+    Route::post('/withdraws/{withdraw}/reject', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'reject'])->name('withdraws.reject');
+
     // Users management (Admin area)
     Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}', [\App\Http\Controllers\Admin\AdminUserController::class, 'show'])->name('users.show');
@@ -148,7 +183,11 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Partner reports and summaries
     Route::get('/partners/report', [\App\Http\Controllers\Admin\PartnerReportController::class, 'index'])->name('partners.report');
     Route::get('/partners/reports', [\App\Http\Controllers\Admin\PartnerReportController::class, 'reportsIndex'])->name('partners.reports');
+    Route::get('/partners/reports/{report}', [\App\Http\Controllers\Admin\PartnerReportController::class, 'show'])->name('partners.reports.show');
     Route::post('/partners/reports/{report}/status', [\App\Http\Controllers\Admin\PartnerReportController::class, 'updateStatus'])->name('partners.reports.update');
+    Route::post('/partners/reports/{report}/add-note', [\App\Http\Controllers\Admin\PartnerReportController::class, 'addNote'])->name('partners.reports.add-note');
+    Route::post('/partners/reports/{report}/resolve', [\App\Http\Controllers\Admin\PartnerReportController::class, 'resolve'])->name('partners.reports.resolve');
+    Route::post('/partners/reports/{report}/reopen', [\App\Http\Controllers\Admin\PartnerReportController::class, 'reopen'])->name('partners.reports.reopen');
 
     // Blocked partners
     Route::get('/partners/blocked', [\App\Http\Controllers\Admin\BlockedPartnerController::class, 'index'])->name('partners.blocked');
@@ -169,5 +208,8 @@ Route::prefix('topup')->name('topup.')->group(function () {
     // Client-side callback (AJAX) used to notify server immediately when Snap reports success
     Route::post('/client-callback', [\App\Http\Controllers\TopupController::class, 'clientCallback'])->name('client-callback');
 });
+
+// Public callback endpoint used by payment gateway integrations for withdraw disbursements
+Route::post('/gateway/callback', [\App\Http\Controllers\WithdrawController::class, 'gatewayCallback'])->name('gateway.callback');
 
 require __DIR__ . '/auth.php';

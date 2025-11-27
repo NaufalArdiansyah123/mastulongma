@@ -2,175 +2,206 @@
     <x-slot name="title">Profile</x-slot>
 
     <div class="min-h-screen bg-gray-50">
-        <!-- Profile Header & Avatar -->
-        <div class="bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 px-6 pt-4 pb-24">
-            <!-- Navigation Bar -->
-            <div class="flex items-center justify-between mb-8">
-                <a href="{{ route('dashboard') }}" class="text-white">
+        @php
+            $user = auth()->user();
+            $totalRequests = \App\Models\Help::where('user_id', $user->id)->count();
+            $inProgress = \App\Models\Help::where('user_id', $user->id)->where('status', 'memperoleh_mitra')->count();
+            $completed = \App\Models\Help::where('user_id', $user->id)->where('status', 'selesai')->count();
+        @endphp
+
+        <!-- Header Section -->
+        <div class="px-5 pt-6 pb-6 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 rounded-b-3xl">
+            <div class="flex items-start justify-between mb-4">
+                <a href="{{ url()->previous() }}" class="text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                     </svg>
                 </a>
-                <h1 class="text-xl font-bold text-white">Profile</h1>
-                <a href="{{ route('customer.notifications.index') }}" class="text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                </a>
+                <h2 class="text-lg font-bold text-white">Profil</h2>
+                <div class="w-6"></div>
             </div>
 
-            <!-- Avatar & User Info -->
-            <div class="flex flex-col items-center">
-                @livewire('customer.update-profile-photo')
+            <!-- Profile Card -->
+            <div class="bg-white rounded-2xl p-4 shadow-lg">
+                <div class="flex items-center mb-4">
+                    <div class="relative">
+                        @php
+                            $__avatar = optional($user)->selfie_photo ?? optional($user)->photo ?? null;
+                        @endphp
+                        @if($__avatar)
+                            <img src="{{ asset('storage/' . $__avatar) }}" alt="Avatar"
+                                class="w-16 h-16 rounded-full object-cover shadow-md">
+                        @else
+                            <div
+                                class="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                                {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
+                            </div>
+                        @endif
 
-                <div class="relative mb-6">
-                    <div class="w-36 h-36 rounded-full bg-white p-1.5 shadow-xl">
-                        <div
-                            class="w-full h-full rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
-                            @php
-                                $profilePhoto = auth()->user()->selfie_photo ?? auth()->user()->photo ?? null;
-                            @endphp
-
-                            @if($profilePhoto)
-                                <img src="{{ asset('storage/' . $profilePhoto) }}" alt="Profile Photo"
-                                    class="w-full h-full object-cover" id="profilePhotoImg">
-                            @else
-                                <svg class="w-24 h-24 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Edit Photo Button -->
-                    <button onclick="Livewire.dispatch('openModal')"
-                        class="absolute bottom-1 right-1 w-10 h-10 bg-primary-600 hover:bg-primary-700 rounded-full flex items-center justify-center shadow-lg transition transform hover:scale-110">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </button>
-
-                    @if($profilePhoto)
-                        <!-- Remove Photo Button -->
-                        <button onclick="if(confirm('Hapus foto profil?')) Livewire.dispatch('removePhoto')"
-                            class="absolute top-1 right-1 w-8 h-8 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center shadow-lg transition transform hover:scale-110">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button onclick="Livewire.dispatch('openModal')"
+                            class="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md border">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                         </button>
-                    @endif
+                    </div>
+
+                    <div class="ml-4 flex-1">
+                        <h3 class="font-bold text-gray-900">{{ $user->name }}</h3>
+                        <p class="text-xs text-gray-500">{{ $user->email }}</p>
+                        <div class="mt-2">
+                            <a href="{{ route('chat.start', ['user_id' => $user->id]) }}"
+                                class="inline-flex items-center gap-2 bg-primary-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary-600 transition">Chat</a>
+                            <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.user', $user->id) : route('customer.reports.create.user', $user->id) }}"
+                                class="inline-flex items-center gap-2 ml-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition">Laporkan</a>
+                        </div>
+
+                        @if($user->is_verified ?? false)
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 mt-1">✅
+                                Terverifikasi</span>
+                        @else
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 mt-1">⏳
+                                Belum Verifikasi</span>
+                        @endif
+                    </div>
                 </div>
 
-                <h2 class="text-2xl font-bold text-white mb-2">{{ auth()->user()->name }}</h2>
-                <p class="text-sm text-white/90 font-medium">ID: {{ str_pad(auth()->user()->id, 8, '0', STR_PAD_LEFT) }}
-                </p>
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
+                    <div class="text-center">
+                        <div class="text-xl font-bold text-primary-600">{{ $totalRequests }}</div>
+                        <p class="text-xs text-gray-600 mt-1">Total Permintaan</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-xl font-bold text-green-600">{{ $completed }}</div>
+                        <p class="text-xs text-gray-600 mt-1">Selesai</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-xl font-bold text-yellow-600">{{ $inProgress }}</div>
+                        <p class="text-xs text-gray-600 mt-1">Sedang Diproses</p>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Menu Items -->
-        <div class="px-6 -mt-16 pb-24 space-y-4">
-            <!-- Flash Messages -->
-            @if(session('status'))
-                <div
-                    class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl flex items-center gap-2 shadow-sm">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clip-rule="evenodd" />
+        <div class="px-5 pt-6 pb-24">
+            <div class="space-y-3">
+                @livewire('customer.update-profile-photo')
+
+                <!-- Edit Profil -->
+                <a href="{{ route('profile.edit') }}"
+                    class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
+                    <div class="bg-gradient-to-br from-blue-400 to-blue-600 text-white p-3 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </div>
+                    <span class="flex-1 font-semibold text-gray-900">Edit Profil</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                    <span class="text-sm font-medium">{{ session('status') }}</span>
-                </div>
-            @endif
+                </a>
 
-            @if(session('error'))
-                <div
-                    class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2 shadow-sm">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                            clip-rule="evenodd" />
+                <!-- Riwayat Bantuan -->
+                <a href="{{ route('customer.helps.index') }}"
+                    class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
+                    <div class="bg-gradient-to-br from-primary-400 to-primary-600 text-white p-3 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <span class="flex-1 font-semibold text-gray-900">Riwayat Bantuan</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                    <span class="text-sm font-medium">{{ session('error') }}</span>
-                </div>
-            @endif
+                </a>
 
-            <!-- Edit Profile -->
-            <a href="{{ route('profile.edit') }}"
-                class="bg-white rounded-2xl shadow-sm p-4 flex items-center space-x-4 hover:bg-gray-50 transition">
-                <div class="bg-blue-500 text-white p-3 rounded-full">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <!-- Rating & Ulasan (link to mitra ratings page for consistency) -->
+                <a href="{{ route('mitra.ratings') }}"
+                    class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
+                    <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white p-3 rounded-full">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                    </div>
+                    <span class="flex-1 font-semibold text-gray-900">Rating & Ulasan</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                </div>
-                <span class="flex-1 font-medium text-gray-900">Edit Profile</span>
-            </a>
+                </a>
 
-            <!-- Settings -->
-            <a href="{{ route('profile.settings') }}"
-                class="bg-white rounded-2xl shadow-sm p-4 flex items-center space-x-4 hover:bg-gray-50 transition">
-                <div class="bg-blue-500 text-white p-3 rounded-full">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <!-- Pengaturan -->
+                <a href="{{ route('profile.settings') }}"
+                    class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
+                    <div class="bg-gradient-to-br from-gray-400 to-gray-600 text-white p-3 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <span class="flex-1 font-semibold text-gray-900">Pengaturan</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                </div>
-                <span class="flex-1 font-medium text-gray-900">Setting</span>
-            </a>
+                </a>
 
-            <!-- Logout -->
-            <button onclick="document.getElementById('logout-modal').classList.remove('hidden')"
-                class="w-full bg-white rounded-2xl shadow-sm p-4 flex items-center space-x-4 hover:bg-gray-50 transition">
-                <div class="bg-blue-500 text-white p-3 rounded-full">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                <!-- Bantuan & Dukungan -->
+                <a href="#"
+                    class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
+                    <div class="bg-gradient-to-br from-purple-400 to-purple-600 text-white p-3 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <span class="flex-1 font-semibold text-gray-900">Bantuan & Dukungan</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                </div>
-                <span class="flex-1 font-medium text-gray-900 text-left">Logout</span>
-            </button>
+                </a>
 
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                @csrf
-            </form>
-        </div>
-    </div>
-
-    <!-- Logout Confirmation Modal (Outside main content for full-screen coverage) -->
-    <div id="logout-modal"
-        class="hidden fixed inset-0 bg-gray-900/70 backdrop-blur-md z-[100] flex items-center justify-center px-6"
-        style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
-        <div class="w-full max-w-sm bg-white rounded-3xl p-5 animate-slide-up shadow-2xl relative z-[101]">
-            <!-- Header -->
-            <div class="mb-4 text-center">
-                <h3 class="text-lg font-bold text-gray-900 mb-3">End Session</h3>
-                <p class="text-sm text-gray-700 mb-3 font-medium">Are you sure you want to log out?</p>
-                <p class="text-xs text-gray-600 leading-relaxed">You will be redirected to the login page and need to
-                    sign in again to access your account.</p>
-            </div>
-
-            <!-- Buttons -->
-            <div class="space-y-2">
-                <!-- Confirm Logout Button -->
-                <button onclick="document.getElementById('logout-form').submit()"
-                    class="w-full bg-gradient-to-r from-primary-400 to-primary-600 text-white font-semibold py-2.5 rounded-xl hover:shadow-lg transition text-sm">
-                    Yes, End Session
+                <!-- Logout -->
+                <button onclick="document.getElementById('logout-modal').classList.remove('hidden')"
+                    class="w-full bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition hover:bg-red-50">
+                    <div class="bg-gradient-to-br from-red-400 to-red-600 text-white p-3 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </div>
+                    <span class="flex-1 font-semibold text-gray-900 text-left">Logout</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
                 </button>
 
-                <!-- Cancel Button -->
-                <button onclick="document.getElementById('logout-modal').classList.add('hidden')"
-                    class="w-full bg-primary-50 text-gray-700 font-semibold py-2.5 rounded-xl hover:bg-primary-100 transition text-sm">
-                    Cancel
-                </button>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
             </div>
         </div>
-    </div>
+
+        <!-- Logout Modal -->
+        <div id="logout-modal"
+            class="hidden fixed inset-0 bg-gray-900/70 backdrop-blur-md z-[100] flex items-center justify-center p-4"
+            style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 relative z-[101]">
+                <h2 class="text-lg font-bold text-gray-900 mb-3 text-center">Logout</h2>
+                <p class="text-sm text-gray-600 mb-6 text-center">Apakah Anda yakin ingin keluar dari aplikasi?</p>
+
+                <form action="{{ route('logout') }}" method="POST" class="space-y-3">@csrf
+                    <button type="submit"
+                        class="w-full bg-red-500 text-white font-semibold py-3 rounded-xl hover:bg-red-600 transition">Logout</button>
+                    <button type="button" onclick="document.getElementById('logout-modal').classList.add('hidden')"
+                        class="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-200 transition">Batal</button>
+                </form>
+            </div>
+        </div>
 </x-app-layout>

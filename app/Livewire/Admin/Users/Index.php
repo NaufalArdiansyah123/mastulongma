@@ -6,6 +6,8 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\City;
+use App\Models\Registration;
+use App\Models\Rating;
 
 class Index extends Component
 {
@@ -115,7 +117,10 @@ class Index extends Component
 
     public function render()
     {
-        $query = User::query();
+        $query = User::query()
+            ->leftJoin('registrations', 'registrations.email', '=', 'users.email')
+            ->leftJoin('cities', 'users.city_id', '=', 'cities.id')
+            ->select('users.*', 'registrations.status as registration_status', 'registrations.ktp_photo_path as registration_ktp_path', 'cities.name as city_name');
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -133,8 +138,46 @@ class Index extends Component
             $query->where('status', $this->statusFilter);
         }
 
+        // Because we joined registrations, ordering by latest users.created_at
+        $users = $query->with('city')->orderBy('users.created_at', 'desc')->paginate(15);
+
+        // Enrich each user row with the latest registration (if any) and compute rating/counts
+        foreach ($users as $user) {
+            $reg = Registration::where('email', $user->email)->latest()->first();
+            if ($reg) {
+                $user->registration_status = $reg->status;
+                $user->registration_ktp_path = $reg->ktp_photo_path ?? $reg->ktp_path ?? null;
+            } else {
+                $user->registration_status = null;
+                $user->registration_ktp_path = null;
+            }
+
+            // Average rating for mitra (if any)
+            try {
+                $avg = $user->ratings()->avg('rating');
+            } catch (\Throwable $e) {
+                $avg = null;
+            }
+            $user->average_rating = is_null($avg) ? null : round($avg, 1);
+
+            // Helpful counts used in view
+            try {
+                $user->helps_count = $user->helps()->count();
+            } catch (\Throwable $e) {
+                $user->helps_count = 0;
+            }
+
+            try {
+                $user->partner_reports_count = $user->partnerReports()->count();
+            } catch (\Throwable $e) {
+                $user->partner_reports_count = 0;
+            }
+
+            $user->is_blocked = ($user->status === 'blocked');
+        }
+
         return view('livewire.admin.users.index', [
-            'users' => $query->with('city')->latest()->paginate(15),
+            'users' => $users,
             'cities' => City::where('is_active', true)->get(),
         ]);
     }

@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\RecalculateUserBalances::class,
         \App\Console\Commands\MidtransRecheck::class,
         \App\Console\Commands\BalanceSyncCheck::class,
+        \App\Console\Commands\SyncTopupActivities::class,
     ];
 
     /**

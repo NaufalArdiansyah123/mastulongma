@@ -18,8 +18,13 @@ class AdminUserController extends Controller
         $query = User::with('city')
             ->withCount('helps')
             ->withCount('partnerReports')
-            ->withAvg('ratings as average_rating', 'rating')
-            ->whereIn('city_id', $cityIds);
+            ->withCount('ratings')
+            ->withAvg('ratings as average_rating', 'rating');
+
+        // Apply city scoping only when admin has linked cities
+        if ($cityIds->isNotEmpty()) {
+            $query->whereIn('city_id', $cityIds);
+        }
 
         // Search by name or email
         if ($search = $request->get('search')) {
@@ -30,10 +35,14 @@ class AdminUserController extends Controller
         }
 
         // Filter by role
-        if ($role = $request->get('role')) {
+        if ($request->has('role')) {
+            $role = $request->get('role');
             if ($role !== 'all') {
                 $query->where('role', $role);
             }
+        } else {
+            // By default, show mitra and customer/kustomer roles to focus admin listing
+            $query->whereIn('role', ['mitra', 'kustomer', 'customer']);
         }
 
         // Filter by account status
@@ -60,16 +69,32 @@ class AdminUserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        // Ensure we have a city_name property for display (fallback to lookup by city_id)
+        foreach ($users as $user) {
+            $user->city_name = optional($user->city)->name ?? optional(City::find($user->city_id))->name;
+        }
+
         return view('admin.users.index', compact('users'));
     }
 
-    public function show(User $user)
+    public function show(\Illuminate\Http\Request $request, User $user)
     {
         $admin = auth()->user();
 
         $cityIds = City::where('admin_id', $admin->id)->pluck('id');
 
-        abort_unless($cityIds->contains($user->city_id), 404);
+        // Only restrict access when the admin is linked to one or more cities.
+        // If the admin has no city assignments, allow viewing any user.
+        if ($cityIds->isNotEmpty() && !$cityIds->contains($user->city_id)) {
+            abort(404);
+        }
+
+        // If the request is AJAX, return only the partial HTML suitable for a modal.
+        if ($request->ajax()) {
+            $user->load('city');
+            $user->city_name = optional($user->city)->name ?? optional(City::find($user->city_id))->name;
+            return view('admin.users.partials.show', compact('user'));
+        }
 
         $user->load('city');
 

@@ -18,7 +18,7 @@
     <!-- Main Content -->
     <div class="px-5 pt-6 pb-24">
         <!-- Help Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+        <div id="helpCard" class="bg-white rounded-2xl shadow-lg p-6 mb-6">
             <!-- Status Badge -->
             <div class="flex items-center justify-between mb-4">
                 <span class="text-sm font-semibold text-gray-600">
@@ -146,12 +146,9 @@
                         class="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition">
                         Batal
                     </button>
-                @elseif($help->status === 'memperoleh_mitra' && $help->mitra_id === auth()->id())
-                    <button wire:click="completeHelp" wire:loading.attr="disabled"
-                        class="flex-1 bg-green-500 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-green-600 transition disabled:opacity-50">
-                        <span wire:loading.remove>✓ Selesaikan Bantuan</span>
-                        <span wire:loading>Sedang memproses...</span>
-                    </button>
+                @elseif($help->status === 'memperoleh_mitra')
+                    <a href="{{ route('chat.show', ['help' => $help->id]) }}"
+                        class="flex-1 bg-primary-500 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-primary-600 transition text-center">Chat</a>
                     <button onclick="history.back()"
                         class="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition">
                         Kembali
@@ -163,6 +160,21 @@
                         class="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition">
                         Kembali
                     </button>
+                @endif
+            </div>
+
+            <!-- Report links -->
+            <div class="mt-3 flex gap-2">
+                <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.help', $help->id) : route('customer.reports.create.help', $help->id) }}"
+                    class="flex-1 text-center bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition text-sm font-semibold">
+                    Laporkan Bantuan
+                </a>
+
+                @if(optional($help->user)->id)
+                    <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.user', optional($help->user)->id) : route('customer.reports.create.user', optional($help->user)->id) }}"
+                        class="flex-1 text-center bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition text-sm font-semibold">
+                        Laporkan Pengguna
+                    </a>
                 @endif
             </div>
 
@@ -225,15 +237,18 @@
                         confirmYes.addEventListener('click', function () {
                             // Close the confirmation modal; Livewire's wire:click handles the server call.
                             hide(confirmModal);
+                            // Immediately hide the help card to avoid intermediate UI state
+                            const helpCard = document.getElementById('helpCard');
+                            if (helpCard) helpCard.style.display = 'none';
                         });
                     }
 
                     // Listen for Livewire dispatched event (server sent)
                     window.addEventListener('help-taken', function () {
                         show(successModal);
-                        // After a short delay, redirect to dashboard
+                        // After a short delay, redirect to processing helps page
                         setTimeout(function () {
-                            window.location.href = '{{ route('mitra.dashboard') }}';
+                            window.location.href = '{{ route('mitra.helps.processing') }}';
                         }, 1400);
                     });
 
@@ -242,7 +257,7 @@
                         try {
                             window.livewire.on('help-taken', function () {
                                 show(successModal);
-                                setTimeout(function () { window.location.href = '{{ route('mitra.dashboard') }}'; }, 1400);
+                                setTimeout(function () { window.location.href = '{{ route('mitra.helps.processing') }}'; }, 1400);
                             });
                         } catch (e) { /* ignore */ }
                     }

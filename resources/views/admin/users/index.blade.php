@@ -2,9 +2,9 @@
 
 @section('content')
     <div class="bg-white shadow-sm border-b border-gray-200">
-        <div class="px-8 py-6">
+            <div class="px-8 py-6">
             <h1 class="text-3xl font-bold text-gray-900">Kelola Pengguna</h1>
-            <p class="text-sm text-gray-600 mt-1">Daftar pengguna di kota Anda, beserta status KTP dan status akun.</p>
+            <p class="text-sm text-gray-600 mt-1">Daftar pengguna di kota Anda, beserta status akun.</p>
         </div>
     </div>
 
@@ -121,19 +121,14 @@
                                     Kota
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Status KTP
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Status Akun
-                                </th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Bantuan
+                                    Terdaftar
                                 </th>
                                 <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                     Rating
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Pelanggaran
+                                
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Status Akun
                                 </th>
                                 <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                     Aksi
@@ -155,23 +150,33 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-3 text-sm text-gray-500 whitespace-nowrap">
-                                        {{ optional($user->city)->name ?? '-' }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm">
-                                        @if (!$user->ktp_path)
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
-                                                Belum Upload
-                                            </span>
-                                        @elseif($user->ktp_path && !$user->verified)
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                                                Pending
-                                            </span>
+                                        @if(!empty($user->city_name))
+                                            {{ $user->city_name }}
+                                        @elseif($user->city_id)
+                                            {{ $user->city_name ?? $user->city_id }}
                                         @else
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                                                Terverifikasi
-                                            </span>
+                                            -
                                         @endif
                                     </td>
+                                    <td class="px-6 py-3 text-sm text-gray-500 whitespace-nowrap">
+                                        {{ optional($user->created_at)->format('Y-m-d') ?? '-' }}
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-right whitespace-nowrap">
+                                        @php
+                                            $ratingsCount = $user->ratings_count ?? ($user->ratings_count ?? 0);
+                                            $avgRating = $user->average_rating ?? null;
+                                        @endphp
+
+                                        @if (!is_null($avgRating) && $ratingsCount > 0)
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                                {{ number_format($avgRating, 1) }}
+                                            </span>
+                                            <span class="text-[11px] text-gray-600 ml-2">({{ $ratingsCount }})</span>
+                                        @else
+                                            <span class="text-xs text-gray-400">-</span>
+                                        @endif
+                                    </td>
+                                    
                                     <td class="px-6 py-3 text-sm">
                                         @if ($user->status === 'blocked')
                                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
@@ -187,36 +192,9 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-3 text-sm text-right whitespace-nowrap">
-                                        {{ number_format($user->helps_count ?? 0) }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-right whitespace-nowrap">
-                                        @if ($user->role === 'mitra' && !is_null($user->average_rating))
-                                            <span class="inline-flex items-center justify-end space-x-1">
-                                                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                </svg>
-                                                <span>{{ number_format($user->average_rating, 1) }}</span>
-                                            </span>
-                                        @else
-                                            <span class="text-xs text-gray-400">-</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center whitespace-nowrap">
-                                        @if (($user->partner_reports_count ?? 0) > 0)
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">
-                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.293 17.293L11 4.586a1 1 0 011.789 0l6.707 12.707A1 1 0 0118.707 19H5.293a1 1 0 01-.9-1.707z" />
-                                                </svg>
-                                                {{ $user->partner_reports_count }} laporan
-                                            </span>
-                                        @else
-                                            <span class="text-xs text-gray-400">-</span>
-                                        @endif
-                                    </td>
+                                    {{-- removed Bantuan and Pelanggaran columns; rating placed earlier --}}
                                     <td class="px-6 py-3 text-sm text-right space-x-2 whitespace-nowrap">
-                                        <a href="{{ route('admin.users.show', $user) }}"
-                                            class="inline-flex items-center px-3 py-1 border border-gray-300 rounded-full text-xs text-gray-700 hover:bg-gray-50">
+                                        <a href="#" data-url="{{ route('admin.users.show', $user) }}" class="open-user-detail inline-flex items-center px-3 py-1 border border-gray-300 rounded-full text-xs text-gray-700 hover:bg-gray-50">
                                             Detail
                                         </a>
 
@@ -243,3 +221,59 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    (function(){
+        function setupModalListeners(wrapper){
+            if (!wrapper) return;
+            var closeBtn = wrapper.querySelector('#modal-close-btn');
+            var closeBtn2 = wrapper.querySelector('#modal-close-btn-2');
+            var backdrop = wrapper.querySelector('#modal-backdrop');
+
+            function removeWrapper(){
+                if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+                document.removeEventListener('keydown', onKeyDown);
+            }
+
+            function onKeyDown(e){
+                if (e.key === 'Escape') removeWrapper();
+            }
+
+            if (closeBtn) closeBtn.addEventListener('click', removeWrapper);
+            if (closeBtn2) closeBtn2.addEventListener('click', removeWrapper);
+            if (backdrop) backdrop.addEventListener('click', removeWrapper);
+            document.addEventListener('keydown', onKeyDown);
+        }
+
+        function openUserDetail(url){
+            fetch(url, {headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                .then(function(res){
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    return res.text();
+                })
+                .then(function(html){
+                    // create wrapper and insert modal HTML
+                    var wrapper = document.createElement('div');
+                    wrapper.id = 'user-detail-modal-wrapper';
+                    wrapper.innerHTML = html;
+                    document.body.appendChild(wrapper);
+                    // attach listeners to modal elements inside the wrapper
+                    setupModalListeners(wrapper);
+                })
+                .catch(function(err){
+                    console.error('Failed to load user detail:', err);
+                    alert('Gagal memuat detail pengguna. Coba lagi.');
+                });
+        }
+
+        document.addEventListener('click', function(e){
+            var el = e.target.closest && e.target.closest('.open-user-detail');
+            if (!el) return;
+            e.preventDefault();
+            var url = el.getAttribute('data-url');
+            if (url) openUserDetail(url);
+        });
+    })();
+</script>
+@endpush

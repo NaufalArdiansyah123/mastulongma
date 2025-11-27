@@ -3,114 +3,174 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\PartnerActivity;
 use App\Models\PartnerReport;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PartnerReportController extends Controller
 {
     public function index()
     {
-        $start = request('start_date') ?? Carbon::now()->subDays(7)->toDateString();
-        $end = request('end_date') ?? Carbon::now()->toDateString();
+        // Statistik ringkasan
+        $totalPending = PartnerReport::pending()->count();
+        $totalInProgress = PartnerReport::inProgress()->count();
+        $totalResolved = PartnerReport::resolved()->count();
+        $totalDismissed = PartnerReport::dismissed()->count();
+        $totalFromCustomer = PartnerReport::fromCustomer()->count();
+        $totalFromMitra = PartnerReport::fromMitra()->count();
 
-        $rangeDays = Carbon::parse($start)->diffInDays(Carbon::parse($end)) + 1;
+        // Filter parameters
+        $status = request('status', 'all');
+        $category = request('category', 'all');
+        $reportType = request('report_type', 'all');
+        $search = request('search');
+        $startDate = request('start_date');
+        $endDate = request('end_date');
 
-        // Current period stats
-        $totalLogins = PartnerActivity::where('activity_type', 'login')
-            ->whereBetween('created_at', [$start, $end])
-            ->count();
+        // Build query
+        $query = PartnerReport::with(['reporter', 'reportedUser', 'reportedHelp', 'resolvedBy']);
 
-        $totalActivities = PartnerActivity::whereBetween('created_at', [$start, $end])
-            ->count();
+        // Apply filters
+        if ($status !== 'all') {
+            $query->byStatus($status);
+        }
 
-        // Previous period (same length, immediately before current start)
-        $prevEnd = Carbon::parse($start)->subDay();
-        $prevStart = (clone $prevEnd)->subDays($rangeDays - 1)->toDateString();
-        $prevEndStr = $prevEnd->toDateString();
+        if ($category !== 'all') {
+            if ($category === 'dari_customer') {
+                $query->fromCustomer();
+            } elseif ($category === 'dari_mitra') {
+                $query->fromMitra();
+            }
+        }
 
-        $prevLogins = PartnerActivity::where('activity_type', 'login')
-            ->whereBetween('created_at', [$prevStart, $prevEndStr])
-            ->count();
+        if ($reportType !== 'all') {
+            $query->byReportType($reportType);
+        }
 
-        $prevActivities = PartnerActivity::whereBetween('created_at', [$prevStart, $prevEndStr])
-            ->count();
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('message', 'like', "%{$search}%")
+                    ->orWhereHas('reporter', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('reportedUser', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
 
-        // Some installations use a `status` column with values like 'active'/'blocked'.
-        // Fall back to checking `status` since `is_blocked` column may not exist.
-        $activePartners = User::where('status', 'active')->count();
-        $blockedPartners = User::where('status', 'blocked')->count();
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
 
-        $chartData = PartnerActivity::selectRaw('DATE(created_at) as date, COUNT(*) as total, SUM(CASE WHEN activity_type = "login" THEN 1 ELSE 0 END) as logins')
-            ->whereBetween('created_at', [$start, $end])
-            ->groupBy('date')
-            ->orderBy('date', 'ASC')
-            ->get();
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
 
-        $topPartners = PartnerActivity::selectRaw('user_id, COUNT(*) as total_activities, SUM(CASE WHEN activity_type = "login" THEN 1 ELSE 0 END) as login_count')
-            ->whereBetween('created_at', [$start, $end])
-            ->groupBy('user_id')
-            ->orderByDesc('total_activities')
-            ->with('user')
-            ->take(5)
-            ->get();
+        // Get report types for filter dropdown
+        $reportTypes = [
+            'mitra_berperilaku_buruk' => 'Mitra Berperilaku Buruk',
+            'bantuan_fiktif' => 'Bantuan Fiktif',
+            'penipuan' => 'Penipuan',
+            'pelanggaran_aturan' => 'Pelanggaran Aturan',
+            'konten_tidak_pantas' => 'Konten Tidak Pantas',
+            'pelayanan_tidak_sesuai' => 'Pelayanan Tidak Sesuai',
+            'pengguna_spam' => 'Pengguna Spam',
+            'pengguna_kasar' => 'Pengguna Kasar',
+            'data_tidak_valid' => 'Data Tidak Valid',
+        ];
 
-        $loginTrend = $this->buildTrendData($totalLogins, $prevLogins);
-        $activityTrend = $this->buildTrendData($totalActivities, $prevActivities);
+        $reports = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
         return view('admin.partners.report', compact(
-            'start',
-            'end',
-            'totalLogins',
-            'totalActivities',
-            'activePartners',
-            'blockedPartners',
-            'chartData',
-            'topPartners',
-            'loginTrend',
-            'activityTrend',
-            'prevStart',
-            'prevEndStr'
+            'reports',
+            'totalPending',
+            'totalInProgress',
+            'totalResolved',
+            'totalDismissed',
+            'totalFromCustomer',
+            'totalFromMitra',
+            'reportTypes',
+            'status',
+            'category',
+            'reportType',
+            'search',
+            'startDate',
+            'endDate'
         ));
     }
 
-    protected function buildTrendData(int $current, int $previous): array
+    public function show(PartnerReport $report)
     {
-        if ($previous === 0) {
-            return [
-                'direction' => $current > 0 ? 'up' : 'same',
-                'diff' => $current,
-                'percent' => $current > 0 ? 100 : 0,
-            ];
-        }
+        $report->load(['reporter', 'reportedUser', 'reportedHelp', 'resolvedBy']);
 
-        $diff = $current - $previous;
-        $percent = round(($diff / max($previous, 1)) * 100);
-
-        return [
-            'direction' => $diff > 0 ? 'up' : ($diff < 0 ? 'down' : 'same'),
-            'diff' => $diff,
-            'percent' => $percent,
-        ];
+        return view('admin.partners.report-detail', compact('report'));
     }
 
     public function reportsIndex()
     {
-        $reports = PartnerReport::with('user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        return view('admin.partners.reports', compact('reports'));
+        // Alias untuk backward compatibility, redirect ke index
+        return redirect()->route('admin.partners.report');
     }
 
-    public function updateStatus(PartnerReport $report)
+    public function updateStatus(PartnerReport $report, Request $request)
     {
-        $report->update([
-            'status' => request('status'),
+        $request->validate([
+            'status' => 'required|in:pending,in_progress,resolved,dismissed',
         ]);
 
-        return back()->with('success', 'Status laporan diperbarui.');
+        $data = ['status' => $request->status];
+
+        // Jika status resolved, set resolved_by dan resolved_at
+        if ($request->status === 'resolved') {
+            $data['resolved_by'] = auth()->id();
+            $data['resolved_at'] = now();
+        } elseif ($report->status === 'resolved' && $request->status !== 'resolved') {
+            // Jika mengubah dari resolved ke status lain, clear resolved info
+            $data['resolved_by'] = null;
+            $data['resolved_at'] = null;
+        }
+
+        $report->update($data);
+
+        return back()->with('success', 'Status laporan berhasil diperbarui.');
+    }
+
+    public function addNote(PartnerReport $report, Request $request)
+    {
+        $request->validate([
+            'admin_notes' => 'required|string|max:5000',
+        ]);
+
+        $report->update([
+            'admin_notes' => $request->admin_notes,
+        ]);
+
+        return back()->with('success', 'Catatan admin berhasil ditambahkan.');
+    }
+
+    public function resolve(PartnerReport $report)
+    {
+        $report->update([
+            'status' => 'resolved',
+            'resolved_by' => auth()->id(),
+            'resolved_at' => now(),
+        ]);
+
+        return back()->with('success', 'Laporan telah ditandai sebagai resolved.');
+    }
+
+    public function reopen(PartnerReport $report)
+    {
+        $report->update([
+            'status' => 'in_progress',
+            'resolved_by' => null,
+            'resolved_at' => null,
+        ]);
+
+        return back()->with('success', 'Laporan telah dibuka kembali.');
     }
 }

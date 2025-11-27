@@ -5,7 +5,8 @@
         <div class="p-6 border-b border-gray-200">
             <h1 class="text-2xl font-bold text-primary-600">MastuLongmas</h1>
             <p class="text-xs text-gray-500 mt-1">
-                {{ auth()->user()->role === 'super_admin' ? 'Super Admin Panel' : 'Admin Panel' }}</p>
+                {{ auth()->user()->role === 'super_admin' ? 'Super Admin Panel' : 'Admin Panel' }}
+            </p>
         </div>
 
         <!-- Navigation Menu -->
@@ -83,6 +84,19 @@
                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
                 Verifikasi KTP
+            </a>
+
+            <div class="mt-6 mb-2">
+                <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Keuangan</p>
+            </div>
+
+            <a href="{{ route('admin.withdraws.index') }}"
+                class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('admin.withdraws.*') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8v8" />
+                </svg>
+                Manajemen Withdraw
             </a>
         </nav>
 

@@ -1,5 +1,4 @@
-<div
-    class="min-h-screen {{ $availableHelps->isEmpty() ? 'h-screen max-h-screen overflow-hidden' : '' }} bg-gradient-to-b from-gray-50 to-white">
+<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
     <style>
         @keyframes modalIn {
             from {
@@ -76,85 +75,87 @@
         }
     </style>
 
-    <!-- Header Section -->
+    <!-- Header Section (adapted from Mitra dashboard) -->
     <div
-        class="px-6 pt-8 pb-6 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 rounded-b-[32px] shadow-xl">
-        <div class="flex items-start justify-between mb-8 fade-in">
-            <div class="flex items-center gap-3">
-                @php
-                    $__avatar = optional(auth()->user())->selfie_photo ?? optional(auth()->user())->photo ?? optional(auth()->user())->profile_photo_path ?? null;
-                @endphp
-                <div class="w-12 h-12 rounded-full overflow-hidden bg-white/20 flex-shrink-0">
-                    <img src="{{ $__avatar ? asset('storage/' . $__avatar) : asset('images/avatar-placeholder.svg') }}"
-                        alt="Avatar" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-white mb-1 tracking-tight">Hi, Welcome Back</h1>
-                    <p class="text-sm text-white opacity-90 font-medium">
-                        @php
-                            $hour = date('H');
-                            if ($hour < 12)
-                                echo 'Good Morning';
-                            elseif ($hour < 18)
-                                echo 'Good Afternoon';
-                            else
-                                echo 'Good Evening';
-                        @endphp
-                    </p>
-                </div>
+        class="px-5 pt-6 pb-5 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 rounded-b-3xl relative overflow-hidden">
+        <!-- Decorative background elements -->
+        <div class="absolute inset-0 opacity-10">
+            <div
+                class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2">
             </div>
-            <button
-                class="bg-white p-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300">
-                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-            </button>
+            <div
+                class="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2">
+            </div>
         </div>
 
-        <!-- Balance Cards Row -->
-        <div class="grid grid-cols-2 gap-4 items-center slide-up">
-            <!-- Total Balance -->
-            <div class="flex flex-col">
-                <div class="flex items-center text-white opacity-90 mb-2">
-                    <svg class="w-4 h-4 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    <span class="text-xs font-bold text-white tracking-wide">Total Balance</span>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-5 gap-3">
+                <div class="flex items-center gap-3">
+                    @php
+                        $__avatar = optional(auth()->user())->selfie_photo ?? optional(auth()->user())->photo ?? optional(auth()->user())->profile_photo_path ?? null;
+                    @endphp
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden ring-2 ring-white/30 shadow-lg flex-shrink-0">
+                        <img src="{{ $__avatar ? asset('storage/' . $__avatar) : asset('images/avatar-placeholder.svg') }}"
+                            alt="Avatar" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white drop-shadow-sm">Halo,
+                            {{ optional(auth()->user())->name ?? 'Pengguna' }}
+                        </h1>
+                        <p class="text-sm text-white/90 mt-0.5 drop-shadow-sm">Selamat datang kembali — jelajahi bantuan
+                            dan tambah saldo</p>
+                    </div>
                 </div>
-                <div class="text-3xl font-extrabold text-white drop-shadow-2xl tracking-tight"
-                    wire:poll.visible.30s="refreshBalance">
-                    Rp {{ number_format($balance, 0, ',', '.') }}
+
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('customer.notifications.index') }}" title="Notifications"
+                        aria-label="Notifications"
+                        class="bg-white/95 backdrop-blur-sm p-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+                        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </a>
                 </div>
             </div>
 
-            <!-- Tambah Saldo Button (links to top-up page) -->
-            <a href="{{ route('customer.topup') }}"
-                class="rounded-2xl bg-white text-gray-800 font-bold px-5 py-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 h-fit">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-                </svg>
-                <span class="text-sm font-bold">Tambah Saldo</span>
-            </a>
+            <!-- Balance & actions card -->
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="col-span-2 bg-white/15 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/20">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-xs text-white/90 font-medium tracking-wide uppercase mb-1">Saldo Anda
+                            </div>
+                            <div class="text-xl font-bold text-white mt-1 drop-shadow-sm">Rp
+                                {{ number_format($balance ?? 0, 0, ',', '.') }}
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-shrink-0">
+                            <a href="{{ route('customer.topup') }}"
+                                class="bg-white/95 backdrop-blur-sm text-gray-800 font-semibold px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+                                Tambah Saldo
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 h-1 bg-white/20 rounded-full overflow-hidden">
+                        <div class="h-full bg-white/40 rounded-full" style="width: 65%"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Main Content Card -->
     <div
         class="bg-gradient-to-b from-gray-50 to-white rounded-t-[32px] px-5 pt-8 pb-24 min-h-[60vh] -mt-4 relative z-10">
-        <!-- Promo Banner (rotating) -->
+        <!-- Promo Banner (sliding carousel) -->
         <div class="mb-6 slide-up">
             <div id="promo-banner"
                 class="rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div id="promo-banner-slide"
-                    class="h-36 rounded-3xl p-6 flex items-center justify-center text-white bg-gradient-to-br from-indigo-400 to-indigo-500 transition-all duration-500">
-                    <div class="text-center">
-                        <div id="promo-title" class="font-extrabold text-xl mb-1 tracking-tight">Promo Spesial</div>
-                        <div id="promo-desc" class="text-sm opacity-90 font-medium">Dapatkan diskon layanan untuk
-                            bantuan pertama Anda.</div>
-                    </div>
+                <div class="relative h-36 rounded-3xl overflow-hidden">
+                    <div id="promo-track" class="flex h-full transition-transform duration-700 ease-in-out"></div>
                 </div>
             </div>
             <div id="promo-dots" class="flex justify-center mt-3 gap-2">
@@ -170,51 +171,54 @@
         <!-- Quick Actions -->
         <div class="mb-8 fade-in">
             <h2 class="text-base font-bold text-gray-900 mb-4 px-1">Quick Actions</h2>
-            <div class="grid grid-cols-4 gap-4 md:grid-cols-6 lg:grid-cols-8">
-                <a href="{{ route('customer.helps.create') }}"
-                    class="flex flex-col items-center text-center bg-white p-4 rounded-3xl card-shadow hover:card-shadow-hover transition-all duration-300 hover:-translate-y-1 hover:scale-105 group">
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                <a href="{{ route('customer.helps.create') }}" role="button" aria-label="Buat Bantuan"
+                    class="relative flex flex-col items-center text-center bg-white p-3 sm:p-4 rounded-2xl shadow-sm hover:shadow-md transition-transform duration-200 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-400">
                     <div
-                        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M12 4v16m8-8H4" />
+                        class="w-14 h-14 rounded-2xl flex items-center justify-center mb-2 bg-gradient-to-br from-primary-500 to-primary-400 text-white shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-gray-800 whitespace-normal">Buat</span>
+                    <div class="text-sm font-semibold text-gray-800">Buat</div>
+                    <div class="text-xs text-gray-500 mt-1 hidden sm:block">Ajukan permintaan bantuan</div>
                 </a>
 
-                <a href="{{ route('customer.helps.index') }}"
-                    class="flex flex-col items-center text-center bg-white p-4 rounded-3xl card-shadow hover:card-shadow-hover transition-all duration-300 hover:-translate-y-1 hover:scale-105 group">
+                <a href="{{ route('customer.helps.index') }}" role="button" aria-label="Lihat Bantuan"
+                    class="relative flex flex-col items-center text-center bg-white p-3 sm:p-4 rounded-2xl shadow-sm hover:shadow-md transition-transform duration-200 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-400">
                     <div
-                        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                        class="w-14 h-14 rounded-2xl flex items-center justify-center mb-2 bg-gradient-to-br from-indigo-400 to-indigo-500 text-white shadow-md">
+                        <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M3 3h14v2H3V3zm0 4h14v10H3V7z" />
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-gray-800 truncate w-full">Lihat Bantuan</span>
+                    <div class="text-sm font-semibold text-gray-800">Lihat Bantuan</div>
+                    <div class="text-xs text-gray-500 mt-1 hidden sm:block">Semua permintaan bantuan</div>
                 </a>
 
-                <a href="{{ route('customer.transactions.index') }}"
-                    class="flex flex-col items-center text-center bg-white p-4 rounded-3xl card-shadow hover:card-shadow-hover transition-all duration-300 hover:-translate-y-1 hover:scale-105 group">
+                <a href="{{ route('customer.transactions.index') }}" role="button" aria-label="Transaksi"
+                    class="relative flex flex-col items-center text-center bg-white p-3 sm:p-4 rounded-2xl shadow-sm hover:shadow-md transition-transform duration-200 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-400">
                     <div
-                        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-14 h-14 rounded-2xl flex items-center justify-center mb-2 bg-gradient-to-br from-green-400 to-teal-400 text-white shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 10h18M7 6h10M7 14h10M7 18h10" />
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-gray-800 truncate w-full">Transaksi</span>
+                    <div class="text-sm font-semibold text-gray-800">Transaksi</div>
+                    <div class="text-xs text-gray-500 mt-1 hidden sm:block">Riwayat pembayaran</div>
                 </a>
 
-                <a href="{{ route('profile') }}"
-                    class="flex flex-col items-center text-center bg-white p-4 rounded-3xl card-shadow hover:card-shadow-hover transition-all duration-300 hover:-translate-y-1 hover:scale-105 group">
+                <a href="{{ route('profile') }}" role="button" aria-label="Profil Saya"
+                    class="relative flex flex-col items-center text-center bg-white p-3 sm:p-4 rounded-2xl shadow-sm hover:shadow-md transition-transform duration-200 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-400">
                     <div
-                        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                        class="w-14 h-14 rounded-2xl flex items-center justify-center mb-2 bg-gradient-to-br from-yellow-400 to-orange-400 text-white shadow-md">
+                        <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M10 2a4 4 0 110 8 4 4 0 010-8zm0 10c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" />
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-gray-800 truncate w-full">Profil</span>
+                    <div class="text-sm font-semibold text-gray-800">Profil</div>
+                    <div class="text-xs text-gray-500 mt-1 hidden sm:block">Lihat dan sunting profil</div>
                 </a>
             </div>
         </div>
@@ -361,35 +365,50 @@
     </div>
 </div>
 
-@if($availableHelps->isEmpty())
-    <script>
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-    </script>
-@endif
+
 
 <script>
     (function () {
         const banners = [
-            { title: 'Promo Spesial', desc: 'Dapatkan diskon layanan untuk bantuan pertama Anda.', bg: 'from-indigo-400 to-indigo-500' },
-            { title: 'Gratis Ongkir', desc: 'Pengiriman gratis untuk bantuan di kota yang sama.', bg: 'from-green-400 to-green-500' },
-            { title: 'Dapatkan Badge', desc: 'Selesaikan 5 bantuan dan dapatkan badge Mitra Aktif.', bg: 'from-yellow-400 to-yellow-500' }
+            { title: 'Promo Spesial', desc: 'Dapatkan diskon layanan untuk bantuan pertama Anda.', bgCss: 'linear-gradient(135deg,#6366f1,#4f46e5)' },
+            { title: 'Gratis Ongkir', desc: 'Pengiriman gratis untuk bantuan di kota yang sama.', bgCss: 'linear-gradient(135deg,#10b981,#059669)' },
+            { title: 'Dapatkan Badge', desc: 'Selesaikan 5 bantuan dan dapatkan badge Mitra Aktif.', bgCss: 'linear-gradient(135deg,#f59e0b,#f97316)' }
         ];
 
-        let idx = 0;
-        const titleEl = document.getElementById('promo-title');
-        const descEl = document.getElementById('promo-desc');
-        const slideEl = document.getElementById('promo-banner-slide');
+        const track = document.getElementById('promo-track');
         const dotsContainer = document.getElementById('promo-dots');
         const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('button')) : [];
+        let idx = 0;
+        let timer = null;
 
-        function show(i) {
-            idx = i % banners.length;
-            const b = banners[idx];
-            if (titleEl) titleEl.textContent = b.title;
-            if (descEl) descEl.textContent = b.desc;
-            if (slideEl) {
-                slideEl.className = 'h-36 rounded-3xl p-6 flex items-center justify-center text-white bg-gradient-to-br ' + b.bg + ' transition-all duration-500';
+        // build slides (create DOM nodes and use inline background to avoid Tailwind purge issues)
+        if (track) {
+            track.innerHTML = '';
+            const frag = document.createDocumentFragment();
+            banners.forEach(b => {
+                const slide = document.createElement('div');
+                slide.className = 'w-full flex-shrink-0 p-6 flex items-center justify-center text-white';
+                slide.style.background = b.bgCss;
+                const inner = document.createElement('div');
+                inner.className = 'text-center';
+                const title = document.createElement('div');
+                title.className = 'font-extrabold text-xl mb-1 tracking-tight';
+                title.textContent = b.title;
+                const desc = document.createElement('div');
+                desc.className = 'text-sm opacity-90 font-medium';
+                desc.textContent = b.desc;
+                inner.appendChild(title);
+                inner.appendChild(desc);
+                slide.appendChild(inner);
+                frag.appendChild(slide);
+            });
+            track.appendChild(frag);
+        }
+
+        function update() {
+            if (track) {
+                const percent = (idx * 100) / banners.length;
+                track.style.transform = `translateX(${-percent}%)`;
             }
             if (dots.length) {
                 dots.forEach((d, k) => {
@@ -399,22 +418,34 @@
             }
         }
 
-        // init
-        if (slideEl) {
-            show(0);
-            let timer = setInterval(() => show((idx + 1) % banners.length), 4000);
+        function go(i) {
+            idx = (i + banners.length) % banners.length;
+            update();
+        }
 
-            // allow manual dot click
-            if (dotsContainer) {
-                dotsContainer.addEventListener('click', function (e) {
-                    const dot = e.target.closest('button[data-dot]');
-                    if (!dot) return;
-                    const i = parseInt(dot.dataset.dot);
-                    show(i);
-                    clearInterval(timer);
-                    timer = setInterval(() => show((idx + 1) % banners.length), 4000);
-                });
-            }
+        function resetTimer() {
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => go(idx + 1), 4200);
+        }
+
+        // dot clicks
+        if (dotsContainer) {
+            dotsContainer.addEventListener('click', function (e) {
+                const dot = e.target.closest('button[data-dot]');
+                if (!dot) return;
+                const i = parseInt(dot.dataset.dot);
+                go(i);
+                resetTimer();
+            });
+        }
+
+        // init
+        if (track) {
+            // ensure track has width for transform to work correctly
+            track.style.width = `${banners.length * 100}%`;
+            Array.from(track.children).forEach(child => child.style.width = `${100 / banners.length}%`);
+            update();
+            resetTimer();
         }
     })();
 </script>

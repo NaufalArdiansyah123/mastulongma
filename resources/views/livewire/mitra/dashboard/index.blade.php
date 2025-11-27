@@ -32,14 +32,14 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button
-                        class="bg-white/95 backdrop-blur-sm p-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
-                        title="Notifications">
+                    <a href="{{ route('customer.notifications.index') }}" title="Notifications"
+                        aria-label="Notifications"
+                        class="bg-white/95 backdrop-blur-sm p-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
                         <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -50,13 +50,15 @@
                         <div>
                             <div class="text-xs text-white/90 font-medium tracking-wide uppercase mb-1">Saldo Tersedia
                             </div>
-                            <div class="text-3xl font-bold text-white mt-1 drop-shadow-sm">Rp 0</div>
+                            <div class="text-xl font-bold text-white mt-1 drop-shadow-sm">Rp
+                                {{ number_format($balance ?? 0, 0, ',', '.') }}
+                            </div>
                         </div>
                         <div class="ml-4 flex-shrink-0">
-                            <button type="button"
-                                class="bg-white/95 backdrop-blur-sm text-gray-800 font-semibold px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+                            <a href="{{ route('mitra.withdraw.form') }}"
+                                class="inline-block bg-white/95 backdrop-blur-sm text-gray-800 font-semibold px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
                                 Tarik Saldo
-                            </button>
+                            </a>
                         </div>
                     </div>
 

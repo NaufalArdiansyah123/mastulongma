@@ -2,6 +2,7 @@
 
 use App\Models\Registration;
 use App\Models\User;
+use App\Models\City;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -105,6 +106,24 @@ new #[Layout('layouts.guest')] class extends Component {
         $userData['verified'] = false;
 
         $user = User::create($userData);
+
+        // Jika nama kota pada registration sesuai dengan record di tabel cities,
+        // set relasi city_id agar user otomatis terkait dengan admin kota tersebut.
+        try {
+            // Prefer explicit city_id stored on registration (added by migration/step1)
+            if (!empty($registration->city_id)) {
+                $user->city_id = $registration->city_id;
+                $user->save();
+            } elseif (!empty($registration->city)) {
+                $city = City::whereRaw('LOWER(name) = ?', [strtolower($registration->city)])->first();
+                if ($city) {
+                    $user->city_id = $city->id;
+                    $user->save();
+                }
+            }
+        } catch (\Exception $e) {
+            // jika terjadi error mapping city, jangan ganggu proses pendaftaran
+        }
 
         event(new Registered($user));
 

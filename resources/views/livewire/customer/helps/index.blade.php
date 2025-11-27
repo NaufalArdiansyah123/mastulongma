@@ -92,7 +92,7 @@
                         </div>
 
                         @forelse($waiting as $help)
-                            <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-md overflow-hidden">
+                            <div wire:click="showHelp({{ $help->id }})" class="bg-white rounded-2xl p-4 sm:p-5 shadow-md overflow-hidden cursor-pointer">
                                 {{-- Mobile: Vertical Stack --}}
                                 <div class="sm:hidden">
                                     <div class="flex gap-3">
@@ -143,10 +143,10 @@
                                     </div>
 
                                     <div class="mt-4 grid grid-cols-2 gap-3">
-                                        <a href="#" wire:click.prevent="editHelp({{ $help->id }})"
+                                        <a href="#" wire:click.prevent.stop="editHelp({{ $help->id }})"
                                             class="inline-flex items-center justify-center bg-primary-500 text-white rounded-lg py-2.5 text-sm">Edit
                                             permintaan</a>
-                                        <button wire:click="deleteHelp({{ $help->id }})"
+                                        <button wire:click.stop="deleteHelp({{ $help->id }})"
                                             class="inline-flex items-center justify-center bg-red-500 text-white rounded-lg py-2.5 text-sm">Batalkan
                                             permintaan</button>
                                     </div>
@@ -161,7 +161,7 @@
                                     </div>
 
                                     <div class="mt-3 flex items-center justify-between">
-                                        <button wire:click="refreshHelp({{ $help->id }})"
+                                        <button wire:click.stop="refreshHelp({{ $help->id }})"
                                             class="flex items-center gap-2 px-3 py-2 bg-white border rounded-full text-sm">
                                             <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -238,10 +238,10 @@
 
 
                                             <div class="mt-4 grid grid-cols-2 gap-3">
-                                                <a href="#" wire:click.prevent="editHelp({{ $help->id }})"
+                                                <a href="#" wire:click.prevent.stop="editHelp({{ $help->id }})"
                                                     class="inline-flex items-center justify-center bg-primary-500 text-white rounded-lg py-3">Edit
                                                     permintaan</a>
-                                                <button wire:click="deleteHelp({{ $help->id }})"
+                                                <button wire:click.stop="deleteHelp({{ $help->id }})"
                                                     class="inline-flex items-center justify-center bg-red-500 text-white rounded-lg py-3">Batalkan
                                                     permintaan</button>
                                             </div>
@@ -646,8 +646,8 @@
                                     </div>
 
                                     @forelse($waiting as $help)
-                                        <div
-                                            class="bg-white rounded-xl p-4 mb-3 last:mb-0 shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-100">
+                                        <div wire:click="showHelp({{ $help->id }})"
+                                            class="bg-white rounded-xl p-4 mb-3 last:mb-0 shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-100 cursor-pointer">
                                             <div class="flex gap-3">
                                                 <div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
                                                     <img src="{{ $help->photo ? asset('storage/' . $help->photo) : asset('images/placeholder-help.svg') }}"
@@ -921,6 +921,43 @@
                             </div>
                         @endif
                     </div>
+
+                    <!-- Detail Modal (opened when a waiting help card is clicked) -->
+                    @if($selectedHelpData)
+                        <div id="help-detail-modal" role="dialog" aria-modal="true" class="fixed inset-0 z-[99999] flex items-center justify-center px-4">
+                            <div wire:click="closeHelp" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+
+                            <div class="relative w-full max-w-md mx-auto" style="max-height:86vh;">
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-2xl p-5 sm:p-6" style="max-height:86vh; overflow:auto;">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="text-lg font-semibold">{{ $selectedHelpData['title'] }}</h3>
+                                            <div class="text-sm text-gray-500">{{ $selectedHelpData['created_at_human'] }}</div>
+                                        </div>
+                                        <button type="button" wire:click="closeHelp" class="modal-close-btn">
+                                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    @if($selectedHelpData['photo'])
+                                        <div class="w-full h-44 rounded-lg overflow-hidden mb-3">
+                                            <img src="{{ asset('storage/' . $selectedHelpData['photo']) }}" alt="photo" class="w-full h-full object-cover">
+                                        </div>
+                                    @endif
+
+                                    <div class="text-sm text-gray-700 mb-3">{{ $selectedHelpData['description'] }}</div>
+                                    <div class="text-xs text-gray-600 mb-4"><strong>Lokasi:</strong> {{ $selectedHelpData['location'] ?? '-' }}</div>
+
+                                    <div class="flex gap-2 mt-4">
+                                        <button wire:click="deleteHelp({{ $selectedHelpData['id'] }})" class="flex-1 py-2 bg-red-500 text-white rounded-lg">Batalkan Bantuan</button>
+                                        <button wire:click="closeHelp" class="flex-1 py-2 bg-gray-100 rounded-lg">Tutup</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Pagination -->
                     @if ($helps->hasPages())

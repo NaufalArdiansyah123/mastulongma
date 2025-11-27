@@ -24,8 +24,8 @@ class CompletedHelps extends Component
     {
         $user = auth()->user();
 
-        // Show all helps assigned to this mitra (any status), not only completed ones
-        $query = Help::query()->where('mitra_id', $user->id);
+        // Show only helps assigned to this mitra that are completed
+        $query = Help::query()->where('mitra_id', $user->id)->where('status', 'selesai');
 
         if ($this->search) {
             $query->where(function ($q) {

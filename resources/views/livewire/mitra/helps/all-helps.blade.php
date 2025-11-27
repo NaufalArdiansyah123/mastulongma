@@ -25,7 +25,7 @@
         </style>
         <!-- Search Bar -->
         <div class="relative">
-            <input type="text" wire:model.live="search" placeholder="Cari nama, lokasi, atau bantuan..."
+            <input type="text" wire:model.debounce.400ms="search" placeholder="Cari nama, lokasi, atau bantuan..."
                 class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-90 text-gray-900 placeholder-gray-500 focus:bg-opacity-100 focus:ring-2 focus:ring-blue-300 outline-none transition">
             <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
@@ -42,35 +42,29 @@
             <div>
                 <label class="text-xs font-semibold text-gray-700 block mb-3">Filter</label>
                 <div class="overflow-x-auto hide-scrollbar -mx-4 px-4">
-                    <div class="flex gap-3">
-                        <button wire:click="$set('filterStatus', 'all'); $set('sortBy', 'latest')"
-                            aria-pressed="{{ $filterStatus === 'all' && $sortBy === 'latest' ? 'true' : 'false' }}"
-                            class="flex items-center gap-2 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition shadow-sm {{ $filterStatus === 'all' && $sortBy === 'latest' ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 border border-gray-100 hover:shadow' }}">
-                            <svg class="w-4 h-4 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 7h18M3 12h18M3 17h18" />
-                            </svg>
+                    <div class="flex gap-3 items-center">
+                        <button wire:click="$set('filterStatus', 'all')"
+                            aria-pressed="{{ $filterStatus === 'all' ? 'true' : 'false' }}"
+                            class="flex items-center gap-2 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition shadow-sm {{ $filterStatus === 'all' ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 border border-gray-100 hover:shadow' }}">
                             <span>Semua</span>
                         </button>
 
-                        <button wire:click="$set('sortBy', 'nearby')"
-                            aria-pressed="{{ $sortBy === 'nearby' ? 'true' : 'false' }}"
-                            class="flex items-center gap-2 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition shadow-sm {{ $sortBy === 'nearby' ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 border border-gray-100 hover:shadow' }}">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
-                            </svg>
-                            <span>Terdekat</span>
+                        <button wire:click="$set('filterStatus', 'menunggu_mitra')"
+                            aria-pressed="{{ $filterStatus === 'menunggu_mitra' ? 'true' : 'false' }}"
+                            class="flex items-center gap-2 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition shadow-sm {{ $filterStatus === 'menunggu_mitra' ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 border border-gray-100 hover:shadow' }}">
+                            <span>Menunggu Mitra</span>
                         </button>
 
-                        <button wire:click="$set('sortBy', 'latest')"
-                            aria-pressed="{{ $sortBy === 'latest' ? 'true' : 'false' }}"
-                            class="flex items-center gap-2 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition shadow-sm {{ $sortBy === 'latest' ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 border border-gray-100 hover:shadow' }}">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3" />
-                            </svg>
-                            <span>Terbaru</span>
-                        </button>
+                        <div class="ml-2 flex items-center gap-2">
+                            <label class="text-xs text-gray-500 mr-2">Sort:</label>
+                            <select wire:model="sortBy" class="px-3 py-2 rounded-lg border bg-white text-sm">
+                                <option value="latest">Terbaru</option>
+                                <option value="oldest">Terlama</option>
+                                <option value="nearby">Terdekat</option>
+                                <option value="price_high">Harga Tertinggi</option>
+                                <option value="price_low">Harga Terendah</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -118,8 +112,13 @@
                             </div>
                         </a>
 
-                        <div class="ml-3 flex-shrink-0 self-start">
+                        <div class="ml-3 flex-shrink-0 self-start flex flex-col items-end gap-2">
                             <a href="{{ route('mitra.help.detail', $help->id) }}" aria-label="Lihat detail bantuan {{ $help->id }}" class="text-sm font-medium text-primary-600 bg-white border border-gray-100 px-3 py-1 rounded-md hover:bg-gray-50">Lihat</a>
+                            @if(is_null($help->mitra_id))
+                                <button wire:click.stop="takeHelp({{ $help->id }})" class="text-sm font-medium bg-primary-600 text-white px-3 py-1 rounded-md hover:bg-primary-700">Ambil</button>
+                            @else
+                                <span class="text-xs text-gray-500">Diambil</span>
+                            @endif
                         </div>
                     </div>
                 @endforeach

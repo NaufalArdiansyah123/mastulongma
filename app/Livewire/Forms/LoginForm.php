@@ -4,6 +4,8 @@ namespace App\Livewire\Forms;
 
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
+use App\Models\PartnerActivity;
+use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -33,6 +35,21 @@ class LoginForm extends Form
         if (!Auth::attempt($this->only(['email', 'password']), $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
+            // Log failed login attempt for partner reporting (if user exists)
+            try {
+                $found = User::where('email', $this->email)->first();
+                PartnerActivity::create([
+                    'user_id' => $found?->id,
+                    'activity_type' => 'login_failed',
+                    'description' => 'Gagal login',
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->header('User-Agent'),
+                ]);
+            } catch (\Throwable $e) {
+                // Don't let logging failures affect authentication flow
+                \Log::warning('Failed to record login_failed PartnerActivity: ' . $e->getMessage());
+            }
+
             throw ValidationException::withMessages([
                 'form.email' => trans('auth.failed'),
             ]);
@@ -60,6 +77,22 @@ class LoginForm extends Form
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        // Record successful login activity for mitra users
+        try {
+            if ($user && $user->role === 'mitra') {
+                PartnerActivity::create([
+                    'user_id' => $user->id,
+                    'activity_type' => 'login',
+                    'description' => 'Login berhasil',
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->header('User-Agent'),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // allow login to proceed even if activity logging fails
+            \Log::warning('Failed to record PartnerActivity on login: ' . $e->getMessage());
+        }
     }
 
     /**

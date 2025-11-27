@@ -43,7 +43,7 @@
                     </div>
                     <div>
                         <dt class="text-gray-500">Kota</dt>
-                        <dd class="font-medium text-gray-900">{{ optional($user->city)->name ?? '-' }}</dd>
+                        <dd class="font-medium text-gray-900">{{ $user->city_name ?? '-' }}</dd>
                     </div>
                     <div class="md:col-span-2">
                         <dt class="text-gray-500">Alamat</dt>

@@ -4,6 +4,7 @@ namespace App\Livewire\Customer\Helps;
 
 use App\Models\City;
 use App\Models\Help;
+use App\Models\PartnerActivity;
 use App\Models\UserBalance;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -69,6 +70,8 @@ class Create extends Component
                 'photo' => $photoPath,
                 'status' => 'menunggu_mitra',
             ]);
+
+            // PartnerActivity for help creation is handled by HelpObserver (centralized)
 
             // Deduct balance using UserBalance helper to keep history
             $userBalance = UserBalance::firstOrCreate(['user_id' => $userId], ['balance' => 0]);

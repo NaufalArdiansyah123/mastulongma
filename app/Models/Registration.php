@@ -25,6 +25,7 @@ class Registration extends Model
         'kelurahan',
         'kecamatan',
         'city',
+        'city_id',
         'province',
         'religion',
         'marital_status',

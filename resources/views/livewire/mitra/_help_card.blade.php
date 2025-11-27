@@ -1,7 +1,7 @@
 @php
     // Prefer user's selfie_photo or photo fields (legacy 'avatar' not present)
-    $avatar = $help->user->selfie_photo ?? $help->user->photo ?? $help->customer->selfie_photo ?? $help->customer->photo ?? null;
-    $name = $help->user->name ?? $help->customer->name ?? 'User';
+    $avatar = $help->user->selfie_photo ?? $help->user->photo ?? null;
+    $name = $help->user->name ?? 'User';
     // Prefer showing the help's photo as the card image when available,
     // otherwise fall back to user's avatar/selfie photo.
     $cardImage = $help->photo ?? $avatar;

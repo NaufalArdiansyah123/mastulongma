@@ -13,6 +13,10 @@ class Index extends Component
 {
     use WithPagination;
 
+    protected $queryString = [
+        'statusFilter' => ['except' => ''],
+    ];
+
     public $statusFilter = '';
     public $selectedHelpData = null;
     // Rating flow
@@ -134,14 +138,44 @@ class Index extends Component
         }
 
         $help->delete();
+        // Clear any open selection so modal closes if it was showing this help
+        if ($this->selectedHelpData && $this->selectedHelpData['id'] === $helpId) {
+            $this->selectedHelpData = null;
+        }
+
         session()->flash('message', 'Bantuan berhasil dihapus.');
     }
 
     public function showHelp($id)
     {
-        // Deprecated: detail modal removed in favor of edit modal.
-        // Keep method for backward compatibility but redirect to edit.
-        $this->editHelp($id);
+        // Load help details into `selectedHelpData` so the index view can
+        // render a detail modal inline when a card is clicked.
+        $help = Help::with(['city', 'mitra', 'category'])->find($id);
+        if (!$help) {
+            session()->flash('error', 'Bantuan tidak ditemukan.');
+            return;
+        }
+
+        // Only the owner (customer) may open the detail modal here
+        if ($help->user_id !== auth()->id()) {
+            session()->flash('error', 'Anda tidak memiliki izin untuk melihat detail ini.');
+            return;
+        }
+
+        $this->selectedHelpData = [
+            'id' => $help->id,
+            'title' => $help->title,
+            'description' => $help->description,
+            'amount' => $help->amount,
+            'photo' => $help->photo,
+            'location' => $help->location,
+            'user_name' => optional($help->user)->name ?? auth()->user()->name,
+            'city_name' => optional($help->city)->name,
+            'status' => $help->status,
+            'created_at_human' => optional($help->created_at)->diffForHumans(),
+            'updated_at' => optional($help->updated_at)->format('d M Y • H:i'),
+            'taken_at' => optional($help->taken_at)->format('d M Y • H:i'),
+        ];
     }
 
     public function closeHelp()

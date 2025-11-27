@@ -7,24 +7,63 @@ use App\Models\User;
 
 class BlockedPartnerController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $blocked = User::where('role', 'mitra')
-            ->where('status', 'blocked')
-            ->with('city')
-            ->orderByDesc('updated_at')
-            ->get();
+        // Base query: users with role mitra or customer
+        $baseQuery = User::whereIn('role', ['mitra', 'customer']);
 
-        return view('admin.partners.blocked', compact('blocked'));
+        // Counts for cards (fresh queries to avoid mutation)
+        $totalCount = (clone $baseQuery)->count();
+        $blockedCount = (clone $baseQuery)->where('status', 'blocked')->count();
+        $activeCount = (clone $baseQuery)->where('status', 'active')->count();
+        $mitraCount = (clone $baseQuery)->where('role', 'mitra')->count();
+        $customerCount = (clone $baseQuery)->where('role', 'customer')->count();
+
+        // Apply filters from request
+        $query = User::whereIn('role', ['mitra', 'customer'])->with('city');
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($role = $request->get('role')) {
+            if (in_array($role, ['mitra', 'customer'])) {
+                $query->where('role', $role);
+            }
+        }
+
+        if ($status = $request->get('status')) {
+            if (in_array($status, ['active', 'inactive', 'blocked'])) {
+                $query->where('status', $status);
+            }
+        }
+
+        $users = $query->orderByDesc('updated_at')->paginate(15)->withQueryString();
+
+        return view('admin.partners.blocked', [
+            'blocked' => $users,
+            'counts' => [
+                'total' => $totalCount,
+                'blocked' => $blockedCount,
+                'active' => $activeCount,
+                'mitra' => $mitraCount,
+                'customer' => $customerCount,
+            ],
+        ]);
     }
 
     public function toggle($id)
     {
-        $user = User::where('role', 'mitra')->findOrFail($id);
-        // Toggle between 'blocked' and 'active' status for compatibility
+        $user = User::findOrFail($id);
+        // Toggle between 'blocked' and 'active' status
         $user->status = $user->status === 'blocked' ? 'active' : 'blocked';
         $user->save();
 
-        return back()->with('success', $user->status === 'blocked' ? 'Mitra diblokir.' : 'Mitra dibuka blokirnya.');
+        $label = $user->status === 'blocked' ? 'User diblokir.' : 'User dibuka blokirnya.';
+        return back()->with('success', $label);
     }
 }

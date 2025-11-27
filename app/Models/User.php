@@ -111,6 +111,54 @@ class User extends Authenticatable
         return $this->hasOne(UserBalance::class);
     }
 
+    public function withdrawRequests()
+    {
+        return $this->hasMany(\App\Models\WithdrawRequest::class);
+    }
+
+    public function hasPendingOrProcessingWithdraws(): bool
+    {
+        return $this->withdrawRequests()
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+    }
+
+    public function adjustBalance(int $amountDelta): void
+    {
+        // Use UserBalance helper methods to modify balance and record transactions.
+        $userBalance = $this->balance()->first();
+        if (!$userBalance) {
+            $userBalance = $this->balance()->create(['balance' => 0]);
+        }
+
+        if ($amountDelta === 0)
+            return;
+
+        if ($amountDelta > 0) {
+            // Refund / topup
+            $userBalance->addBalance($amountDelta, 'refund');
+        } else {
+            // Deduction
+            $userBalance->deductBalance(abs($amountDelta), 'withdraw_deduction');
+        }
+    }
+
+    /**
+     * Accessor to get numeric balance conveniently via $user->balance
+     */
+    public function getBalanceAttribute()
+    {
+        // Prefer UserBalance row
+        $userBalance = $this->getRelationValue('balance') ?? $this->balance()->first();
+        if ($userBalance && isset($userBalance->balance)) {
+            // return integer rounded value (Rupiah)
+            return (int) round($userBalance->balance);
+        }
+
+        // Fallback to users.balance column if present
+        return isset($this->attributes['balance']) ? (int) $this->attributes['balance'] : 0;
+    }
+
     public function transactions()
     {
         return $this->hasMany(BalanceTransaction::class);
@@ -151,5 +199,21 @@ class User extends Authenticatable
     public function isActive()
     {
         return $this->status === 'active';
+    }
+
+    /**
+     * Return the display name for the city.
+     * Prefer the related City model (if eager-loaded), fallback to users.city attribute.
+     */
+    public function getCityNameAttribute()
+    {
+        $rel = $this->getRelationValue('city');
+        if ($rel && isset($rel->name)) {
+            return $rel->name;
+        }
+
+        return isset($this->attributes['city']) && $this->attributes['city'] !== null
+            ? $this->attributes['city']
+            : null;
     }
 }

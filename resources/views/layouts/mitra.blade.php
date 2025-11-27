@@ -28,7 +28,11 @@
             <div class="flex flex-col min-h-screen">
                 <!-- Livewire -->
                 <div class="flex-1">
-                    {{ $slot }}
+                    @isset($slot)
+                        {{ $slot }}
+                    @else
+                        @yield('content')
+                    @endisset
                 </div>
 
                 <!-- Bottom Navigation Bar -->

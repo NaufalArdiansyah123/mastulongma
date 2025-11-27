@@ -22,6 +22,7 @@ class Index extends Component
     public $showModal = false;
     public $selectedUser = null;
     public $rejectReason = '';
+    public $showRejectForm = false;
 
     public function updatedSearch()
     {
@@ -38,7 +39,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function viewKtp($id)
+    public function viewKtp($id, $openReject = false)
     {
         Log::info('Livewire: viewKtp called', ['id' => $id, 'user_id' => auth()->id()]);
         $this->selectedRegistration = Registration::find($id);
@@ -69,6 +70,7 @@ class Index extends Component
         }
 
         $this->showModal = true;
+        $this->showRejectForm = (bool) $openReject;
     }
 
     public function showPhoto($url)
@@ -90,6 +92,7 @@ class Index extends Component
         $this->selectedUser = null;
         $this->showModal = false;
         $this->rejectReason = '';
+        $this->showRejectForm = false;
     }
 
     public function approveKtp($id)
@@ -151,7 +154,11 @@ class Index extends Component
             Log::info('User rejected and blocked', ['user_id' => $user->id, 'email' => $user->email]);
         }
 
-        $reg->update(['status' => 'rejected']);
+        // Save reject reason if provided and mark registration rejected
+        $reg->update([
+            'status' => 'rejected',
+            'reject_reason' => $this->rejectReason ?: null,
+        ]);
 
         session()->flash('message', 'Registrasi ditolak. User tidak dapat login.');
         $this->closeModal();

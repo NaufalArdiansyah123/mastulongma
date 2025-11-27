@@ -99,8 +99,8 @@
                                         {{ Str::limit($help->description, 50) }}</div>
                                 </td>
                                 <td class="px-6 py-5 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $help->customer->name ?? '-' }}</div>
-                                    <div class="text-xs text-gray-500">{{ $help->customer->email ?? '-' }}</div>
+                                    <div class="text-sm text-gray-900">{{ $help->user->name ?? '-' }}</div>
+                                    <div class="text-xs text-gray-500">{{ $help->user->email ?? '-' }}</div>
                                 </td>
                                 <td class="px-6 py-5 whitespace-nowrap">
                                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">

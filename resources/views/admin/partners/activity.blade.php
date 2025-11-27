@@ -3,13 +3,30 @@
 @section('content')
     <div class="bg-white shadow-sm border-b border-gray-200">
         <div class="px-8 py-6">
-            <h1 class="text-3xl font-bold text-gray-900">Aktivitas Mitra</h1>
-            <p class="text-sm text-gray-600 mt-1">Log aktivitas penting yang dilakukan oleh mitra di dalam platform.</p>
+            <h1 class="text-3xl font-bold text-gray-900">Aktivitas Mitra & Customer</h1>
+            <p class="text-sm text-gray-600 mt-1">Pantau aktivitas login, bantuan, hingga transaksi dari seluruh pengguna.
+            </p>
         </div>
     </div>
 
-    <div class="p-8">
+    <div class="p-8 space-y-6">
+
         @php
+            $collection = ($activities instanceof \Illuminate\Pagination\AbstractPaginator) ? collect($activities->items()) : collect($activities);
+            $roleCounts = [
+                'mitra' => $collection->filter(fn($a) => optional($a->user)?->isMitra())->count(),
+                'customer' => $collection->filter(fn($a) => optional($a->user)?->isCustomer())->count(),
+                'other' => $collection->filter(fn($a) => $a->user && !$a->user->isMitra() && !$a->user->isCustomer())->count(),
+            ];
+            $totalOnPage = $collection->count();
+            $topTypes = $collection->groupBy('activity_type')->map(fn($items) => $items->count())->sortDesc()->take(4);
+            $roleMeta = [
+                'mitra' => ['label' => 'Mitra', 'badge' => 'bg-primary-50 text-primary-700'],
+                'customer' => ['label' => 'Customer', 'badge' => 'bg-amber-100 text-amber-800'],
+                'other' => ['label' => 'Internal', 'badge' => 'bg-gray-100 text-gray-700'],
+            ];
+
+            // Activity meta and helpers (defined early so views can use them)
             $activityMeta = [
                 // Login / Logout
                 'login' => ['label' => 'Login Berhasil', 'badge' => 'bg-blue-100 text-blue-700', 'icon' => '🔐'],
@@ -17,17 +34,23 @@
                 'logout' => ['label' => 'Logout', 'badge' => 'bg-blue-50 text-blue-700', 'icon' => '📤'],
 
                 // Bantuan
-                'help_accepted' => ['label' => 'Menerima Tugas Bantuan', 'badge' => 'bg-emerald-100 text-emerald-700', 'icon' => '📥'],
-                'help_started' => ['label' => 'Memulai Tugas', 'badge' => 'bg-emerald-100 text-emerald-700', 'icon' => '▶️'],
-                'help_completed' => ['label' => 'Menyelesaikan Tugas', 'badge' => 'bg-emerald-200 text-emerald-800', 'icon' => '✔️'],
-                'help_cancelled' => ['label' => 'Membatalkan Tugas', 'badge' => 'bg-yellow-100 text-yellow-800', 'icon' => '⏹️'],
-                'help_late' => ['label' => 'Terlambat Menyelesaikan', 'badge' => 'bg-yellow-100 text-yellow-800', 'icon' => '⏰'],
+                'take_help' => ['label' => 'Ambil Bantuan', 'badge' => 'bg-emerald-100 text-emerald-700', 'icon' => '📥'],
+                'help_started' => ['label' => 'Mulai Kerjakan Bantuan', 'badge' => 'bg-emerald-100 text-emerald-700', 'icon' => '▶️'],
+                'help_completed' => ['label' => 'Selesaikan Bantuan', 'badge' => 'bg-emerald-200 text-emerald-800', 'icon' => '✔️'],
+                'help_cancelled' => ['label' => 'Batalkan Bantuan', 'badge' => 'bg-yellow-100 text-yellow-800', 'icon' => '⏹️'],
+                'help_created' => ['label' => 'Customer Membuat Bantuan', 'badge' => 'bg-sky-100 text-sky-700', 'icon' => '🆘'],
+                'help_reviewed' => ['label' => 'Customer Menilai Bantuan', 'badge' => 'bg-indigo-100 text-indigo-700', 'icon' => '⭐'],
 
                 // Profil (ungu)
                 'profile_updated' => ['label' => 'Update Data Diri', 'badge' => 'bg-purple-100 text-purple-700', 'icon' => '📝'],
                 'ktp_reuploaded' => ['label' => 'Upload Ulang KTP', 'badge' => 'bg-purple-100 text-purple-700', 'icon' => '📤'],
                 'phone_changed' => ['label' => 'Mengubah Nomor Telepon', 'badge' => 'bg-purple-100 text-purple-700', 'icon' => '📱'],
                 'password_changed' => ['label' => 'Mengubah Password', 'badge' => 'bg-purple-100 text-purple-700', 'icon' => '🔑'],
+
+                // Finansial
+                'balance_topup' => ['label' => 'Top Up Saldo', 'badge' => 'bg-orange-100 text-orange-700', 'icon' => '💳'],
+                'balance_withdraw' => ['label' => 'Tarik Saldo', 'badge' => 'bg-orange-100 text-orange-700', 'icon' => '🏧'],
+                'balance_deducted' => ['label' => 'Pengurangan Saldo', 'badge' => 'bg-orange-50 text-orange-700', 'icon' => '➖'],
 
                 // Berbahaya
                 'security_bruteforce' => ['label' => 'Banyak Login Gagal', 'badge' => 'bg-red-100 text-red-700', 'icon' => '⚠️'],
@@ -73,6 +96,10 @@
                 return ['label' => 'Unknown Device', 'badge' => 'bg-gray-100 text-gray-600'];
             };
         @endphp
+
+        <!-- Top stat cards and live feed removed as requested -->
+
+
 
         <!-- Filter Bar -->
         <div class="mb-6">
@@ -131,8 +158,8 @@
             <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">Daftar Aktivitas</h2>
-                    <p class="text-xs text-gray-500 mt-1">Menampilkan aktivitas terbaru mitra, termasuk login dan aksi
-                        penting lainnya.</p>
+                    <p class="text-xs text-gray-500 mt-1">Menampilkan aktivitas terbaru mitra, customer, serta aksi penting
+                        lainnya.</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     @if (!$activities->isEmpty())
@@ -157,21 +184,90 @@
             </div>
 
             @if ($activities->isEmpty())
-                <div class="px-6 py-12 flex flex-col items-center justify-center text-center">
-                    <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 17v-2m3 2v-4m3 4v-6m2 8H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414A1 1 0 0118 10.414V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p class="text-gray-500 text-sm font-medium">Belum ada aktivitas mitra.</p>
-                    <p class="text-gray-400 text-xs mt-1">Aktivitas login dan aksi lain akan muncul di sini secara
-                        otomatis.</p>
-                </div>
+                @php $totalActivitiesCount = \App\Models\PartnerActivity::count(); @endphp
+
+                @if ($totalActivitiesCount > 0)
+                    <div class="px-6 py-6">
+                        <div class="mb-4 text-center">
+                            <p class="text-gray-700 font-semibold">Filter saat ini menyembunyikan hasil.</p>
+                            <p class="text-sm text-gray-500">Terdapat <strong>{{ $totalActivitiesCount }}</strong> aktivitas di
+                                database, namun filter/periode saat ini tidak menampilkan baris apapun.</p>
+                            <p class="text-xs text-gray-400 mt-2">Coba klik <a href="{{ route('admin.partners.activity') }}"
+                                    class="underline">Reset filter</a> atau hapus parameter tanggal/jenis di URL.</p>
+                        </div>
+
+                        @php
+                            $peek = \App\Models\PartnerActivity::with('user')->orderBy('created_at', 'desc')->limit(5)->get();
+                        @endphp
+
+                        <div class="bg-white border border-gray-100 rounded-lg p-3">
+                            <div class="text-xs text-gray-500 mb-2">Contoh 5 aktivitas terakhir (peek):</div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="text-xs text-gray-500 uppercase">
+                                        <tr>
+                                            <th class="pb-2 text-left">Waktu</th>
+                                            <th class="pb-2 text-left">User</th>
+                                            <th class="pb-2 text-left">Jenis</th>
+                                            <th class="pb-2 text-left">Deskripsi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-700">
+                                        @foreach($peek as $p)
+                                            <tr class="border-t border-gray-50">
+                                                <td class="py-2 text-xs">{{ optional($p->created_at)->format('Y-m-d H:i:s') }}</td>
+                                                <td class="py-2 text-xs">{{ optional($p->user)->name ?? '-' }}</td>
+                                                <td class="py-2 text-xs">{{ $p->activity_type }}</td>
+                                                <td class="py-2 text-xs">
+                                                    {{ \Illuminate\Support\Str::limit($p->description ?? '-', 80) }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="px-6 py-12 flex flex-col items-center justify-center text-center">
+                        <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 17v-2m3 2v-4m3 4v-6m2 8H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414A1 1 0 0118 10.414V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p class="text-gray-500 text-sm font-medium">Belum ada aktivitas mitra.</p>
+                        <p class="text-gray-400 text-xs mt-1">Aktivitas login dan aksi lain akan muncul di sini secara
+                            otomatis.</p>
+                    </div>
+                @endif
             @else
+                <div class="px-6 py-3 border-b border-gray-100">
+                    <div class="flex flex-wrap gap-2 items-center text-xs">
+                        <span class="text-gray-400 mr-2 uppercase tracking-wide">Filter Role Cepat:</span>
+                        <button type="button" data-role-filter-btn data-role-filter="all"
+                            class="role-chip inline-flex items-center px-3 py-1 rounded-full border text-[11px] font-semibold bg-gray-900 text-white">
+                            Semua ({{ $totalOnPage }})
+                        </button>
+                        <button type="button" data-role-filter-btn data-role-filter="mitra"
+                            class="role-chip inline-flex items-center px-3 py-1 rounded-full border text-[11px] font-semibold bg-gray-50 text-gray-700">
+                            Mitra ({{ $roleCounts['mitra'] }})
+                        </button>
+                        <button type="button" data-role-filter-btn data-role-filter="customer"
+                            class="role-chip inline-flex items-center px-3 py-1 rounded-full border text-[11px] font-semibold bg-gray-50 text-gray-700">
+                            Customer ({{ $roleCounts['customer'] }})
+                        </button>
+                        <button type="button" data-role-filter-btn data-role-filter="other"
+                            class="role-chip inline-flex items-center px-3 py-1 rounded-full border text-[11px] font-semibold bg-gray-50 text-gray-700">
+                            Lainnya ({{ $roleCounts['other'] }})
+                        </button>
+                    </div>
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="bg-gray-50 text-gray-600">
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">User</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Role</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Aktivitas
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Deskripsi
@@ -186,16 +282,28 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-100">
                             @foreach ($activities as $a)
-                                <tr class="hover:bg-gray-50">
+                                @php
+                                    $roleKey = optional($a->user)?->isMitra() ? 'mitra' : (optional($a->user)?->isCustomer() ? 'customer' : 'other');
+                                    $roleInfo = $roleMeta[$roleKey] ?? $roleMeta['other'];
+                                @endphp
+                                <tr class="hover:bg-gray-50" data-role-row data-role="{{ $roleKey }}"
+                                    data-activity-type="{{ $a->activity_type }}">
                                     <td class="px-6 py-3 whitespace-nowrap text-gray-900 text-sm font-medium">
                                         @if($a->user)
                                             <a href="{{ route('admin.users.show', $a->user) }}"
                                                 class="text-primary-600 hover:text-primary-700 hover:underline">
                                                 {{ $a->user->name }}
                                             </a>
+                                            <p class="text-[11px] text-gray-500">{{ $a->user->email }}</p>
                                         @else
                                             -
                                         @endif
+                                    </td>
+                                    <td class="px-6 py-3 whitespace-nowrap text-gray-700 text-sm">
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold {{ $roleInfo['badge'] }}">
+                                            {{ $roleInfo['label'] }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-3 whitespace-nowrap text-gray-700 text-sm">
                                         @php
@@ -288,8 +396,7 @@
                                 </ul>
 
                                 <div class="mt-3 flex flex-wrap gap-2">
-                                    <form method="POST"
-                                        action="{{ route('admin.partners.toggle', $selectedActivity->user_id) }}">
+                                    <form method="POST" action="{{ route('admin.partners.toggle', $selectedActivity->user_id) }}">
                                         @csrf
                                         <button type="submit"
                                             class="px-3 py-1.5 rounded-full text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700">
@@ -416,3 +523,46 @@
         </div>
     @endif
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const buttons = document.querySelectorAll('[data-role-filter-btn]');
+            const rows = document.querySelectorAll('[data-role-row]');
+
+            if (!buttons.length || !rows.length) {
+                return;
+            }
+
+            const setActiveButton = (current) => {
+                buttons.forEach((btn) => {
+                    btn.classList.remove('bg-gray-900', 'text-white', 'border-gray-900');
+                    btn.classList.add('bg-gray-50', 'text-gray-700', 'border-gray-200');
+                });
+
+                current.classList.add('bg-gray-900', 'text-white', 'border-gray-900');
+                current.classList.remove('bg-gray-50', 'text-gray-700', 'border-gray-200');
+            };
+
+            const applyRoleFilter = (role) => {
+                rows.forEach((row) => {
+                    const shouldShow = role === 'all' || row.dataset.role === role;
+                    row.classList.toggle('hidden', !shouldShow);
+                });
+            };
+
+            if (buttons[0]) {
+                setActiveButton(buttons[0]);
+                applyRoleFilter(buttons[0].dataset.roleFilter || 'all');
+            }
+
+            buttons.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const role = btn.dataset.roleFilter || 'all';
+                    setActiveButton(btn);
+                    applyRoleFilter(role);
+                });
+            });
+        });
+    </script>
+@endpush

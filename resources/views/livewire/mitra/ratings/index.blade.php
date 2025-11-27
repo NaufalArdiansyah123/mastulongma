@@ -55,7 +55,7 @@
                         <!-- Customer Info -->
                         <div class="flex items-start justify-between mb-3">
                             <div>
-                                <h3 class="font-bold text-gray-900">{{ $rating->help->customer->name }}</h3>
+                                <h3 class="font-bold text-gray-900">{{ optional($rating->help->user)->name ?? 'User' }}</h3>
                                 <p class="text-xs text-gray-500">{{ $rating->created_at->diffForHumans() }}</p>
                             </div>
                             <div class="flex gap-1">

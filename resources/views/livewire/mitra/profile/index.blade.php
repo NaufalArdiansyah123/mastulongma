@@ -48,6 +48,10 @@
                             </svg>
                             Chat
                         </a>
+                        <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.user', $user->id) : route('customer.reports.create.user', $user->id) }}"
+                            class="inline-flex items-center gap-2 ml-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition">
+                            Laporkan
+                        </a>
                     </div>
                     @if($user->is_verified)
                         <span
@@ -84,12 +88,11 @@
     <!-- Menu Items -->
     <div class="px-5 pt-6 pb-24">
         <div class="space-y-3">
-            {{-- Mount the update-photo Livewire component and the edit-profile modal so they can listen for events --}}
+            {{-- Mount the update-photo Livewire component so it can be used to change avatar --}}
             <livewire:mitra.update-profile-photo />
-            <livewire:mitra.profile.edit />
 
-            <!-- Edit Profil -->
-            <a href="#" onclick="openMitraEditProfile(); return false;"
+            <!-- Edit Profil (go to full edit page) -->
+            <a href="{{ route('mitra.profile.edit') }}"
                 class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
                 <div class="bg-gradient-to-br from-blue-400 to-blue-600 text-white p-3 rounded-full">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

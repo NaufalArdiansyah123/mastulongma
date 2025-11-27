@@ -5,6 +5,10 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Help;
 use App\Observers\HelpObserver;
+use App\Models\User;
+use App\Models\Rating;
+use App\Observers\UserObserver;
+use App\Observers\RatingObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Redirector;
 
@@ -25,6 +29,10 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register Help Observer
         Help::observe(HelpObserver::class);
+
+        // Register User & Rating observers for activity logging
+        User::observe(UserObserver::class);
+        Rating::observe(RatingObserver::class);
 
         // Register BalanceTransaction observer to update user balances when transactions complete
         \App\Models\BalanceTransaction::observe(\App\Observers\BalanceTransactionObserver::class);

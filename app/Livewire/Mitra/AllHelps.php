@@ -12,6 +12,12 @@ class AllHelps extends Component
 {
     use WithPagination;
 
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'filterStatus' => ['except' => 'all'],
+        'sortBy' => ['except' => 'latest'],
+    ];
+
     public $search = '';
     public $filterStatus = 'all'; // all, menunggu_mitra
     public $sortBy = 'latest'; // latest, oldest, price_high, price_low
@@ -76,6 +82,27 @@ class AllHelps extends Component
         return view('livewire.mitra.helps.all-helps', [
             'helps' => $helps,
         ]);
+    }
+
+    public function takeHelp($helpId)
+    {
+        $help = Help::findOrFail($helpId);
+
+        if ($help->mitra_id) {
+            session()->flash('error', 'Bantuan ini sudah diambil oleh mitra lain.');
+            return;
+        }
+
+        $help->update([
+            'mitra_id' => auth()->id(),
+            'status' => 'memperoleh_mitra',
+            'taken_at' => now(),
+        ]);
+
+        session()->flash('message', 'Bantuan berhasil diambil. Silakan hubungi pengguna.');
+
+        // refresh pagination and query so the help disappears from the list
+        $this->resetPage();
     }
 
 }

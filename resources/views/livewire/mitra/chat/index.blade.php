@@ -83,6 +83,10 @@
                         <div class="font-semibold text-gray-900 truncate">{{ $selected_help->user->name ?? 'Customer' }}</div>
                         <div class="text-xs text-gray-500 truncate">{{ $selected_help->description }}</div>
                     </div>
+                    @if(optional($selected_help->user)->id)
+                        <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.user', optional($selected_help->user)->id) : route('customer.reports.create.user', optional($selected_help->user)->id) }}"
+                            class="ml-2 p-2 text-sm text-red-600 rounded-lg hover:bg-red-50">Laporkan</a>
+                    @endif
                 </div>
             </div>
 
