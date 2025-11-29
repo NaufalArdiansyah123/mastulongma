@@ -69,6 +69,15 @@ class Index extends Component
             ];
         }
 
+        // Authorization: if current user is admin, only allow viewing registrations for the same city
+        if (auth()->user() && auth()->user()->role === 'admin') {
+            $adminCity = auth()->user()->city_id;
+            if (($this->selectedRegistration->city_id ?? null) != $adminCity) {
+                session()->flash('message', 'Anda tidak memiliki izin untuk melihat registrasi di luar wilayah Anda.');
+                return;
+            }
+        }
+
         $this->showModal = true;
         $this->showRejectForm = (bool) $openReject;
     }
@@ -113,6 +122,15 @@ class Index extends Component
             return;
         }
 
+        // Authorization: admin can only approve registrations in their city
+        if (auth()->user() && auth()->user()->role === 'admin') {
+            $adminCity = auth()->user()->city_id;
+            if (($reg->city_id ?? null) != $adminCity) {
+                session()->flash('message', 'Anda tidak memiliki izin untuk menyetujui registrasi di luar wilayah Anda.');
+                return;
+            }
+        }
+
         $user = User::where('email', $reg->email)->first();
         if ($user) {
             $user->update([
@@ -145,6 +163,15 @@ class Index extends Component
         if (!$reg) {
             session()->flash('message', 'Registrasi tidak ditemukan');
             return;
+        }
+
+        // Authorization: admin can only reject registrations in their city
+        if (auth()->user() && auth()->user()->role === 'admin') {
+            $adminCity = auth()->user()->city_id;
+            if (($reg->city_id ?? null) != $adminCity) {
+                session()->flash('message', 'Anda tidak memiliki izin untuk menolak registrasi di luar wilayah Anda.');
+                return;
+            }
         }
 
         $user = User::where('email', $reg->email)->first();
@@ -180,6 +207,10 @@ class Index extends Component
                         ->orWhere('email', 'like', '%' . $this->search . '%')
                         ->orWhere('nik', 'like', '%' . $this->search . '%');
                 });
+            })
+            // If current user is an admin, only show registrations for their city
+            ->when(auth()->user() && auth()->user()->role === 'admin', function ($q) {
+                $q->where('city_id', auth()->user()->city_id);
             })
             ->latest()
             ->paginate($this->perPage);

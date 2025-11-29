@@ -242,8 +242,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button type="button" wire:click.prevent="editUser({{ $selectedUser->id }})"
-                            class="px-3 py-2 bg-primary-600 text-white rounded-md text-sm">Edit</button>
+                            <br>
                         <button type="button" wire:click.prevent="closeModal"
                             class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
                     </div>
@@ -369,6 +368,8 @@
             </div>
         </div>
     @endif
+
+    
 
     {{-- Create / Edit Modal (polished) --}}
     @if($showCreateModal || $showEditModal)

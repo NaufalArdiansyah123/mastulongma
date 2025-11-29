@@ -1,23 +1,15 @@
-<div>
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div class="px-8 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Manajemen Kategori</h1>
-                    <p class="text-sm text-gray-600 mt-1">Kelola kategori layanan bantuan</p>
-                </div>
-                <button wire:click="openCreateModal"
-                    class="px-6 py-3 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700 transition shadow-md hover:shadow-lg">
-                    <div class="flex items-center space-x-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span>Tambah Kategori</span>
-                    </div>
-                </button>
+<div class="min-h-screen bg-gray-50">
+    <div class="px-8 py-12">
+        <div class="bg-white rounded-lg shadow p-8 text-center">
+            <h1 class="text-2xl font-bold text-gray-900">Manajemen Kategori - Dihapus</h1>
+            <p class="text-sm text-gray-500 mt-2">Halaman manajemen kategori untuk Superadmin telah dihapus.</p>
+            <div class="mt-6">
+                <a href="{{ route('superadmin.dashboard') }}"
+                    class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg">Kembali ke
+                    Dashboard</a>
             </div>
         </div>
-    </header>
+    </div>
 
     <div class="p-12">
         <!-- Filter Cards -->

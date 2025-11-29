@@ -14,12 +14,23 @@ class Dashboard extends Component
 {
     public function render()
     {
-        $totalHelps = Help::count();
-        $pendingHelps = Help::where('status', 'pending')->count();
-        $activeHelps = Help::where('status', 'active')->count();
-        $completedHelps = Help::where('status', 'completed')->count();
-        $pendingVerifications = 0;
-        $verifiedMitras = User::where('role', 'mitra')->count();
+        // If current user is an admin, scope metrics to their assigned city
+        if (auth()->user() && auth()->user()->role === 'admin') {
+            $cityId = auth()->user()->city_id;
+            $totalHelps = Help::where('city_id', $cityId)->count();
+            $pendingHelps = Help::where('city_id', $cityId)->where('status', 'pending')->count();
+            $activeHelps = Help::where('city_id', $cityId)->where('status', 'active')->count();
+            $completedHelps = Help::where('city_id', $cityId)->where('status', 'completed')->count();
+            $pendingVerifications = \App\Models\Registration::where('city_id', $cityId)->where('status', 'pending_verification')->count();
+            $verifiedMitras = User::where('role', 'mitra')->where('city_id', $cityId)->count();
+        } else {
+            $totalHelps = Help::count();
+            $pendingHelps = Help::where('status', 'pending')->count();
+            $activeHelps = Help::where('status', 'active')->count();
+            $completedHelps = Help::where('status', 'completed')->count();
+            $pendingVerifications = 0;
+            $verifiedMitras = User::where('role', 'mitra')->count();
+        }
 
         // Health check
         $health = [

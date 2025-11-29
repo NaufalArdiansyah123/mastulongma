@@ -155,7 +155,7 @@
                     </div>
                     <h2 class="text-xl font-bold text-gray-900">Aksi Cepat</h2>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <a href="{{ route('superadmin.users') }}" class="group bg-gradient-to-br from-blue-50 to-blue-100/50 hover:from-blue-100 hover:to-blue-200/50 rounded-xl p-4 border border-blue-200/50 transition-all duration-300 hover:shadow-md hover:scale-105 flex flex-col items-center text-center">
                         <div class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -172,21 +172,17 @@
                         <p class="text-xs text-gray-600">Manajemen kota layanan</p>
                     </a>
 
-                    <a href="{{ route('superadmin.categories') }}" class="group bg-gradient-to-br from-purple-50 to-purple-100/50 hover:from-purple-100 hover:to-purple-200/50 rounded-xl p-4 border border-purple-200/50 transition-all duration-300 hover:shadow-md hover:scale-105 flex flex-col items-center text-center">
+                    <a href="{{ route('superadmin.settings.help') }}" class="group bg-gradient-to-br from-yellow-50 to-yellow-100/50 hover:from-yellow-100 hover:to-yellow-200/50 rounded-xl p-4 border border-yellow-200/50 transition-all duration-300 hover:shadow-md hover:scale-105 flex flex-col items-center text-center">
                         <div class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c.79 0 1.5.3 2.04.78L20 14v6a1 1 0 01-1 1h-6l-5.22-5.22A4 4 0 1112 8z"/></svg>
                         </div>
-                        <h3 class="text-sm font-bold text-gray-900 mb-1">Kelola Kategori</h3>
-                        <p class="text-xs text-gray-600">Manajemen kategori</p>
+                        <h3 class="text-sm font-bold text-gray-900 mb-1">Pengaturan Bantuan</h3>
+                        <p class="text-xs text-gray-600">Atur minimum & biaya admin</p>
                     </a>
 
-                    <a href="{{ route('superadmin.verifications') }}" class="group bg-gradient-to-br from-amber-50 to-amber-100/50 hover:from-amber-100 hover:to-amber-200/50 rounded-xl p-4 border border-amber-200/50 transition-all duration-300 hover:shadow-md hover:scale-105 flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        </div>
-                        <h3 class="text-sm font-bold text-gray-900 mb-1">Verifikasi KTP</h3>
-                        <p class="text-xs text-gray-600">Verifikasi identitas mitra</p>
-                    </a>
+                    <!-- Categories quick action removed -->
+
+                    <!-- Verifikasi KTP quick action removed -->
                 </div>
             </div>
 
@@ -280,10 +276,7 @@
                         </div>
                         <h3 class="text-xl font-bold text-gray-900">Permintaan Bantuan Terbaru</h3>
                     </div>
-                    <a href="{{ route('superadmin.helps') }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200">
-                        <span>Lihat semua</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </a>
+                    <!-- 'Lihat semua' link to Moderasi Bantuan removed -->
                 </div>
 
                 @if($recentHelps->count())

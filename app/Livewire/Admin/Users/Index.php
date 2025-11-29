@@ -81,6 +81,11 @@ class Index extends Component
 
         $validated = $this->validate($rules);
 
+        // If current user is admin, ensure city assignments are within their city
+        if (auth()->user() && auth()->user()->role === 'admin') {
+            $this->city_id = auth()->user()->city_id;
+        }
+
         if ($this->editMode) {
             $user = User::findOrFail($this->userId);
             $user->update(array_filter([
@@ -93,6 +98,10 @@ class Index extends Component
                 'password' => $this->password ? bcrypt($this->password) : null,
             ]));
         } else {
+            // If current user is admin, enforce city_id to admin's city
+            if (auth()->user() && auth()->user()->role === 'admin') {
+                $this->city_id = auth()->user()->city_id;
+            }
             User::create([
                 'name' => $this->name,
                 'email' => $this->email,
@@ -112,7 +121,13 @@ class Index extends Component
 
     public function deleteUser($id)
     {
-        User::findOrFail($id)->delete();
+        // Admins may only delete users from their city
+        $user = User::findOrFail($id);
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id !== $user->city_id) {
+            session()->flash('message', 'Anda tidak memiliki izin untuk menghapus user di luar wilayah Anda.');
+            return;
+        }
+        $user->delete();
     }
 
     public function render()
@@ -136,6 +151,11 @@ class Index extends Component
 
         if ($this->statusFilter) {
             $query->where('status', $this->statusFilter);
+        }
+
+        // Limit visible users for admins to their assigned city
+        if (auth()->user() && auth()->user()->role === 'admin') {
+            $query->where('users.city_id', auth()->user()->city_id);
         }
 
         // Because we joined registrations, ordering by latest users.created_at
@@ -176,9 +196,14 @@ class Index extends Component
             $user->is_blocked = ($user->status === 'blocked');
         }
 
+        $cities = City::where('is_active', true);
+        if (auth()->user() && auth()->user()->role === 'admin') {
+            $cities->where('id', auth()->user()->city_id);
+        }
+
         return view('livewire.admin.users.index', [
             'users' => $users,
-            'cities' => City::where('is_active', true)->get(),
+            'cities' => $cities->get(),
         ]);
     }
 }

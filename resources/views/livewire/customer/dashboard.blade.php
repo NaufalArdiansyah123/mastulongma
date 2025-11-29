@@ -150,22 +150,43 @@
     <!-- Main Content Card -->
     <div
         class="bg-gradient-to-b from-gray-50 to-white rounded-t-[32px] px-5 pt-8 pb-24 min-h-[60vh] -mt-4 relative z-10">
-        <!-- Promo Banner (sliding carousel) -->
+        <!-- Promo Banner (sliding carousel) or custom banner if uploaded -->
+        @php
+            $customerBanners = json_decode((string) \App\Models\AppSetting::get('banner_customer', '[]'), true) ?: [];
+        @endphp
         <div class="mb-6 slide-up">
-            <div id="promo-banner"
-                class="rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div class="relative h-36 rounded-3xl overflow-hidden">
-                    <div id="promo-track" class="flex h-full transition-transform duration-700 ease-in-out"></div>
+            @if(!empty($customerBanners) && count($customerBanners))
+                <div class="rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="relative h-36 rounded-3xl overflow-hidden bg-gray-100">
+                        <div class="w-full h-full">
+                            <div class="flex h-full will-change-transform customer-banner-slides"
+                                style="transition: transform 700ms cubic-bezier(.2,.9,.2,1);">
+                                @foreach($customerBanners as $b)
+                                    <div class="flex-shrink-0 w-full h-full">
+                                        <img src="{{ asset('storage/' . $b) }}" alt="Banner Customer"
+                                            class="w-full h-full object-cover" />
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div id="promo-dots" class="flex justify-center mt-3 gap-2">
-                <button data-dot="0"
-                    class="w-2.5 h-2.5 rounded-full bg-primary-600 transition-all duration-300 hover:scale-125"></button>
-                <button data-dot="1"
-                    class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all duration-300 hover:scale-125"></button>
-                <button data-dot="2"
-                    class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all duration-300 hover:scale-125"></button>
-            </div>
+            @else
+                <div id="promo-banner"
+                    class="rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="relative h-36 rounded-3xl overflow-hidden">
+                        <div id="promo-track" class="flex h-full transition-transform duration-700 ease-in-out"></div>
+                    </div>
+                </div>
+                <div id="promo-dots" class="flex justify-center mt-3 gap-2">
+                    <button data-dot="0"
+                        class="w-2.5 h-2.5 rounded-full bg-primary-600 transition-all duration-300 hover:scale-125"></button>
+                    <button data-dot="1"
+                        class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all duration-300 hover:scale-125"></button>
+                    <button data-dot="2"
+                        class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all duration-300 hover:scale-125"></button>
+                </div>
+            @endif
         </div>
 
         <!-- Quick Actions -->
@@ -365,87 +386,130 @@
     </div>
 </div>
 
+@if(empty($customerBanners) || !count($customerBanners))
+    <script>
+        (function () {
+            const banners = [
+                { title: 'Promo Spesial', desc: 'Dapatkan diskon layanan untuk bantuan pertama Anda.', bgCss: 'linear-gradient(135deg,#6366f1,#4f46e5)' },
+                { title: 'Gratis Ongkir', desc: 'Pengiriman gratis untuk bantuan di kota yang sama.', bgCss: 'linear-gradient(135deg,#10b981,#059669)' },
+                { title: 'Dapatkan Badge', desc: 'Selesaikan 5 bantuan dan dapatkan badge Mitra Aktif.', bgCss: 'linear-gradient(135deg,#f59e0b,#f97316)' }
+            ];
 
+            const track = document.getElementById('promo-track');
+            const dotsContainer = document.getElementById('promo-dots');
+            const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('button')) : [];
+            let idx = 0;
+            let timer = null;
 
-<script>
-    (function () {
-        const banners = [
-            { title: 'Promo Spesial', desc: 'Dapatkan diskon layanan untuk bantuan pertama Anda.', bgCss: 'linear-gradient(135deg,#6366f1,#4f46e5)' },
-            { title: 'Gratis Ongkir', desc: 'Pengiriman gratis untuk bantuan di kota yang sama.', bgCss: 'linear-gradient(135deg,#10b981,#059669)' },
-            { title: 'Dapatkan Badge', desc: 'Selesaikan 5 bantuan dan dapatkan badge Mitra Aktif.', bgCss: 'linear-gradient(135deg,#f59e0b,#f97316)' }
-        ];
-
-        const track = document.getElementById('promo-track');
-        const dotsContainer = document.getElementById('promo-dots');
-        const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('button')) : [];
-        let idx = 0;
-        let timer = null;
-
-        // build slides (create DOM nodes and use inline background to avoid Tailwind purge issues)
-        if (track) {
-            track.innerHTML = '';
-            const frag = document.createDocumentFragment();
-            banners.forEach(b => {
-                const slide = document.createElement('div');
-                slide.className = 'w-full flex-shrink-0 p-6 flex items-center justify-center text-white';
-                slide.style.background = b.bgCss;
-                const inner = document.createElement('div');
-                inner.className = 'text-center';
-                const title = document.createElement('div');
-                title.className = 'font-extrabold text-xl mb-1 tracking-tight';
-                title.textContent = b.title;
-                const desc = document.createElement('div');
-                desc.className = 'text-sm opacity-90 font-medium';
-                desc.textContent = b.desc;
-                inner.appendChild(title);
-                inner.appendChild(desc);
-                slide.appendChild(inner);
-                frag.appendChild(slide);
-            });
-            track.appendChild(frag);
-        }
-
-        function update() {
+            // build slides (create DOM nodes and use inline background to avoid Tailwind purge issues)
             if (track) {
-                const percent = (idx * 100) / banners.length;
-                track.style.transform = `translateX(${-percent}%)`;
+                track.innerHTML = '';
+                const frag = document.createDocumentFragment();
+                banners.forEach(b => {
+                    const slide = document.createElement('div');
+                    slide.className = 'w-full flex-shrink-0 p-6 flex items-center justify-center text-white';
+                    slide.style.background = b.bgCss;
+                    const inner = document.createElement('div');
+                    inner.className = 'text-center';
+                    const title = document.createElement('div');
+                    title.className = 'font-extrabold text-xl mb-1 tracking-tight';
+                    title.textContent = b.title;
+                    const desc = document.createElement('div');
+                    desc.className = 'text-sm opacity-90 font-medium';
+                    desc.textContent = b.desc;
+                    inner.appendChild(title);
+                    inner.appendChild(desc);
+                    slide.appendChild(inner);
+                    frag.appendChild(slide);
+                });
+                track.appendChild(frag);
             }
-            if (dots.length) {
-                dots.forEach((d, k) => {
-                    d.classList.toggle('bg-primary-600', k === idx);
-                    d.classList.toggle('bg-gray-300', k !== idx);
+
+            function update() {
+                if (track) {
+                    const percent = (idx * 100) / banners.length;
+                    track.style.transform = `translateX(${-percent}%)`;
+                }
+                if (dots.length) {
+                    dots.forEach((d, k) => {
+                        d.classList.toggle('bg-primary-600', k === idx);
+                        d.classList.toggle('bg-gray-300', k !== idx);
+                    });
+                }
+            }
+
+            function go(i) {
+                idx = (i + banners.length) % banners.length;
+                update();
+            }
+
+            function resetTimer() {
+                if (timer) clearInterval(timer);
+                timer = setInterval(() => go(idx + 1), 4200);
+            }
+
+            // dot clicks
+            if (dotsContainer) {
+                dotsContainer.addEventListener('click', function (e) {
+                    const dot = e.target.closest('button[data-dot]');
+                    if (!dot) return;
+                    const i = parseInt(dot.dataset.dot);
+                    go(i);
+                    resetTimer();
                 });
             }
-        }
 
-        function go(i) {
-            idx = (i + banners.length) % banners.length;
-            update();
-        }
-
-        function resetTimer() {
-            if (timer) clearInterval(timer);
-            timer = setInterval(() => go(idx + 1), 4200);
-        }
-
-        // dot clicks
-        if (dotsContainer) {
-            dotsContainer.addEventListener('click', function (e) {
-                const dot = e.target.closest('button[data-dot]');
-                if (!dot) return;
-                const i = parseInt(dot.dataset.dot);
-                go(i);
+            // init
+            if (track) {
+                // ensure track has width for transform to work correctly
+                track.style.width = `${banners.length * 100}%`;
+                Array.from(track.children).forEach(child => child.style.width = `${100 / banners.length}%`);
+                update();
                 resetTimer();
-            });
+            }
+        })();
+    </script>
+@endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function initBannerSlider(wrapperSelector) {
+            const wrapper = document.querySelector(wrapperSelector);
+            if (!wrapper) return;
+            const container = wrapper.parentElement; // expected visible container
+            const slides = Array.from(wrapper.children || []);
+            if (!slides.length || slides.length <= 1) return;
+
+            function setup() {
+                const cw = container.clientWidth || container.getBoundingClientRect().width;
+                wrapper.style.width = (cw * slides.length) + 'px';
+                wrapper.style.display = 'flex';
+                wrapper.style.transition = 'transform 700ms cubic-bezier(.2,.9,.2,1)';
+                slides.forEach(s => {
+                    s.style.width = cw + 'px';
+                    s.style.flex = '0 0 auto';
+                });
+            }
+
+            let idx = 0;
+            let timer = null;
+
+            function go(i) {
+                idx = (i + slides.length) % slides.length;
+                const shift = -(idx * (container.clientWidth || container.getBoundingClientRect().width));
+                wrapper.style.transform = 'translateX(' + shift + 'px)';
+            }
+
+            setup();
+            window.addEventListener('resize', setup);
+
+            timer = setInterval(function () { go(idx + 1); }, 3500);
+
+            container.addEventListener('mouseenter', function () { if (timer) clearInterval(timer); });
+            container.addEventListener('mouseleave', function () { if (timer) clearInterval(timer); timer = setInterval(function () { go(idx + 1); }, 3500); });
         }
 
-        // init
-        if (track) {
-            // ensure track has width for transform to work correctly
-            track.style.width = `${banners.length * 100}%`;
-            Array.from(track.children).forEach(child => child.style.width = `${100 / banners.length}%`);
-            update();
-            resetTimer();
-        }
-    })();
+        try { initBannerSlider('.customer-banner-slides'); } catch (e) { console.warn('customer slider init', e); }
+        try { initBannerSlider('.mitra-banner-slides'); } catch (e) { /* ignore */ }
+    });
 </script>

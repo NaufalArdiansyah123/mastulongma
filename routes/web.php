@@ -148,10 +148,12 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->na
     Route::get('/dashboard', \App\Livewire\SuperAdmin\Dashboard::class)->name('dashboard');
     Route::get('/users', \App\Livewire\SuperAdmin\Users::class)->name('users');
     Route::get('/cities', \App\Livewire\SuperAdmin\Cities::class)->name('cities');
-    Route::get('/categories', \App\Livewire\SuperAdmin\Categories::class)->name('categories');
-    Route::view('/subscriptions', 'superadmin.subscriptions')->name('subscriptions');
-    Route::get('/helps', \App\Livewire\SuperAdmin\Helps::class)->name('helps');
-    Route::get('/verifications', \App\Livewire\SuperAdmin\Verifications::class)->name('verifications');
+    // Moderasi Bantuan page removed for SuperAdmin
+    // Verifikasi KTP page removed for SuperAdmin
+    // Help settings (minimum nominal and admin fee)
+    Route::get('/settings/help', \App\Livewire\SuperAdmin\Settings\HelpSettings::class)->name('settings.help');
+    // Banners management for dashboards
+    Route::get('/settings/banners', \App\Livewire\SuperAdmin\Banners::class)->name('settings.banners');
 });
 
 // Admin routes - require admin role only (for moderasi)

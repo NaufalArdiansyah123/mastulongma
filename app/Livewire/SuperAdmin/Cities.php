@@ -20,12 +20,21 @@ class Cities extends Component
     public $editMode = false;
     public $cityId;
 
+    // helper for delete modal display
+    public $deletingCityName = null;
+
     // form fields
     public $name = '';
     public $province = '';
     public $admin_id = null;
     public $is_active = true;
     public $deleteId = null;
+    // detail modal + chart data
+    public $showDetailModal = false;
+    public $detailCityName = null;
+    public $chartLabels = [];
+    public $chartCustomerData = [];
+    public $chartMitraData = [];
 
     public function updatedSearch()
     {
@@ -59,6 +68,8 @@ class Cities extends Component
     public function confirmDelete($id)
     {
         $this->deleteId = $id;
+        $city = City::find($id);
+        $this->deletingCityName = $city ? $city->name : null;
         $this->showDeleteModal = true;
     }
 
@@ -74,16 +85,55 @@ class Cities extends Component
         $validated = $this->validate([
             'name' => 'required|string|max:255',
             'province' => 'required|string|max:255',
-            'admin_id' => 'nullable|exists:users,id',
+            'admin_id' => 'required|exists:users,id',
             'is_active' => 'boolean',
         ]);
 
+        // Ensure selected user is actually an admin
+        $admin =
+            $validated['admin_id'] ? User::find($validated['admin_id']) : null;
+        if (!$admin || $admin->role !== 'admin') {
+            $this->addError('admin_id', 'Pilih user dengan role admin sebagai pengelola kota');
+            return;
+        }
+
+        // Ensure this admin isn't already assigned to another city (unless editing that same city)
+        $conflictQuery = City::where('admin_id', $admin->id);
         if ($this->editMode && $this->cityId) {
-            City::findOrFail($this->cityId)->update($validated);
+            $conflictQuery->where('id', '!=', $this->cityId);
+        }
+        if ($conflictQuery->exists()) {
+            $this->addError('admin_id', 'User ini sudah menjadi admin pengelola kota lain. Pilih admin lain.');
+            return;
+        }
+
+        if ($this->editMode && $this->cityId) {
+            $city = City::findOrFail($this->cityId);
+            $oldAdminId = $city->admin_id;
+            $city->update($validated);
+
+            // If admin changed, clear old admin's city_id
+            if ($oldAdminId && $oldAdminId !== $city->admin_id) {
+                $oldAdmin = User::find($oldAdminId);
+                if ($oldAdmin) {
+                    $oldAdmin->city_id = null;
+                    $oldAdmin->save();
+                }
+            }
+
+            // assign new admin's city_id
+            $admin->city_id = $city->id;
+            $admin->save();
+
             session()->flash('message', 'Kota berhasil diperbarui');
         } else {
-            City::create($validated);
-            session()->flash('message', 'Kota berhasil dibuat');
+            $city = City::create($validated);
+
+            // assign admin to this new city
+            $admin->city_id = $city->id;
+            $admin->save();
+
+            session()->flash('message', 'Kota berhasil dibuat dan admin ditetapkan');
         }
 
         $this->showModal = false;
@@ -93,12 +143,76 @@ class Cities extends Component
     public function deleteCity()
     {
         if ($this->deleteId) {
-            City::findOrFail($this->deleteId)->delete();
+            $city = City::findOrFail($this->deleteId);
+            // unset admin's city relationship if set
+            if ($city->admin_id) {
+                $admin = User::find($city->admin_id);
+                if ($admin) {
+                    $admin->city_id = null;
+                    $admin->save();
+                }
+            }
+            $city->delete();
             session()->flash('message', 'Kota berhasil dihapus');
         }
 
+        // reset delete helpers
         $this->showDeleteModal = false;
         $this->deleteId = null;
+        $this->deletingCityName = null;
+    }
+
+    /**
+     * Open detail modal for a city and prepare last-30-days chart data
+     */
+    public function openDetailModal($cityId)
+    {
+        $city = City::find($cityId);
+        if (!$city) {
+            session()->flash('error', 'Kota tidak ditemukan');
+            return;
+        }
+
+        $this->detailCityName = $city->name;
+        $this->chartLabels = [];
+        $this->chartCustomerData = [];
+        $this->chartMitraData = [];
+
+        $days = 30;
+        $today = now()->startOfDay();
+
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = $today->copy()->subDays($i);
+            $this->chartLabels[] = $date->format('d M');
+
+            $customerCount = User::where('role', 'customer')
+                ->where('status', 'active')
+                ->where('city_id', $cityId)
+                ->whereDate('created_at', $date->toDateString())
+                ->count();
+
+            $mitraCount = User::where('role', 'mitra')
+                ->where('status', 'active')
+                ->where('city_id', $cityId)
+                ->whereDate('created_at', $date->toDateString())
+                ->count();
+
+            $this->chartCustomerData[] = $customerCount;
+            $this->chartMitraData[] = $mitraCount;
+        }
+
+        $this->showDetailModal = true;
+        // Do not call emit/dispatch here to avoid compatibility issues with Livewire versions.
+        // The client will read the prepared arrays from the rendered DOM after Livewire updates.
+    }
+
+    public function closeDetailModal()
+    {
+        $this->showDetailModal = false;
+        $this->detailCityName = null;
+        $this->chartLabels = [];
+        $this->chartCustomerData = [];
+        $this->chartMitraData = [];
     }
 
     public function render()
@@ -114,7 +228,13 @@ class Cities extends Component
             ->latest()
             ->paginate($this->perPage);
 
-        $admins = User::where('role', 'admin')->get();
+        $admins = User::where('role', 'admin')
+            ->where(function ($q) {
+                $q->whereNull('city_id');
+                if ($this->admin_id)
+                    $q->orWhere('id', $this->admin_id);
+            })->get();
+
         return view('superadmin.cities', compact('cities', 'admins'));
     }
 }

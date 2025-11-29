@@ -48,6 +48,7 @@ class Users extends Component
     public $showConfirmDelete = false;
     public $confirmingDeleteId = null;
 
+
     public function updatedSearch()
     {
         $this->resetPage();
@@ -73,6 +74,7 @@ class Users extends Component
         $this->selectedUser = $user;
         $this->showViewModal = true;
     }
+
 
     public function editUser($id)
     {

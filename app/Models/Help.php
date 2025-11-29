@@ -11,6 +11,8 @@ class Help extends Model
         'city_id',
         'title',
         'amount',
+        'admin_fee',
+        'total_amount',
         'description',
         'photo',
         'location',
@@ -25,6 +27,8 @@ class Help extends Model
         'taken_at' => 'datetime',
         'completed_at' => 'datetime',
         'amount' => 'decimal:2',
+        'admin_fee' => 'decimal:2',
+        'total_amount' => 'decimal:2',
     ];
 
     public function user()

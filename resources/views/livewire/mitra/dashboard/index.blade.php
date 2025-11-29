@@ -72,30 +72,51 @@
 
     <!-- Main Content Card with enhanced spacing -->
     <div class="bg-gray-50 rounded-t-3xl px-4 pt-6 pb-24 min-h-[60vh] -mt-2 relative z-20">
-        <!-- Promo Banner with enhanced visual appeal -->
+        <!-- Promo Banner with enhanced visual appeal or custom mitra banner -->
+        @php
+            $mitraBanners = json_decode((string) \App\Models\AppSetting::get('banner_mitra', '[]'), true) ?: [];
+        @endphp
         <div class="mb-5">
-            <div id="promo-banner" class="rounded-2xl overflow-hidden shadow-lg">
-                <div id="promo-banner-slide"
-                    class="h-36 rounded-2xl p-5 flex items-center justify-center text-white bg-gradient-to-br from-indigo-400 to-indigo-500 transition-all duration-500 relative overflow-hidden">
-                    <!-- Decorative circles -->
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-
-                    <div class="text-center relative z-10">
-                        <div id="promo-title" class="font-bold text-xl mb-1 drop-shadow-md">Promo Spesial</div>
-                        <div id="promo-desc" class="text-sm opacity-90 drop-shadow-sm">Dapatkan bonus saldo dan insentif
-                            khusus.</div>
+            @if(!empty($mitraBanners) && count($mitraBanners))
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <div class="h-36 rounded-2xl overflow-hidden bg-gray-100">
+                        <div class="w-full h-full">
+                            <div class="flex h-full will-change-transform mitra-banner-slides"
+                                style="transition: transform 700ms cubic-bezier(.2,.9,.2,1);">
+                                @foreach($mitraBanners as $b)
+                                    <div class="flex-shrink-0 w-full h-full">
+                                        <img src="{{ asset('storage/' . $b) }}" alt="Banner Mitra"
+                                            class="w-full h-full object-cover" />
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="promo-dots" class="flex justify-center mt-3 gap-2">
-                <button data-dot="0"
-                    class="w-2.5 h-2.5 rounded-full bg-primary-600 transition-all duration-300 hover:scale-125"></button>
-                <button data-dot="1"
-                    class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all duration-300 hover:scale-125"></button>
-                <button data-dot="2"
-                    class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all duration-300 hover:scale-125"></button>
-            </div>
+            @else
+                <div id="promo-banner" class="rounded-2xl overflow-hidden shadow-lg">
+                    <div id="promo-banner-slide"
+                        class="h-36 rounded-2xl p-5 flex items-center justify-center text-white bg-gradient-to-br from-indigo-400 to-indigo-500 transition-all duration-500 relative overflow-hidden">
+                        <!-- Decorative circles -->
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+
+                        <div class="text-center relative z-10">
+                            <div id="promo-title" class="font-bold text-xl mb-1 drop-shadow-md">Promo Spesial</div>
+                            <div id="promo-desc" class="text-sm opacity-90 drop-shadow-sm">Dapatkan bonus saldo dan insentif
+                                khusus.</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="promo-dots" class="flex justify-center mt-3 gap-2">
+                    <button data-dot="0"
+                        class="w-2.5 h-2.5 rounded-full bg-primary-600 transition-all duration-300 hover:scale-125"></button>
+                    <button data-dot="1"
+                        class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all duration-300 hover:scale-125"></button>
+                    <button data-dot="2"
+                        class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all duration-300 hover:scale-125"></button>
+                </div>
+            @endif
         </div>
 
 
@@ -280,51 +301,95 @@
     </div>
 </div>
 
-<script>
-    (function () {
-        const banners = [
-            { title: 'Promo Spesial', desc: 'Dapatkan diskon layanan untuk bantuan pertama Anda.', bg: 'from-indigo-400 to-indigo-500' },
-            { title: 'Insentif Mitra', desc: 'Selesaikan lebih banyak bantuan, dapatkan insentif.', bg: 'from-green-400 to-green-500' },
-            { title: 'Badge Aktif', desc: 'Selesaikan 5 bantuan dan dapatkan badge Mitra Aktif.', bg: 'from-yellow-400 to-yellow-500' }
-        ];
+@if(empty($mitraBanners) || !count($mitraBanners))
+    <script>
+        (function () {
+            const banners = [
+                { title: 'Promo Spesial', desc: 'Dapatkan diskon layanan untuk bantuan pertama Anda.', bg: 'from-indigo-400 to-indigo-500' },
+                { title: 'Insentif Mitra', desc: 'Selesaikan lebih banyak bantuan, dapatkan insentif.', bg: 'from-green-400 to-green-500' },
+                { title: 'Badge Aktif', desc: 'Selesaikan 5 bantuan dan dapatkan badge Mitra Aktif.', bg: 'from-yellow-400 to-yellow-500' }
+            ];
 
-        let idx = 0;
-        const titleEl = document.getElementById('promo-title');
-        const descEl = document.getElementById('promo-desc');
-        const slideEl = document.getElementById('promo-banner-slide');
-        const dotsContainer = document.getElementById('promo-dots');
-        const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('button')) : [];
+            let idx = 0;
+            const titleEl = document.getElementById('promo-title');
+            const descEl = document.getElementById('promo-desc');
+            const slideEl = document.getElementById('promo-banner-slide');
+            const dotsContainer = document.getElementById('promo-dots');
+            const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('button')) : [];
 
-        function show(i) {
-            idx = i % banners.length;
-            const b = banners[idx];
-            if (titleEl) titleEl.textContent = b.title;
-            if (descEl) descEl.textContent = b.desc;
+            function show(i) {
+                idx = i % banners.length;
+                const b = banners[idx];
+                if (titleEl) titleEl.textContent = b.title;
+                if (descEl) descEl.textContent = b.desc;
+                if (slideEl) {
+                    slideEl.className = 'h-36 rounded-2xl p-5 flex items-center justify-center text-white bg-gradient-to-br ' + b.bg + ' transition-all duration-500 relative overflow-hidden';
+                }
+                if (dots.length) {
+                    dots.forEach((d, k) => {
+                        d.classList.toggle('bg-primary-600', k === idx);
+                        d.classList.toggle('bg-gray-300', k !== idx);
+                        d.classList.toggle('scale-125', k === idx);
+                    });
+                }
+            }
+
             if (slideEl) {
-                slideEl.className = 'h-36 rounded-2xl p-5 flex items-center justify-center text-white bg-gradient-to-br ' + b.bg + ' transition-all duration-500 relative overflow-hidden';
+                show(0);
+                let timer = setInterval(() => show((idx + 1) % banners.length), 4000);
+                if (dotsContainer) {
+                    dotsContainer.addEventListener('click', function (e) {
+                        const dot = e.target.closest('button[data-dot]');
+                        if (!dot) return;
+                        const i = parseInt(dot.dataset.dot);
+                        show(i);
+                        clearInterval(timer);
+                        timer = setInterval(() => show((idx + 1) % banners.length), 4000);
+                    });
+                }
             }
-            if (dots.length) {
-                dots.forEach((d, k) => {
-                    d.classList.toggle('bg-primary-600', k === idx);
-                    d.classList.toggle('bg-gray-300', k !== idx);
-                    d.classList.toggle('scale-125', k === idx);
+        })();
+    </script>
+@endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function initBannerSlider(wrapperSelector) {
+            const wrapper = document.querySelector(wrapperSelector);
+            if (!wrapper) return;
+            const container = wrapper.parentElement;
+            const slides = Array.from(wrapper.children || []);
+            if (!slides.length || slides.length <= 1) return;
+
+            function setup() {
+                const cw = container.clientWidth || container.getBoundingClientRect().width;
+                wrapper.style.width = (cw * slides.length) + 'px';
+                wrapper.style.display = 'flex';
+                wrapper.style.transition = 'transform 700ms cubic-bezier(.2,.9,.2,1)';
+                slides.forEach(s => {
+                    s.style.width = cw + 'px';
+                    s.style.flex = '0 0 auto';
                 });
             }
+
+            let idx = 0;
+            let timer = null;
+
+            function go(i) {
+                idx = (i + slides.length) % slides.length;
+                const shift = -(idx * (container.clientWidth || container.getBoundingClientRect().width));
+                wrapper.style.transform = 'translateX(' + shift + 'px)';
+            }
+
+            setup();
+            window.addEventListener('resize', setup);
+
+            timer = setInterval(function () { go(idx + 1); }, 3500);
+
+            container.addEventListener('mouseenter', function () { if (timer) clearInterval(timer); });
+            container.addEventListener('mouseleave', function () { if (timer) clearInterval(timer); timer = setInterval(function () { go(idx + 1); }, 3500); });
         }
 
-        if (slideEl) {
-            show(0);
-            let timer = setInterval(() => show((idx + 1) % banners.length), 4000);
-            if (dotsContainer) {
-                dotsContainer.addEventListener('click', function (e) {
-                    const dot = e.target.closest('button[data-dot]');
-                    if (!dot) return;
-                    const i = parseInt(dot.dataset.dot);
-                    show(i);
-                    clearInterval(timer);
-                    timer = setInterval(() => show((idx + 1) % banners.length), 4000);
-                });
-            }
-        }
-    })();
+        try { initBannerSlider('.mitra-banner-slides'); } catch (e) { console.warn('mitra slider init', e); }
+    });
 </script>

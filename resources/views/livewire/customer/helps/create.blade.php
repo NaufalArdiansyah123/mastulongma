@@ -16,7 +16,7 @@
     <!-- Form Content -->
     <div class="bg-gray-50 rounded-t-3xl -mt-4 px-5 pt-6 pb-24">
         <div class="bg-white rounded-2xl p-4 shadow-sm">
-            <form wire:submit.prevent="save" enctype="multipart/form-data" class="space-y-3">
+            <form wire:submit.prevent="prepareConfirm" enctype="multipart/form-data" class="space-y-3">
                 <!-- Title -->
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1.5">
@@ -283,6 +283,50 @@
                         class="flex-1 px-4 py-2 rounded-lg border border-gray-200">Tutup</button>
                     <a href="{{ route('customer.topup') }}"
                         class="flex-1 px-4 py-2 rounded-lg bg-primary-500 text-white text-center">Top Up Saldo</a>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Confirmation Modal -->
+    @if($showConfirmModal)
+        <div class="fixed inset-0 z-[9999] flex items-center justify-center px-4 pointer-events-auto">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" wire:click="closeConfirmModal"></div>
+            <div class="relative z-10 bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+                <div class="flex items-start justify-between">
+                    <h3 class="text-lg font-bold">Konfirmasi Permintaan</h3>
+                    <button wire:click="closeConfirmModal" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mt-4 text-sm text-gray-700">
+                    <div class="flex justify-between mb-2">
+                        <div>Saldo Saat Ini</div>
+                        <div class="font-medium">Rp {{ number_format($currentBalance ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <div>Nominal Bantuan</div>
+                        <div class="font-medium">Rp {{ number_format($confirmAmount ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <div>Biaya Admin</div>
+                        <div class="font-medium">Rp {{ number_format($confirmAdminFee ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="flex justify-between mt-4 pt-2 border-t">
+                        <div class="text-sm font-semibold">Total Yang Akan Dibayarkan</div>
+                        <div class="text-sm font-bold">Rp {{ number_format($confirmTotal ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex gap-3">
+                    <button wire:click="closeConfirmModal" type="button"
+                        class="flex-1 px-4 py-2 rounded-lg border border-gray-200">Kembali</button>
+                    <button wire:click="save" type="button" wire:loading.attr="disabled"
+                        class="flex-1 px-4 py-2 rounded-lg bg-primary-500 text-white">Konfirmasi & Kirim</button>
                 </div>
             </div>
         </div>
