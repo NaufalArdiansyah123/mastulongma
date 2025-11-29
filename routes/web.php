@@ -154,6 +154,8 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->na
     Route::get('/settings/help', \App\Livewire\SuperAdmin\Settings\HelpSettings::class)->name('settings.help');
     // Banners management for dashboards
     Route::get('/settings/banners', \App\Livewire\SuperAdmin\Banners::class)->name('settings.banners');
+    // Transactions / Logs (topup, withdraw, mutasi)
+    Route::view('/settings/transactions', 'superadmin.transactions')->name('settings.transactions');
 });
 
 // Admin routes - require admin role only (for moderasi)

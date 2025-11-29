@@ -71,6 +71,15 @@
                     Pengaturan Banner
                 </a>
 
+                <a href="{{ route('superadmin.settings.transactions') }}"
+                    class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('superadmin.settings.transactions*') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 10h4l3 9 4-18 3 9h4" />
+                    </svg>
+                    Log Transaksi
+                </a>
+
                 <!-- Categories management removed from Superadmin menu -->
 
                 <!-- Subscriptions (Langganan Mitra) removed -->

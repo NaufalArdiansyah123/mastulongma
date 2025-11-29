@@ -271,16 +271,16 @@
                                         </div>
                                     @endforeach
                                 </div>
-                                <button data-role="prev" data-target="customer"
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
+                                <button type="button" data-role="prev" data-target="customer"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 pointer-events-auto z-50">
                                     <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                             d="M15 19l-7-7 7-7" />
                                     </svg>
                                 </button>
-                                <button data-role="next" data-target="customer"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
+                                <button type="button" data-role="next" data-target="customer"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 pointer-events-auto z-50">
                                     <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -292,6 +292,13 @@
                                         <div class="customer-dot w-2 h-2 rounded-full bg-white/60 transition-all duration-300"
                                             data-index="{{ $index }}"></div>
                                     @endforeach
+                                </div>
+                                <!-- Click overlays (left/right) to ensure clicks captured even if buttons are blocked -->
+                                <div class="arrow-overlay left" data-target="customer" data-role="prev"
+                                    style="position:absolute;left:0;top:0;bottom:0;width:12%;z-index:9998;cursor:pointer;background:transparent;">
+                                </div>
+                                <div class="arrow-overlay right" data-target="customer" data-role="next"
+                                    style="position:absolute;right:0;top:0;bottom:0;width:12%;z-index:9998;cursor:pointer;background:transparent;">
                                 </div>
                             </div>
                         @else
@@ -343,16 +350,16 @@
                                         </div>
                                     @endforeach
                                 </div>
-                                <button data-role="prev" data-target="mitra"
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
+                                <button type="button" data-role="prev" data-target="mitra"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 pointer-events-auto z-50">
                                     <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                             d="M15 19l-7-7 7-7" />
                                     </svg>
                                 </button>
-                                <button data-role="next" data-target="mitra"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
+                                <button type="button" data-role="next" data-target="mitra"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 pointer-events-auto z-50">
                                     <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -364,6 +371,13 @@
                                         <div class="mitra-dot w-2 h-2 rounded-full bg-white/60 transition-all duration-300"
                                             data-index="{{ $index }}"></div>
                                     @endforeach
+                                </div>
+                                <!-- Click overlays (left/right) to ensure clicks captured even if buttons are blocked -->
+                                <div class="arrow-overlay left" data-target="mitra" data-role="prev"
+                                    style="position:absolute;left:0;top:0;bottom:0;width:12%;z-index:9998;cursor:pointer;background:transparent;">
+                                </div>
+                                <div class="arrow-overlay right" data-target="mitra" data-role="next"
+                                    style="position:absolute;right:0;top:0;bottom:0;width:12%;z-index:9998;cursor:pointer;background:transparent;">
                                 </div>
                             </div>
                         @else
@@ -497,10 +511,15 @@
                 const sliderId = prefix + 'Slider';
                 const slidesWrapper = document.querySelector('#' + sliderId + ' > div');
                 if (!slidesWrapper) return;
-
-                const total = items.length;
+                const total = (items && items.length) ? items.length : (slidesWrapper.children.length || 0);
                 let idx = 0;
+                // initialize current index on the wrapper so external handlers can read it
+                slidesWrapper.dataset.idx = String(idx);
+                console.debug('initSimpleSlider', prefix, 'total=', total, 'slidesWrapper=', slidesWrapper);
                 let interval = null;
+                // guard to prevent overlapping transitions triggered by multiple handlers
+                let isTransitioning = false;
+                const TRANSITION_MS = 700; // should match CSS transition duration
                 const dots = document.querySelectorAll('.' + prefix + '-dot');
 
                 function updateDots() {
@@ -516,13 +535,64 @@
                 }
 
                 function goTo(i) {
+                    if (isTransitioning) return;
+                    isTransitioning = true;
                     idx = (i + total) % total;
                     slidesWrapper.style.transform = 'translateX(' + (-idx * 100) + '%)';
+                    // store current index on wrapper so external handlers can read it
+                    slidesWrapper.dataset.idx = String(idx);
                     updateDots();
+                    // clear transitioning flag after transition completes
+                    setTimeout(function () { isTransitioning = false; }, TRANSITION_MS + 30);
                 }
 
                 function next() { goTo(idx + 1); }
                 function prev() { goTo(idx - 1); }
+
+                // reset the autoplay interval after manual navigation with a delay
+                function resetInterval() {
+                    try {
+                        if (interval) { clearInterval(interval); interval = null; }
+                        // restart autoplay after a pause
+                        interval = setInterval(function () { if (!isTransitioning) next(); }, 3500);
+                    } catch (err) { console.warn('resetInterval err', err); }
+                }
+
+                // attach direct handlers to prev/next buttons inside this slider
+                try {
+                    const prevBtnLocal = document.querySelector('#' + sliderId + ' button[data-role="prev"]');
+                    const nextBtnLocal = document.querySelector('#' + sliderId + ' button[data-role="next"]');
+                    console.debug(prefix, 'found prevBtnLocal=', prevBtnLocal, 'nextBtnLocal=', nextBtnLocal);
+                    if (prevBtnLocal) {
+                        // lift above overlays and ensure pointer events
+                        prevBtnLocal.style.zIndex = '9999';
+                        prevBtnLocal.style.pointerEvents = 'auto';
+                        prevBtnLocal.addEventListener('click', function (ev) {
+                            ev.stopPropagation();
+                            console.debug(prefix + ' prev clicked');
+                            prev();
+                            if (interval) { clearInterval(interval); interval = setInterval(next, 3500); }
+                        }, true);
+                    }
+                    if (nextBtnLocal) {
+                        nextBtnLocal.style.zIndex = '9999';
+                        nextBtnLocal.style.pointerEvents = 'auto';
+                        nextBtnLocal.addEventListener('click', function (ev) {
+                            ev.stopPropagation();
+                            console.debug(prefix + ' next clicked');
+                            next();
+                            if (interval) { clearInterval(interval); interval = setInterval(next, 3500); }
+                        }, true);
+                    }
+
+                    // capture pointerdown on container to help diagnose overlays
+                    const containerLocal = document.getElementById(prefix + '-preview');
+                    if (containerLocal) {
+                        containerLocal.addEventListener('pointerdown', function (ev) {
+                            console.debug(prefix + ' container pointerdown target=', ev.target);
+                        }, true);
+                    }
+                } catch (e) { console.warn('attach slider buttons error', e); }
 
                 updateDots();
 
@@ -532,17 +602,11 @@
 
                 const container = document.getElementById(prefix + '-preview');
                 if (container) {
-                    container.addEventListener('click', function (e) {
-                        const btn = e.target.closest('button[data-role]');
-                        if (!btn) return;
-                        const role = btn.getAttribute('data-role');
-                        if (role === 'prev') prev();
-                        if (role === 'next') next();
-                        if (interval) { clearInterval(interval); interval = setInterval(next, 3500); }
-                    });
-
+                    // keep existing container-level handlers for mouse/pointer interactions
                     container.addEventListener('mouseenter', function () { if (interval) clearInterval(interval); });
                     container.addEventListener('mouseleave', function () { if (total > 1) interval = setInterval(next, 3500); });
+
+
 
                     let startX = null;
                     container.addEventListener('pointerdown', function (ev) { startX = ev.clientX; try { container.setPointerCapture(ev.pointerId); } catch (e) { } });
@@ -554,15 +618,138 @@
                         }
                         startX = null;
                     });
+
+                    // click-position fallback: click left/right area of container to navigate
+                    container.addEventListener('click', function (ev) {
+                        try {
+                            const rect = container.getBoundingClientRect();
+                            const x = ev.clientX - rect.left;
+                            const w = rect.width || 1;
+                            // left 20% -> prev, right 20% -> next
+                            if (x < w * 0.2) {
+                                console.debug(prefix + ' container click left -> prev');
+                                prev();
+                                if (interval) { clearInterval(interval); interval = setInterval(next, 3500); }
+                                ev.stopPropagation();
+                                return;
+                            }
+                            if (x > w * 0.8) {
+                                console.debug(prefix + ' container click right -> next');
+                                next();
+                                if (interval) { clearInterval(interval); interval = setInterval(next, 3500); }
+                                ev.stopPropagation();
+                                return;
+                            }
+                        } catch (err) { console.warn('container click fallback err', err); }
+                    }, true);
                 }
             }
 
+            // expose re-init function for Livewire re-renders
+            window.initBannerSliders = function () {
+                try {
+                    initSimpleSlider('customer', @json($customerBanners ?? []));
+                } catch (e) { console.warn('init customer slider error', e); }
+                try {
+                    initSimpleSlider('mitra', @json($mitraBanners ?? []));
+                } catch (e) { console.warn('init mitra slider error', e); }
+            };
+
             try {
-                initSimpleSlider('customer', @json($customerBanners ?? []));
-                initSimpleSlider('mitra', @json($mitraBanners ?? []));
+                window.initBannerSliders();
             } catch (err) {
                 console.warn('Slider init error:', err);
             }
+
+            // Re-init after Livewire updates to ensure handlers and datasets are in sync
+            if (window.Livewire && Livewire.hook) {
+                try {
+                    Livewire.hook('message.processed', function () {
+                        try { window.initBannerSliders(); } catch (e) { console.warn('Livewire re-init slider err', e); }
+                    });
+                } catch (e) { console.warn('Livewire hook attach error', e); }
+            }
+
+            // Document-level click handler for slider prev/next buttons.
+            // This uses the `data-target` attribute on the button to locate the correct slider
+            // and reads/writes the current index from `slidesWrapper.dataset.idx` (set in initSimpleSlider).
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('button[data-role]');
+                if (!btn) return;
+                const role = btn.getAttribute('data-role');
+                const target = btn.getAttribute('data-target');
+                if (!role || !target) return;
+                const slidesWrapper = document.querySelector('#' + target + 'Slider > div');
+                if (!slidesWrapper) return;
+                const total = slidesWrapper.children.length || 0;
+
+                // try dataset index first, fallback to computed transform
+                let idx = 0;
+                if (typeof slidesWrapper.dataset.idx !== 'undefined') {
+                    idx = parseInt(slidesWrapper.dataset.idx || '0', 10) || 0;
+                } else {
+                    const cs = window.getComputedStyle(slidesWrapper);
+                    const transform = cs.transform || cs.webkitTransform || 'none';
+                    if (transform && transform !== 'none') {
+                        try {
+                            const m = transform.match(/matrix\(([-0-9., ]+)\)/);
+                            if (m) {
+                                const vals = m[1].split(',').map(s => parseFloat(s.trim()));
+                                // matrix(a, b, c, d, tx, ty) => tx is vals[4]
+                                const tx = vals[4] || 0;
+                                const w = slidesWrapper.clientWidth || slidesWrapper.offsetWidth || 1;
+                                idx = Math.round(Math.abs(tx) / w) || 0;
+                            }
+                        } catch (err) { idx = 0; }
+                    }
+                }
+
+                if (role === 'prev') idx = (idx - 1 + total) % total;
+                if (role === 'next') idx = (idx + 1) % total;
+                slidesWrapper.style.transform = 'translateX(' + (-idx * 100) + '%)';
+                slidesWrapper.dataset.idx = String(idx);
+
+                // update dots if present
+                const dots = document.querySelectorAll('.' + target + '-dot');
+                dots.forEach((dot, i) => {
+                    if (i === idx) {
+                        dot.classList.add('bg-white', 'w-6');
+                        dot.classList.remove('bg-white/60', 'w-2');
+                    } else {
+                        dot.classList.add('bg-white/60', 'w-2');
+                        dot.classList.remove('bg-white', 'w-6');
+                    }
+                });
+            });
+
+            // Overlay click zones fallback: handle clicks on transparent left/right areas
+            document.querySelectorAll('.arrow-overlay').forEach(function (el) {
+                el.addEventListener('click', function (ev) {
+                    try {
+                        const role = el.getAttribute('data-role');
+                        const target = el.getAttribute('data-target');
+                        if (!role || !target) return;
+                        const slidesWrapper = document.querySelector('#' + target + 'Slider > div');
+                        if (!slidesWrapper) return;
+                        const total = slidesWrapper.children.length || 0;
+                        let idx = parseInt(slidesWrapper.dataset.idx || '0', 10) || 0;
+                        if (role === 'prev') idx = (idx - 1 + total) % total;
+                        if (role === 'next') idx = (idx + 1) % total;
+                        slidesWrapper.style.transform = 'translateX(' + (-idx * 100) + '%)';
+                        slidesWrapper.dataset.idx = String(idx);
+                        const dots = document.querySelectorAll('.' + target + '-dot');
+                        dots.forEach((dot, i) => {
+                            if (i === idx) {
+                                dot.classList.add('bg-white', 'w-6');
+                                dot.classList.remove('bg-white/60', 'w-2');
+                            } else {
+                                dot.classList.add('bg-white/60', 'w-2');
+                                dot.classList.remove('bg-white', 'w-6');
+                            }
+                        });
+                    } catch (err) { console.warn('arrow-overlay click err', err); }
+                }, true);
+            });
 
             // Listen for saved event from Livewire to rebuild preview with saved images
             if (window.Livewire) {
