@@ -1,17 +1,16 @@
 @php
     // $customerBanners and $mitraBanners disuplai oleh Livewire component
+    $title = 'Pengaturan Banner';
+    $breadcrumb = 'Super Admin / Pengaturan / Banner';
 @endphp
 
 <div>
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div class="px-8 py-6">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Pengaturan Banner</h1>
-                <p class="text-sm text-gray-600 mt-1">Kelola banner yang tampil di dashboard Customer dan Mitra. Anda
-                    dapat menambah lebih dari satu banner untuk setiap tipe.</p>
-            </div>
+    <div class="bg-white shadow-sm border-b border-gray-200 mb-6">
+        <div class="px-8 py-4">
+            <p class="text-sm text-gray-600">Kelola banner yang tampil di dashboard Customer dan Mitra. Anda
+                dapat menambah lebih dari satu banner untuk setiap tipe.</p>
         </div>
-    </header>
+    </div>
 
     <div class="px-8 py-8">
         <!-- Modal Notifikasi Success -->

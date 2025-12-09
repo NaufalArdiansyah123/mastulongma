@@ -40,35 +40,6 @@
 
     <div class="min-h-screen bg-gray-50">
         <div class="px-6 py-8">
-            <!-- Header -->
-            <div class="flex items-start justify-between mb-6">
-                <div>
-                    <h1 class="text-3xl font-extrabold text-gray-900">Admin Dashboard</h1>
-                    <p class="text-sm text-gray-600 mt-1">Halo, {{ auth()->user()->name }} — berikut ringkasan sistem hari
-                        ini.</p>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <div class="text-sm text-gray-500">{{ now()->isoFormat('dddd, D MMMM Y') }}</div>
-                    <div class="relative">
-                        @php
-                            $unreadNotifications = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0;
-                        @endphp
-                        <a href="{{ route('customer.notifications.index') }}"
-                            class="text-gray-600 hover:text-gray-800 flex items-center" aria-label="Notifications">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                            @if($unreadNotifications > 0)
-                                <span
-                                    class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold text-white bg-red-600 rounded-full">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</span>
-                            @endif
-                        </a>
-                    </div>
-                </div>
-            </div>
-
             <!-- Top Stat Cards (compact) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
@@ -159,6 +130,37 @@
                 </div>
             </div>
 
+            <!-- Pending Topup Approval Alert (if any) -->
+            @if(isset($pendingTopups) && $pendingTopups > 0)
+                <div class="mb-6">
+                    <a href="{{ route('admin.topup.approvals') }}" class="block">
+                        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-500 rounded-xl p-5 shadow-sm hover:shadow-md transition">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold text-gray-900 mb-1">
+                                        {{ $pendingTopups }} Request Top-Up Menunggu Approval
+                                    </h3>
+                                    <p class="text-sm text-gray-600">
+                                        Ada request top-up saldo dari customer yang perlu diverifikasi. Klik untuk review dan approve.
+                                    </p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            @endif
+
             <!-- Stats + Chart -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <div class="lg:col-span-2 bg-white rounded-2xl shadow p-6">
@@ -201,9 +203,9 @@
             </div>
 
             <!-- Real-time cards (Livewire) -->
-            <div class="mb-6">
+            {{-- <div class="mb-6">
                 <livewire:admin.dashboard-cards />
-            </div>
+            </div> --}}
 
             <!-- Recent Helps + Health -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">

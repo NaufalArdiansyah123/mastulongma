@@ -1,12 +1,6 @@
 @extends('layouts.admin')
 
 @section('content')
-    <div class="bg-white shadow-sm border-b border-gray-200">
-            <div class="px-8 py-6">
-            <h1 class="text-3xl font-bold text-gray-900">Kelola Pengguna</h1>
-            <p class="text-sm text-gray-600 mt-1">Daftar pengguna di kota Anda, beserta status akun.</p>
-        </div>
-    </div>
 
     <div class="p-8">
         <!-- Filter Bar -->

@@ -1,13 +1,14 @@
-@component('layouts.superadmin', ['title' => 'Log Transaksi'])
+@php
+    $title = 'Log Transaksi';
+    $breadcrumb = 'Super Admin / Log Transaksi';
+@endphp
+
 <div>
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div class="px-8 py-6">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Log Transaksi</h1>
-                <p class="text-sm text-gray-600 mt-1">Riwayat topup, withdraw, dan mutasi saldo pengguna.</p>
-            </div>
+    <div class="bg-white shadow-sm border-b border-gray-200 mb-6">
+        <div class="px-8 py-4">
+            <p class="text-sm text-gray-600">Riwayat topup, withdraw, dan mutasi saldo pengguna.</p>
         </div>
-    </header>
+    </div>
 
     <div class="px-6 py-6">
         <div class="w-full">
@@ -17,4 +18,3 @@
         </div>
     </div>
 </div>
-@endcomponent

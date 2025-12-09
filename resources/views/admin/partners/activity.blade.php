@@ -1,13 +1,6 @@
 @extends('layouts.admin')
 
 @section('content')
-    <div class="bg-white shadow-sm border-b border-gray-200">
-        <div class="px-8 py-6">
-            <h1 class="text-3xl font-bold text-gray-900">Aktivitas Mitra & Customer</h1>
-            <p class="text-sm text-gray-600 mt-1">Pantau aktivitas login, bantuan, hingga transaksi dari seluruh pengguna.
-            </p>
-        </div>
-    </div>
 
     <div class="p-8 space-y-6">
 

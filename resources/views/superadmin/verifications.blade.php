@@ -1,3 +1,8 @@
+@php
+    $title = 'Verifikasi KTP';
+    $breadcrumb = 'Super Admin / Verifikasi KTP';
+@endphp
+
 <div class="min-h-screen flex items-center justify-center p-12">
     <div class="bg-white rounded-xl shadow-md p-10 text-center max-w-2xl">
         <h1 class="text-2xl font-bold text-gray-900 mb-2">Halaman Verifikasi KTP Dihapus</h1>

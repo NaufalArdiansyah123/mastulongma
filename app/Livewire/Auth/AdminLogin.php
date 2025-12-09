@@ -17,16 +17,16 @@ class AdminLogin extends Component
     {
         // Initialize form if user is already logged in as admin
         if (auth()->check() && auth()->user()->role === 'super_admin') {
-            $this->redirect(route('superadmin.dashboard'), navigate: true);
+            return redirect()->route('superadmin.dashboard');
         } elseif (auth()->check() && auth()->user()->role === 'admin') {
-            $this->redirect(route('admin.dashboard'), navigate: true);
+            return redirect()->route('admin.dashboard');
         }
     }
 
     /**
      * Handle an incoming authentication request.
      */
-    public function login(): void
+    public function login()
     {
         \Log::info('Admin login attempt started');
 
@@ -53,10 +53,10 @@ class AdminLogin extends Component
         // Redirect based on role
         if (auth()->user()->role === 'super_admin') {
             \Log::info('Redirecting to superadmin dashboard');
-            $this->redirect(route('superadmin.dashboard'), navigate: true);
+            return redirect()->route('superadmin.dashboard');
         } else {
             \Log::info('Redirecting to admin dashboard');
-            $this->redirect(route('admin.dashboard'), navigate: true);
+            return redirect()->route('admin.dashboard');
         }
     }
 

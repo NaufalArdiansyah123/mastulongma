@@ -21,21 +21,21 @@
 
                 <!-- Filter Tabs -->
                 <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    <button wire:click="$set('statusFilter', '')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all
+                    <button type="button" wire:click="$set('statusFilter', '')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all
                     {{ $statusFilter === '' ? 'bg-white text-primary-600 shadow-md' : 'bg-white/30 text-white' }}">
                         Semua
                     </button>
-                    <button wire:click="$set('statusFilter', 'menunggu_mitra')"
+                    <button type="button" wire:click="$set('statusFilter', 'menunggu_mitra')"
                         class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all
                     {{ $statusFilter === 'menunggu_mitra' ? 'bg-white text-primary-600 shadow-md' : 'bg-white/30 text-white' }}">
                         Menunggu Mitra
                     </button>
-                    <button wire:click="$set('statusFilter', 'memperoleh_mitra')"
+                    <button type="button" wire:click="$set('statusFilter', 'memperoleh_mitra')"
                         class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all
                     {{ $statusFilter === 'memperoleh_mitra' ? 'bg-white text-primary-600 shadow-md' : 'bg-white/30 text-white' }}">
                         Memperoleh Mitra
                     </button>
-                    <button wire:click="$set('statusFilter', 'selesai')"
+                    <button type="button" wire:click="$set('statusFilter', 'selesai')"
                         class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all
                     {{ $statusFilter === 'selesai' ? 'bg-white text-primary-600 shadow-md' : 'bg-white/30 text-white' }}">
                         Selesai
@@ -146,7 +146,7 @@
                                         <a href="#" wire:click.prevent.stop="editHelp({{ $help->id }})"
                                             class="inline-flex items-center justify-center bg-primary-500 text-white rounded-lg py-2.5 text-sm">Edit
                                             permintaan</a>
-                                        <button wire:click.stop="deleteHelp({{ $help->id }})"
+                                        <button type="button" wire:click.stop="deleteHelp({{ $help->id }})"
                                             class="inline-flex items-center justify-center bg-red-500 text-white rounded-lg py-2.5 text-sm">Batalkan
                                             permintaan</button>
                                     </div>
@@ -161,7 +161,7 @@
                                     </div>
 
                                     <div class="mt-3 flex items-center justify-between">
-                                        <button wire:click.stop="refreshHelp({{ $help->id }})"
+                                        <button type="button" wire:click.stop="refreshHelp({{ $help->id }})"
                                             class="flex items-center gap-2 px-3 py-2 bg-white border rounded-full text-sm">
                                             <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -241,7 +241,7 @@
                                                 <a href="#" wire:click.prevent.stop="editHelp({{ $help->id }})"
                                                     class="inline-flex items-center justify-center bg-primary-500 text-white rounded-lg py-3">Edit
                                                     permintaan</a>
-                                                <button wire:click.stop="deleteHelp({{ $help->id }})"
+                                                <button type="button" wire:click.stop="deleteHelp({{ $help->id }})"
                                                     class="inline-flex items-center justify-center bg-red-500 text-white rounded-lg py-3">Batalkan
                                                     permintaan</button>
                                             </div>
@@ -256,7 +256,7 @@
                                             </div>
 
                                             <div class="mt-3 flex items-center gap-3">
-                                                <button wire:click="refreshHelp({{ $help->id }})"
+                                                <button type="button" wire:click="refreshHelp({{ $help->id }})"
                                                     class="flex items-center gap-2 px-3 py-2 bg-white border rounded-full text-sm">
                                                     <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -424,7 +424,7 @@
                                     {{-- Tombol Selesai (hanya tampil untuk pemilik permintaan ketika mitra telah melakukan tugasnya) --}}
                                     @if($help->status === 'memperoleh_mitra' && $help->mitra_id)
                                         <div class="mt-4">
-                                            <button wire:click="confirmCompletion({{ $help->id }})"
+                                            <button type="button" wire:click="confirmCompletion({{ $help->id }})"
                                                 class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition">
                                                 Selesai
                                             </button>
@@ -578,36 +578,66 @@
                                                 </div>
                                             </div>
                                         @else
-                                            {{-- Not rated yet --}}
+                                            {{-- Not rated yet: show button that opens modal with Livewire rating component --}}
                                             <div class="bg-white rounded-lg p-4">
-                                                <p class="text-sm text-gray-600 mb-3">Bagaimana pengalaman Anda dengan mitra ini?
-                                                </p>
+                                                <p class="text-sm text-gray-600 mb-3">Bagaimana pengalaman Anda dengan mitra ini?</p>
 
-                                                <div class="flex items-center justify-center gap-2 mb-4">
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                        <button wire:click="setRating({{ $help->id }}, {{ $i }})"
-                                                            class="rating-star hover:scale-110 transition-transform">
-                                                            <svg class="w-10 h-10 text-gray-300 hover:text-yellow-400 cursor-pointer"
-                                                                fill="currentColor" viewBox="0 0 20 20">
-                                                                <path
-                                                                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                            </svg>
-                                                        </button>
-                                                    @endfor
+                                                <div class="flex gap-2">
+                                                    <button @click="document.getElementById('rate-modal-{{ $help->id }}').classList.remove('hidden')"
+                                                        class="w-full mt-0 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Beri Rating
+                                                    </button>
                                                 </div>
 
-                                                <textarea wire:model="ratingComment" rows="3"
-                                                    placeholder="Tuliskan ulasan Anda (opsional)..."
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"></textarea>
+                                                <!-- Modal (hidden by default) -->
+                                                <div id="rate-modal-{{ $help->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                    <div class="absolute inset-0 bg-black/60" onclick="document.getElementById('rate-modal-{{ $help->id }}').classList.add('hidden')"></div>
 
-                                                <button wire:click="submitRating({{ $help->id }})"
-                                                    class="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    Kirim Rating
-                                                </button>
+                                                    <div class="relative bg-white rounded-2xl w-full max-w-md shadow-2xl z-10">
+                                                        <div class="p-5 border-b">
+                                                            <div class="flex items-start justify-between">
+                                                                <div>
+                                                                    <h3 class="text-lg font-bold">Beri Rating Mitra</h3>
+                                                                    <p class="text-sm text-gray-500">Bagaimana pengalaman Anda dengan mitra ini?</p>
+                                                                </div>
+                                                                <button onclick="document.getElementById('rate-modal-{{ $help->id }}').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="p-5">
+                                                            <div class="flex items-center gap-3 mb-4">
+                                                                <div class="w-12 h-12 rounded-full bg-gray-100 overflow-hidden">
+                                                                    <img src="{{ optional($help->mitra)->selfie_photo ? asset('storage/' . optional($help->mitra)->selfie_photo) : asset('images/avatar-placeholder.svg') }}" class="w-full h-full object-cover" alt="Mitra">
+                                                                </div>
+                                                                <div>
+                                                                    <div class="font-semibold text-gray-900">{{ optional($help->mitra)->name ?? 'Nama Mitra' }}</div>
+                                                                    <div class="text-xs text-gray-500">{{ optional($help->mitra)->email ?? '' }}</div>
+                                                                </div>
+                                                            </div>
+
+                                                            {{-- Livewire rating form --}}
+                                                            @livewire('customer.rate-mitra', ['helpId' => $help->id])
+                                                        </div>
+
+                                                        <!--<div class="p-4 border-t text-right">
+                                                            <button onclick="document.getElementById('rate-modal-{{ $help->id }}').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-gray-100 mr-2">Batal</button>
+                                                        </div>-->
+                                                        <script>
+                                                            window.addEventListener('rating-submitted', function(e) {
+                                                                var id = 'rate-modal-' + e.detail.helpId;
+                                                                var el = document.getElementById(id);
+                                                                if (el) el.classList.add('hidden');
+                                                            });
+                                                        </script>
+                                                    </div>
+                                                </div>
                                             </div>
                                         @endif
                                     </div>
@@ -951,8 +981,8 @@
                                     <div class="text-xs text-gray-600 mb-4"><strong>Lokasi:</strong> {{ $selectedHelpData['location'] ?? '-' }}</div>
 
                                     <div class="flex gap-2 mt-4">
-                                        <button wire:click="deleteHelp({{ $selectedHelpData['id'] }})" class="flex-1 py-2 bg-red-500 text-white rounded-lg">Batalkan Bantuan</button>
-                                        <button wire:click="closeHelp" class="flex-1 py-2 bg-gray-100 rounded-lg">Tutup</button>
+                                        <button type="button" wire:click="deleteHelp({{ $selectedHelpData['id'] }})" class="flex-1 py-2 bg-red-500 text-white rounded-lg">Batalkan Bantuan</button>
+                                        <button type="button" wire:click="closeHelp" class="flex-1 py-2 bg-gray-100 rounded-lg">Tutup</button>
                                     </div>
                                 </div>
                             </div>

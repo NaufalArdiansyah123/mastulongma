@@ -127,7 +127,7 @@
                                     d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
                                     clip-rule="evenodd" />
                             </svg>
-                            Alamat Lengkap
+                            Lokasi Singkat
                             <span class="text-gray-400 text-xs ml-1">(Opsional)</span>
                         </span>
                     </label>
@@ -142,6 +142,87 @@
                             </svg>
                             {{ $message }}
                         </span>
+                    @enderror
+                </div>
+
+                <!-- Alamat Lengkap (Manual Input) -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                        <span class="flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Alamat Lengkap
+                            <span class="text-gray-400 text-xs ml-1">(Opsional)</span>
+                        </span>
+                    </label>
+                    <textarea wire:model="full_address" rows="3"
+                        placeholder="Contoh: Dukuh Sabet, Desa Sumberejo, Kecamatan Balong, Kabupaten Ponorogo, Jawa Timur"
+                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition resize-none bg-white shadow-sm"></textarea>
+                    <p class="text-xs text-gray-500 mt-1.5 flex items-center">
+                        <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Tulis alamat lengkap termasuk desa, kecamatan, kabupaten, provinsi
+                    </p>
+                    @error('full_address')
+                        <span class="text-red-500 text-xs mt-1.5 block flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            {{ $message }}
+                        </span>
+                    @enderror
+                </div>
+
+                <!-- Tandai Lokasi di Peta -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                        <span class="flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Tandai Lokasi di Peta
+                            <span class="text-gray-400 text-xs ml-1">(Opsional)</span>
+                        </span>
+                    </label>
+
+                    <!-- Map Container -->
+                    <div id="map" class="w-full h-64 rounded-xl border-2 border-gray-200 mb-2 bg-gray-100"></div>
+
+                    <!-- Koordinat Display -->
+                    <div id="coordinates-display"
+                        class="bg-green-50 border border-green-200 rounded-lg p-3 mb-2 hidden">
+                        <p class="text-xs font-semibold text-green-800 mb-1">✅ Lokasi Ditandai:</p>
+                        <p class="text-xs text-green-900">
+                            Latitude: <span id="lat-display" class="font-mono">-</span>,
+                            Longitude: <span id="lng-display" class="font-mono">-</span>
+                        </p>
+                    </div>
+
+                    <!-- Hidden inputs for Livewire -->
+                    <input type="hidden" wire:model="latitude" id="latitude-input">
+                    <input type="hidden" wire:model="longitude" id="longitude-input">
+
+                    <p class="text-xs text-gray-500 mt-1.5 flex items-center">
+                        <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Klik pada peta untuk menandai titik lokasi bantuan
+                    </p>
+
+                    @error('latitude')
+                        <span class="text-red-500 text-xs mt-1.5 block">{{ $message }}</span>
                     @enderror
                 </div>
 
@@ -162,6 +243,40 @@
                         placeholder="Jelaskan detail kebutuhan bantuan Anda secara lengkap..."
                         class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition resize-none bg-white shadow-sm"></textarea>
                     @error('description')
+                        <span class="text-red-500 text-xs mt-1.5 block flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            {{ $message }}
+                        </span>
+                    @enderror
+                </div>
+
+                <!-- Peralatan yang Sudah Disediakan -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                        <span class="flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                            </svg>
+                            Peralatan yang Sudah Disediakan
+                            <span class="text-gray-400 text-xs ml-1">(Opsional)</span>
+                        </span>
+                    </label>
+                    <textarea wire:model="equipment_provided" rows="3"
+                        placeholder="Contoh: Sudah ada gerobak dorong, ember besar 2 buah, timbangan digital"
+                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition resize-none bg-white shadow-sm"></textarea>
+                    <p class="text-xs text-gray-500 mt-1.5 flex items-center">
+                        <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Tuliskan alat atau peralatan yang sudah Anda sediakan untuk membantu mitra
+                    </p>
+                    @error('equipment_provided')
                         <span class="text-red-500 text-xs mt-1.5 block flex items-center">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -331,4 +446,84 @@
             </div>
         </div>
     @endif
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- OpenStreetMap Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Default location (Ponorogo, Jawa Timur)
+            const defaultLocation = [-7.8664, 111.4620];
+
+            // Initialize map
+            const map = L.map('map').setView(defaultLocation, 13);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19,
+            }).addTo(map);
+
+            // Initialize marker variable
+            let marker = null;
+
+            // Click event on map to place marker
+            map.on('click', function (e) {
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+
+                // Remove old marker if exists
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+
+                // Add new marker
+                marker = L.marker([lat, lng], {
+                    draggable: true
+                }).addTo(map);
+
+                // Update coordinates
+                updateCoordinates(lat, lng);
+
+                // Marker drag event
+                marker.on('dragend', function (event) {
+                    const position = event.target.getLatLng();
+                    updateCoordinates(position.lat, position.lng);
+                });
+            });
+
+            // Try to get user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const pos = [position.coords.latitude, position.coords.longitude];
+                        map.setView(pos, 13);
+                    },
+                    () => {
+                        console.log('Geolocation not available, using default location');
+                    }
+                );
+            }
+
+            function updateCoordinates(lat, lng) {
+                // Update display
+                document.getElementById('coordinates-display').classList.remove('hidden');
+                document.getElementById('lat-display').textContent = lat.toFixed(6);
+                document.getElementById('lng-display').textContent = lng.toFixed(6);
+
+                // Update Livewire properties
+                document.getElementById('latitude-input').value = lat;
+                document.getElementById('latitude-input').dispatchEvent(new Event('input'));
+
+                document.getElementById('longitude-input').value = lng;
+                document.getElementById('longitude-input').dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
 </div>

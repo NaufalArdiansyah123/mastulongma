@@ -1,3 +1,8 @@
+@php
+    $title = 'Moderasi Bantuan';
+    $breadcrumb = 'Super Admin / Moderasi Bantuan';
+@endphp
+
 <div class="min-h-screen bg-gray-50 flex items-center justify-center p-8">
     <div class="bg-white rounded-xl shadow-lg p-12 text-center max-w-xl">
         <h1 class="text-2xl font-bold text-gray-900">Halaman Moderasi Bantuan Dihapus</h1>

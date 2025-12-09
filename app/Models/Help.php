@@ -14,8 +14,12 @@ class Help extends Model
         'admin_fee',
         'total_amount',
         'description',
+        'equipment_provided',
         'photo',
         'location',
+        'full_address',
+        'latitude',
+        'longitude',
         'status',
         'mitra_id',
         'taken_at',
@@ -29,11 +33,19 @@ class Help extends Model
         'amount' => 'decimal:2',
         'admin_fee' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Alias untuk customer (sama dengan user)
+    public function customer()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function city()

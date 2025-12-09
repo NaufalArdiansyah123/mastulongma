@@ -1,12 +1,6 @@
 @extends('layouts.admin')
 
 @section('content')
-    <div class="bg-white shadow-sm border-b border-gray-200">
-            <div class="px-8 py-6">
-                <h1 class="text-3xl font-bold text-gray-900">Pengguna (Mitra &amp; Customer)</h1>
-                <p class="text-sm text-gray-600 mt-1">Daftar pengguna dengan role Mitra dan Customer. Anda dapat melihat status akun dan menonaktifkan atau membuka blokir user di sini.</p>
-        </div>
-    </div>
 
     <div class="p-8">
         <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">

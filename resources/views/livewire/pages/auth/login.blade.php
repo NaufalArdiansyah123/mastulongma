@@ -40,7 +40,7 @@ new #[Layout('layouts.guest')] class extends Component {
             $redirect = route('dashboard', absolute: false);
         }
 
-        $this->redirectIntended(default: $redirect, navigate: true);
+        $this->redirectIntended(default: $redirect, navigate: false);
     }
 }; ?>
 

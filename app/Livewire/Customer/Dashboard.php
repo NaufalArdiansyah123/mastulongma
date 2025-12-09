@@ -67,18 +67,16 @@ class Dashboard extends Component
 
         // Filter berdasarkan tab yang aktif
         if ($this->activeTab === 'latest') {
-            // Ambil bantuan terbaru (5 bantuan terakhir)
-            $availableHelps = Help::where('status', 'menunggu_mitra')
-                ->whereNull('mitra_id')
-                ->with(['user', 'city'])
+            // Ambil bantuan user sendiri (5 bantuan terakhir)
+            $availableHelps = Help::where('user_id', $user->id)
+                ->with(['user', 'city', 'mitra'])
                 ->latest()
                 ->take(5)
                 ->get();
         } elseif ($this->activeTab === 'all') {
-            // Ambil semua bantuan yang tersedia (pakai pagination agar tidak memuat semua record sekaligus)
-            $availableHelps = Help::where('status', 'menunggu_mitra')
-                ->whereNull('mitra_id')
-                ->with(['user', 'city'])
+            // Ambil semua bantuan milik user sendiri (pakai pagination)
+            $availableHelps = Help::where('user_id', $user->id)
+                ->with(['user', 'city', 'mitra'])
                 ->latest()
                 ->paginate(10);
         } else { // history

@@ -83,6 +83,20 @@
                                         <span class="ml-1 font-medium">{{ $help->rating->rating ?? 0 }}</span>
                                     </div>
                                 @endif
+                                
+                                {{-- Rating customer button --}}
+                                @php
+                                    $customerRated = \App\Models\Rating::hasRated($help->id, auth()->id(), 'mitra_to_customer');
+                                @endphp
+                                @if($customerRated)
+                                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-md">✓ Customer telah dinilai</span>
+                                @else
+                                    <button 
+                                        onclick="window.location.href='{{ route('mitra.help.detail', $help->id) }}#rating-section'"
+                                        class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-md hover:bg-yellow-200 transition">
+                                        ⭐ Beri rating customer
+                                    </button>
+                                @endif
                             </div>
                         </div>
 

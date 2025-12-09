@@ -132,7 +132,7 @@
                             </div>
                         </div>
                         <div class="ml-4 flex-shrink-0">
-                            <a href="{{ route('customer.topup') }}"
+                            <a href="{{ route('customer.topup.request') }}"
                                 class="bg-white/95 backdrop-blur-sm text-gray-800 font-semibold px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
                                 Tambah Saldo
                             </a>
@@ -217,6 +217,21 @@
                     <div class="text-xs text-gray-500 mt-1 hidden sm:block">Semua permintaan bantuan</div>
                 </a>
 
+                {{-- <a href="{{ route('customer.helps.history') }}" 
+                   role="button" 
+                   aria-label="Riwayat Bantuan"
+                    class="relative flex flex-col items-center text-center bg-white p-3 sm:p-4 rounded-2xl shadow-sm hover:shadow-md transition-transform duration-200 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-400">
+                    <div
+                        class="w-14 h-14 rounded-2xl flex items-center justify-center mb-2 bg-gradient-to-br from-emerald-400 to-emerald-500 text-white shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="text-sm font-semibold text-gray-800">Riwayat</div>
+                    <div class="text-xs text-gray-500 mt-1 hidden sm:block">Bantuan selesai</div>
+                </a> --}}
+
                 <a href="{{ route('customer.transactions.index') }}" role="button" aria-label="Transaksi"
                     class="relative flex flex-col items-center text-center bg-white p-3 sm:p-4 rounded-2xl shadow-sm hover:shadow-md transition-transform duration-200 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-400">
                     <div
@@ -247,45 +262,48 @@
         <!-- People Who Need Help List -->
         @if($activeTab !== 'history')
             <div>
-                <h2 class="text-base font-bold text-gray-900 mb-4 px-1">Orang yang Membutuhkan Bantuan</h2>
+                <h2 class="text-base font-bold text-gray-900 mb-4 px-1">Bantuan Saya</h2>
                 <div class="space-y-4">
                     @forelse($availableHelps as $help)
                         <div
-                            class="flex items-center justify-between bg-white rounded-3xl p-5 card-shadow hover:card-shadow-hover transition-all duration-300 hover-lift group">
-                            <div class="flex items-center space-x-4 flex-1" wire:click="showHelp({{ $help->id }})"
-                                style="cursor:pointer">
-                                <div
-                                    class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300">
-                                    @if($help->photo)
-                                        <img src="{{ asset('storage/' . $help->photo) }}" alt="Foto bantuan"
-                                            class="w-full h-full object-cover" loading="lazy">
-                                    @else
-                                        <span class="text-3xl">💰</span>
-                                    @endif
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-bold text-gray-900 text-base mb-1 truncate">{{ $help->user->name }}</div>
-                                    <div class="text-xs text-gray-600 mb-2 truncate font-medium">{{ $help->title }}</div>
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span
-                                            class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-bold shadow-sm">
-                                            Rp {{ number_format($help->amount, 0, ',', '.') }}
-                                        </span>
-                                        <span class="text-xs text-gray-500 font-medium">📍 {{ $help->city->name }}</span>
+                            class="bg-white rounded-3xl p-5 card-shadow hover:card-shadow-hover transition-all duration-300 hover-lift group">
+                            <div class="flex items-start gap-4">
+                                <div wire:click="showHelp({{ $help->id }})" style="cursor:pointer" class="flex-shrink-0">
+                                    <div
+                                        class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300">
+                                        @if($help->photo)
+                                            <img src="{{ asset('storage/' . $help->photo) }}" alt="Foto bantuan"
+                                                class="w-full h-full object-cover" loading="lazy">
+                                        @else
+                                            <span class="text-3xl">💰</span>
+                                        @endif
                                     </div>
                                 </div>
-                            </div>
-                            <div class="text-right ml-4">
-                                <div class="text-xs text-gray-500 mb-2 font-medium">{{ $help->created_at->diffForHumans() }}
+                                
+                                <div class="flex-1 min-w-0" wire:click="showHelp({{ $help->id }})" style="cursor:pointer">
+                                    <div class="font-bold text-gray-900 text-base mb-1 truncate">{{ $help->user->name }}</div>
+                                    <div class="text-sm text-gray-600 mb-2 line-clamp-2 font-medium leading-relaxed">{{ $help->title }}</div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span
+                                            class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-bold shadow-sm whitespace-nowrap">
+                                            Rp {{ number_format($help->amount, 0, ',', '.') }}
+                                        </span>
+                                        <span class="text-xs text-gray-500 font-medium truncate">📍 {{ $help->city->name }}</span>
+                                    </div>
                                 </div>
-                                @if(auth()->user()->isMitra())
-                                    <a href="{{ route('helps.available') }}"
-                                        class="inline-flex items-center text-xs font-bold text-primary-600 hover:text-primary-700 hover:underline transition-all">
-                                        Lihat →
-                                    </a>
-                                @else
-                                    <span class="text-xs text-gray-400 font-medium">Butuh Bantuan</span>
-                                @endif
+                                
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-xs text-gray-500 mb-2 font-medium whitespace-nowrap">{{ $help->created_at->diffForHumans() }}
+                                    </div>
+                                    @if(auth()->user()->isMitra())
+                                        <a href="{{ route('helps.available') }}"
+                                            class="inline-flex items-center text-xs font-bold text-primary-600 hover:text-primary-700 hover:underline transition-all whitespace-nowrap">
+                                            Lihat →
+                                        </a>
+                                    @else
+                                        <span class="text-xs text-gray-400 font-medium whitespace-nowrap">Butuh Bantuan</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @empty
@@ -295,8 +313,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
-                            <p class="text-gray-500 font-semibold">Belum ada yang membutuhkan bantuan</p>
-                            <p class="text-gray-400 text-sm mt-1">Cek kembali nanti</p>
+                            <p class="text-gray-500 font-semibold">Belum ada bantuan yang Anda posting</p>
+                            <p class="text-gray-400 text-sm mt-1">Klik "Buat Bantuan" untuk memulai</p>
                         </div>
                     @endforelse
                     @if(method_exists($availableHelps, 'links'))

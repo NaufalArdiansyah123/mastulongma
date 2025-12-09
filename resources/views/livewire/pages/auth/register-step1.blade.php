@@ -93,57 +93,6 @@ new #[Layout('layouts.guest')] class extends Component {
             'occupation' => ['required', 'string', 'max:100'],
         ]);
 
-        // If the user typed a city manually (no city_id selected) we must ensure the city
-        // exists in our `cities` table. If it doesn't, block progression and show message.
-        $cityId = $validated['city_id'] ?? null;
-        $cityName = null;
-
-        // If a city_id was selected, use it.
-        if ($cityId) {
-            $cityRec = City::find($cityId);
-            if ($cityRec) {
-                $cityName = $cityRec->name;
-                // ensure province is filled from selected city if available
-                if (empty($validated['province']) && !empty($cityRec->province)) {
-                    $this->province = $cityRec->province;
-                    $validated['province'] = $cityRec->province;
-                }
-            }
-        } else {
-            // No city_id selected: check manual input and try to match by name (case-insensitive)
-            $manualCity = trim($validated['city'] ?? $this->city);
-            if ($manualCity !== '') {
-                // try exact name match first
-                $cityRec = City::whereRaw('LOWER(name) = ?', [strtolower($manualCity)])->first();
-                if (!$cityRec) {
-                    // attempt to strip trailing " — province" if user picked suggestion format
-                    if (str_contains($manualCity, '—')) {
-                        $parts = explode('—', $manualCity);
-                        $candidate = trim($parts[0]);
-                        $cityRec = City::whereRaw('LOWER(name) = ?', [strtolower($candidate)])->first();
-                    }
-                }
-
-                if ($cityRec) {
-                    $cityId = $cityRec->id;
-                    $cityName = $cityRec->name;
-                    // fill province if available
-                    if (!empty($cityRec->province)) {
-                        $this->province = $cityRec->province;
-                        $validated['province'] = $cityRec->province;
-                    }
-                } else {
-                    // city not found in DB -> block and show friendly validation message
-                    $this->addError('city', 'Kota belum tersedia dengan layanan kami, mohon maaf');
-                    return;
-                }
-            } else {
-                // neither selected nor typed
-                $this->addError('city_id', 'Pilih atau ketik nama Kota/Kabupaten');
-                return;
-            }
-        }
-
         // Simpan atau update record registration di database
         $uuid = Session::get('registration_uuid');
 
@@ -154,6 +103,16 @@ new #[Layout('layouts.guest')] class extends Component {
         }
 
         $role = Session::get('registration_role', 'customer');
+
+        // Use selected city_id if provided; also store city name for readability
+        $cityId = $validated['city_id'] ?? null;
+        $cityName = null;
+        if ($cityId) {
+            $cityRec = City::find($cityId);
+            if ($cityRec) {
+                $cityName = $cityRec->name;
+            }
+        }
 
         $dataToSave = $validated + ['status' => 'in_progress', 'role' => $role, 'city_id' => $cityId, 'city' => $cityName];
 
@@ -173,28 +132,8 @@ new #[Layout('layouts.guest')] class extends Component {
     }
 }; ?>
 
-<style>
-    .auth-fullpage {
-        height: 100vh;
-        max-height: 100vh;
-    }
-
-    .auth-fullpage .auth-card {
-        overflow-y: auto;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-
-    .auth-fullpage .auth-card::-webkit-scrollbar {
-        display: none;
-    }
-
-    .auth-fullpage .page-title {
-        font-size: 1.25rem;
-    }
-</style>
-
-<div class="bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 flex flex-col auth-fullpage shadow-2xl">
+<div class="bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 flex flex-col overflow-hidden shadow-2xl"
+    style="height: 100vh; max-height: 100vh;">
 
     <!-- Header -->
     <div class="flex-shrink-0 pt-6 pb-4 px-6">
@@ -204,7 +143,7 @@ new #[Layout('layouts.guest')] class extends Component {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
             </a>
-            <h1 class="text-2xl font-extrabold text-white page-title">Data Diri</h1>
+            <h1 class="text-xl font-bold text-white">Data Diri</h1>
             <div class="w-6"></div>
         </div>
 
@@ -388,24 +327,20 @@ new #[Layout('layouts.guest')] class extends Component {
 
                 <!-- Kota/Kabupaten -->
 
-                <!-- Kota/Kabupaten (pilih dari daftar atau ketik manual) -->
+                <!-- Kota/Kabupaten (pilih dari daftar agar sesuai dengan data kota di sistem) -->
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-2">Kota/Kabupaten *</label>
-
                     @if(isset($cities) && count($cities) > 0)
-                        <!-- Use a text input with datalist so users can type freely but still see suggestions. -->
-                        <input list="cities_list" wire:model="city" id="city" type="text"
-                            placeholder="Ketik atau pilih Kota/Kabupaten"
+                        <select wire:model="city_id" id="city_id"
                             class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm focus:ring-2 focus:ring-primary-400 transition shadow-sm">
-
-                        <datalist id="cities_list">
+                            <option value="">Pilih Kota/Kabupaten</option>
                             @foreach($cities as $c)
-                                <option value="{{ $c->name }} — {{ $c->province }}"></option>
+                                <option value="{{ $c->id }}" data-province="{{ $c->province }}">{{ $c->name }} —
+                                    {{ $c->province }}
+                                </option>
                             @endforeach
-                        </datalist>
-
-                        <x-input-error :messages="$errors->get('city')" class="mt-2" />
-                        <p class="text-xs text-gray-500 mt-2">Pilih dari saran atau ketik nama kota secara manual.</p>
+                        </select>
+                        <x-input-error :messages="$errors->get('city_id')" class="mt-2" />
                     @else
                         <input wire:model="city" id="city" type="text" placeholder="Ketik nama Kota/Kabupaten"
                             class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm">

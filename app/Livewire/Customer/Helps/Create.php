@@ -17,9 +17,13 @@ class Create extends Component
 
     public $title = '';
     public $description = '';
+    public $equipment_provided = '';
     public $amount = '';
     public $city_id = '';
     public $location = '';
+    public $full_address = '';
+    public $latitude = null;
+    public $longitude = null;
     public $photo;
     public $showInsufficientModal = false;
     public $insufficientMessage = '';
@@ -32,9 +36,13 @@ class Create extends Component
     protected $rules = [
         'title' => 'required|string|max:255',
         'description' => 'required|string',
+        'equipment_provided' => 'nullable|string|max:1000',
         'amount' => 'required|numeric|min:0|max:100000000',
         'city_id' => 'required|exists:cities,id',
         'location' => 'nullable|string|max:255',
+        'full_address' => 'nullable|string|max:1000',
+        'latitude' => 'nullable|numeric|between:-90,90',
+        'longitude' => 'nullable|numeric|between:-180,180',
         'photo' => 'nullable|image|max:2048',
     ];
 
@@ -82,7 +90,11 @@ class Create extends Component
                 'admin_fee' => $adminFee,
                 'total_amount' => $total,
                 'description' => $this->description,
+                'equipment_provided' => $this->equipment_provided,
                 'location' => $this->location,
+                'full_address' => $this->full_address,
+                'latitude' => $this->latitude,
+                'longitude' => $this->longitude,
                 'photo' => $photoPath,
                 'status' => 'menunggu_mitra',
             ]);

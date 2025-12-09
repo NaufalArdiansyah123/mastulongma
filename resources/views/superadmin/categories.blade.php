@@ -1,3 +1,8 @@
+@php
+    $title = 'Manajemen Kategori';
+    $breadcrumb = 'Super Admin / Manajemen Kategori';
+@endphp
+
 <div class="min-h-screen bg-gray-50">
     <div class="px-8 py-12">
         <div class="bg-white rounded-lg shadow p-8 text-center">

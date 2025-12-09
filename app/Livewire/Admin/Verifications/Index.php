@@ -6,215 +6,59 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\Registration;
-use App\Models\User;
-use Illuminate\Support\Facades\Log;
 
 #[Layout('layouts.admin')]
 class Index extends Component
 {
     use WithPagination;
 
-    public $search = '';
-    public $statusFilter = '';
     public $perPage = 10;
-    public $selectedRegistration = null;
-    public $previewPhoto = null;
     public $showModal = false;
-    public $selectedUser = null;
-    public $rejectReason = '';
-    public $showRejectForm = false;
+    public $selected = null;
 
-    public function updatedSearch()
+    public function viewKtp($id)
     {
-        $this->resetPage();
-    }
-
-    public function updatedStatusFilter()
-    {
-        $this->resetPage();
-    }
-
-    public function updatedPerPage()
-    {
-        $this->resetPage();
-    }
-
-    public function viewKtp($id, $openReject = false)
-    {
-        Log::info('Livewire: viewKtp called', ['id' => $id, 'user_id' => auth()->id()]);
-        $this->selectedRegistration = Registration::find($id);
-        if (!$this->selectedRegistration) {
-            Log::warning('Livewire: viewKtp - registration not found', ['id' => $id]);
-            session()->flash('message', 'Registrasi tidak ditemukan');
+        $this->selected = Registration::find($id);
+        if (!$this->selected) {
+            session()->flash('message', 'Data tidak ditemukan.');
             return;
         }
-
-        // Try to find a User associated with this registration (by email)
-        $user = User::where('email', $this->selectedRegistration->email)->first();
-
-        if ($user) {
-            // Ensure we provide ktp_path property expected by the view
-            $user->ktp_path = $this->selectedRegistration->ktp_photo_path ?? $this->selectedRegistration->ktp_path ?? null;
-            $this->selectedUser = $user;
-        } else {
-            // Create a lightweight object to represent the registration in the modal
-            $this->selectedUser = (object) [
-                'id' => $this->selectedRegistration->id,
-                'name' => $this->selectedRegistration->full_name,
-                'email' => $this->selectedRegistration->email,
-                'phone' => null,
-                'status' => $this->selectedRegistration->status ?? 'pending',
-                'verified' => ($this->selectedRegistration->status ?? '') === 'approved',
-                'ktp_path' => $this->selectedRegistration->ktp_photo_path ?? null,
-            ];
-        }
-
-        // Authorization: if current user is admin, only allow viewing registrations for the same city
-        if (auth()->user() && auth()->user()->role === 'admin') {
-            $adminCity = auth()->user()->city_id;
-            if (($this->selectedRegistration->city_id ?? null) != $adminCity) {
-                session()->flash('message', 'Anda tidak memiliki izin untuk melihat registrasi di luar wilayah Anda.');
-                return;
-            }
-        }
-
         $this->showModal = true;
-        $this->showRejectForm = (bool) $openReject;
-    }
-
-    public function showPhoto($url)
-    {
-        Log::info('Livewire: showPhoto called', ['url' => $url, 'user_id' => auth()->id()]);
-        $this->previewPhoto = $url;
-    }
-
-    public function closePreview()
-    {
-        Log::info('Livewire: closePreview called', ['user_id' => auth()->id()]);
-        $this->previewPhoto = null;
     }
 
     public function closeModal()
     {
-        Log::info('Livewire: closeModal called', ['user_id' => auth()->id()]);
-        $this->selectedRegistration = null;
-        $this->selectedUser = null;
+        $this->selected = null;
         $this->showModal = false;
-        $this->rejectReason = '';
-        $this->showRejectForm = false;
     }
 
     public function approveKtp($id)
     {
-        Log::info('Livewire: approveKtp called', ['id' => $id, 'user_id' => auth()->id()]);
-        // Accept either registration id or user id
         $reg = Registration::find($id);
-        if (!$reg) {
-            // try resolving by user id
-            $user = User::find($id);
-            if ($user) {
-                $reg = Registration::where('email', $user->email)->first();
-            }
-        }
-
         if (!$reg) {
             session()->flash('message', 'Registrasi tidak ditemukan');
             return;
         }
-
-        // Authorization: admin can only approve registrations in their city
-        if (auth()->user() && auth()->user()->role === 'admin') {
-            $adminCity = auth()->user()->city_id;
-            if (($reg->city_id ?? null) != $adminCity) {
-                session()->flash('message', 'Anda tidak memiliki izin untuk menyetujui registrasi di luar wilayah Anda.');
-                return;
-            }
-        }
-
-        $user = User::where('email', $reg->email)->first();
-        if ($user) {
-            $user->update([
-                'status' => 'active',
-                'verified' => true,
-                'email_verified_at' => now(),
-            ]);
-
-            Log::info('User approved and activated', ['user_id' => $user->id, 'email' => $user->email]);
-        }
-
         $reg->update(['status' => 'approved']);
-
-        session()->flash('message', 'Registrasi disetujui. User sekarang dapat login.');
+        session()->flash('message', 'Registrasi disetujui.');
         $this->closeModal();
     }
 
     public function rejectKtp($id)
     {
-        Log::info('Livewire: rejectKtp called', ['id' => $id, 'user_id' => auth()->id()]);
-        // Accept either registration id or user id
         $reg = Registration::find($id);
-        if (!$reg) {
-            $user = User::find($id);
-            if ($user) {
-                $reg = Registration::where('email', $user->email)->first();
-            }
-        }
-
         if (!$reg) {
             session()->flash('message', 'Registrasi tidak ditemukan');
             return;
         }
-
-        // Authorization: admin can only reject registrations in their city
-        if (auth()->user() && auth()->user()->role === 'admin') {
-            $adminCity = auth()->user()->city_id;
-            if (($reg->city_id ?? null) != $adminCity) {
-                session()->flash('message', 'Anda tidak memiliki izin untuk menolak registrasi di luar wilayah Anda.');
-                return;
-            }
-        }
-
-        $user = User::where('email', $reg->email)->first();
-        if ($user) {
-            $user->update(['status' => 'blocked']);
-
-            Log::info('User rejected and blocked', ['user_id' => $user->id, 'email' => $user->email]);
-        }
-
-        // Save reject reason if provided and mark registration rejected
-        $reg->update([
-            'status' => 'rejected',
-            'reject_reason' => $this->rejectReason ?: null,
-        ]);
-
-        session()->flash('message', 'Registrasi ditolak. User tidak dapat login.');
+        $reg->update(['status' => 'rejected']);
+        session()->flash('message', 'Registrasi ditolak.');
         $this->closeModal();
     }
 
     public function render()
     {
-        $verifications = Registration::query()
-            ->when($this->statusFilter, function ($q) {
-                if ($this->statusFilter === 'pending') {
-                    $q->where('status', 'pending_verification');
-                } elseif ($this->statusFilter === 'verified') {
-                    $q->where('status', 'approved');
-                }
-            })
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('full_name', 'like', '%' . $this->search . '%')
-                        ->orWhere('email', 'like', '%' . $this->search . '%')
-                        ->orWhere('nik', 'like', '%' . $this->search . '%');
-                });
-            })
-            // If current user is an admin, only show registrations for their city
-            ->when(auth()->user() && auth()->user()->role === 'admin', function ($q) {
-                $q->where('city_id', auth()->user()->city_id);
-            })
-            ->latest()
-            ->paginate($this->perPage);
-
+        $verifications = Registration::latest()->paginate($this->perPage);
         return view('admin.verifications', compact('verifications'));
     }
 }

@@ -7,8 +7,8 @@
     $cardImage = $help->photo ?? $avatar;
 @endphp
 
-<a href="{{ route('mitra.help.detail', $help->id) }}"
-    class="relative block shrink-0 w-44 sm:w-48 h-40 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition overflow-hidden snap-start">
+<div @click="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount ?? 0 }})"
+    class="relative block shrink-0 w-44 sm:w-48 h-40 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition overflow-hidden snap-start cursor-pointer">
     <div class="h-full flex flex-col p-3">
         <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-3">
@@ -35,15 +35,16 @@
             <div class="text-xs text-gray-500 mt-1 truncate">{{ Str::limit($help->description, 80) }}</div>
         </div>
 
-        <div class="mt-3 flex items-center justify-between">
-            <div class="inline-flex items-center gap-2">
-                <span class="text-sm px-2 py-1 rounded-full bg-green-50 text-green-700 font-semibold">Rp
-                    {{ number_format($help->estimated_price ?? $help->amount ?? 0, 0, ',', '.') }}</span>
+        <div class="mt-3 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-sm px-2 py-1 rounded-full bg-green-50 text-green-700 font-semibold whitespace-nowrap">
+                    Rp {{ number_format($help->estimated_price ?? $help->amount ?? 0, 0, ',', '.') }}
+                </span>
                 @if(isset($help->rating) && $help->rating)
-                    <span class="text-xs text-yellow-500">★ {{ number_format($help->rating, 1) }}</span>
+                    <span class="text-xs text-yellow-500 whitespace-nowrap">★ {{ number_format($help->rating, 1) }}</span>
                 @endif
             </div>
-            <div class="text-xs text-gray-500">{{ $help->city->name ?? '-' }}</div>
+            <div class="text-xs text-gray-500 flex-shrink-0">{{ $help->city->name ?? '-' }}</div>
         </div>
     </div>
-</a>
+</div>

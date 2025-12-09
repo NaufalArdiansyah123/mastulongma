@@ -1,13 +1,6 @@
 @extends('layouts.admin')
 
 @section('content')
-    <div class="bg-white shadow-sm border-b border-gray-200">
-        <div class="px-8 py-6">
-            <h1 class="text-3xl font-bold text-gray-900">Manajemen Withdraw</h1>
-            <p class="text-sm text-gray-600 mt-1">Kelola permintaan tarik saldo dari mitra. Proses approve/reject dan potong
-                saldo secara manual.</p>
-        </div>
-    </div>
 
     <div class="p-8 space-y-6">
         @if(session('status'))

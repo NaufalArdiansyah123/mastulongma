@@ -96,6 +96,18 @@ class User extends Authenticatable
         return $this->hasMany(Rating::class, 'mitra_id');
     }
 
+    // Ratings received as customer (from mitra)
+    public function customerRatings()
+    {
+        return $this->hasMany(Rating::class, 'ratee_id')->where('type', 'mitra_to_customer');
+    }
+
+    // Ratings received as mitra (from customer)  
+    public function mitraRatings()
+    {
+        return $this->hasMany(Rating::class, 'ratee_id')->where('type', 'customer_to_mitra');
+    }
+
     public function partnerReports()
     {
         return $this->hasMany(\App\Models\PartnerReport::class);
@@ -215,5 +227,58 @@ class User extends Authenticatable
         return isset($this->attributes['city']) && $this->attributes['city'] !== null
             ? $this->attributes['city']
             : null;
+    }
+
+    // Customer Rating Methods
+    public function getCustomerAverageRatingAttribute()
+    {
+        return $this->customerRatings()->avg('rating') ?? 0;
+    }
+
+    public function getCustomerRatingCountAttribute()
+    {
+        return $this->customerRatings()->count();
+    }
+
+    public function getCustomerRatingBadgeAttribute()
+    {
+        $rating = $this->customer_average_rating;
+        
+        if ($rating >= 4.5) {
+            return [
+                'text' => 'Customer Terpercaya',
+                'color' => 'green',
+                'emoji' => '🌟'
+            ];
+        } elseif ($rating >= 4.0) {
+            return [
+                'text' => 'Customer Baik',
+                'color' => 'blue',
+                'emoji' => '⭐'
+            ];
+        } elseif ($rating >= 3.0) {
+            return [
+                'text' => 'Standar',
+                'color' => 'yellow',
+                'emoji' => '✓'
+            ];
+        } else {
+            return [
+                'text' => 'Perlu Perbaikan',
+                'color' => 'red',
+                'emoji' => '⚠️'
+            ];
+        }
+    }
+
+    // Mitra Rating Methods (existing rating system)
+    public function getMitraAverageRatingAttribute()
+    {
+        return $this->mitraRatings()->avg('rating') ?? 0;
+    }
+
+    public function getMitraRatingCountAttribute()
+    {
+        return $this->mitraRatings()->count();
     }
 }

@@ -1,11 +1,13 @@
+@php
+    $title = 'Manajemen User';
+    $breadcrumb = 'Super Admin / Manajemen User';
+@endphp
+
 <div>
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div class="px-8 py-6">
+    <div class="bg-white shadow-sm border-b border-gray-200 mb-6">
+        <div class="px-8 py-4">
             <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Manajemen User</h1>
-                    <p class="text-sm text-gray-600 mt-1">Kelola semua pengguna dalam sistem</p>
-                </div>
+                <p class="text-sm text-gray-600">Kelola semua pengguna dalam sistem</p>
                 <button wire:click="openCreateModal"
                     class="px-6 py-3 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700 transition shadow-md hover:shadow-lg">
                     <div class="flex items-center space-x-2">
@@ -14,10 +16,9 @@
                         </svg>
                         <span>Tambah User</span>
                     </div>
-
                 </button>
             </div>
-            <div class="px-8 pb-2">
+            <div class="pb-2">
                 <div wire:loading class="text-sm text-primary-700">Memproses... Mohon tunggu.</div>
             </div>
         </div>

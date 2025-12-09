@@ -40,4 +40,26 @@ class Registration extends Model
     protected $casts = [
         'date_of_birth' => 'date',
     ];
+
+    /**
+     * Get the URL for the selfie photo.
+     */
+    public function getSelfieUrlAttribute()
+    {
+        if ($this->selfie_photo_path) {
+            return asset('storage/' . $this->selfie_photo_path);
+        }
+        return null;
+    }
+
+    /**
+     * Get the URL for the KTP photo.
+     */
+    public function getKtpUrlAttribute()
+    {
+        if ($this->ktp_photo_path) {
+            return asset('storage/' . $this->ktp_photo_path);
+        }
+        return null;
+    }
 }

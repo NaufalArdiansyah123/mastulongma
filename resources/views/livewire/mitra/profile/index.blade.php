@@ -137,7 +137,7 @@
             </a>
 
             <!-- Pengaturan -->
-            <a href="#"
+            <a href="{{ route('mitra.settings') }}"
                 class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
                 <div class="bg-gradient-to-br from-gray-400 to-gray-600 text-white p-3 rounded-full">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +154,7 @@
             </a>
 
             <!-- Bantuan & Dukungan -->
-            <a href="#"
+            <a href="{{ route('mitra.help-support') }}"
                 class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
                 <div class="bg-gradient-to-br from-purple-400 to-purple-600 text-white p-3 rounded-full">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

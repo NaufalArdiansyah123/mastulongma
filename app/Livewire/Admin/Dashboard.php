@@ -5,11 +5,9 @@ namespace App\Livewire\Admin;
 use App\Models\Help;
 use App\Models\User;
 use Livewire\Component;
-use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-#[Layout('layouts.admin')]
 class Dashboard extends Component
 {
     public function render()
@@ -23,6 +21,14 @@ class Dashboard extends Component
             $completedHelps = Help::where('city_id', $cityId)->where('status', 'completed')->count();
             $pendingVerifications = \App\Models\Registration::where('city_id', $cityId)->where('status', 'pending_verification')->count();
             $verifiedMitras = User::where('role', 'mitra')->where('city_id', $cityId)->count();
+            
+            // Pending topup approvals (filtered by city)
+            $pendingTopups = \App\Models\BalanceTransaction::where('type', 'topup')
+                ->where('status', 'waiting_approval')
+                ->whereHas('user', function ($q) use ($cityId) {
+                    $q->where('city_id', $cityId);
+                })
+                ->count();
         } else {
             $totalHelps = Help::count();
             $pendingHelps = Help::where('status', 'pending')->count();
@@ -30,6 +36,11 @@ class Dashboard extends Component
             $completedHelps = Help::where('status', 'completed')->count();
             $pendingVerifications = 0;
             $verifiedMitras = User::where('role', 'mitra')->count();
+            
+            // Pending topup approvals (all cities for super admin)
+            $pendingTopups = \App\Models\BalanceTransaction::where('type', 'topup')
+                ->where('status', 'waiting_approval')
+                ->count();
         }
 
         // Health check
@@ -92,15 +103,15 @@ class Dashboard extends Component
             $health['disk']['status'] = 'unknown';
         }
 
-        return view('admin.dashboard', [
+        return view('livewire.admin.dashboard', [
             'totalHelps' => $totalHelps,
             'pendingHelps' => $pendingHelps,
             'activeHelps' => $activeHelps,
             'completedHelps' => $completedHelps,
             'pendingVerifications' => $pendingVerifications,
             'verifiedMitras' => $verifiedMitras,
+            'pendingTopups' => $pendingTopups,
             'health' => $health,
-            'title' => 'Dashboard Admin',
         ]);
     }
 }

@@ -7,6 +7,10 @@
             $totalRequests = \App\Models\Help::where('user_id', $user->id)->count();
             $inProgress = \App\Models\Help::where('user_id', $user->id)->where('status', 'memperoleh_mitra')->count();
             $completed = \App\Models\Help::where('user_id', $user->id)->where('status', 'selesai')->count();
+
+            // Customer ratings (received from mitra)
+            $customerRatingAvg = round($user->customer_average_rating ?? 0, 1);
+            $customerRatingCount = $user->customer_rating_count ?? 0;
         @endphp
 
         <!-- Header Section -->
@@ -50,6 +54,9 @@
                     <div class="ml-4 flex-1">
                         <h3 class="font-bold text-gray-900">{{ $user->name }}</h3>
                         <p class="text-xs text-gray-500">{{ $user->email }}</p>
+
+                        
+
                         <div class="mt-2">
                             <a href="{{ route('chat.start', ['user_id' => $user->id]) }}"
                                 class="inline-flex items-center gap-2 bg-primary-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary-600 transition">Chat</a>
@@ -80,8 +87,8 @@
                         <p class="text-xs text-gray-600 mt-1">Selesai</p>
                     </div>
                     <div class="text-center">
-                        <div class="text-xl font-bold text-yellow-600">{{ $inProgress }}</div>
-                        <p class="text-xs text-gray-600 mt-1">Sedang Diproses</p>
+                        <div class="text-xl font-bold text-yellow-600">{{ $customerRatingAvg }}</div>
+                        <p class="text-xs text-gray-600 mt-1">Rating ({{ $customerRatingCount }})</p>
                     </div>
                 </div>
             </div>
@@ -108,7 +115,7 @@
                 </a>
 
                 <!-- Riwayat Bantuan -->
-                <a href="{{ route('customer.helps.index') }}"
+                <a href="{{ route('customer.helps.history') }}"
                     class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
                     <div class="bg-gradient-to-br from-primary-400 to-primary-600 text-white p-3 rounded-full">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,8 +129,8 @@
                     </svg>
                 </a>
 
-                <!-- Rating & Ulasan (link to mitra ratings page for consistency) -->
-                <a href="{{ route('mitra.ratings') }}"
+                <!-- Rating & Ulasan (link: mitra -> mitra.ratings, otherwise customer.ratings) -->
+                <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.ratings') : route('customer.ratings') }}"
                     class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
                     <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white p-3 rounded-full">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -155,7 +162,7 @@
                 </a>
 
                 <!-- Bantuan & Dukungan -->
-                <a href="#"
+                <a href="{{ route('customer.help-support') }}"
                     class="bg-white rounded-2xl shadow-md p-4 flex items-center space-x-4 hover:shadow-lg transition">
                     <div class="bg-gradient-to-br from-purple-400 to-purple-600 text-white p-3 rounded-full">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

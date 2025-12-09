@@ -37,9 +37,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Dashboard
         Route::get('/dashboard', \App\Livewire\Customer\Dashboard::class)->name('dashboard');
 
-        // Helps Management
-        Route::get('/helps', \App\Livewire\Customer\Helps\Index::class)->name('helps.index');
+        // Helps Management (specific routes BEFORE general routes)
         Route::get('/helps/create', \App\Livewire\Customer\Helps\Create::class)->name('helps.create');
+        Route::get('/helps/history', \App\Livewire\Customer\Helps\History::class)->name('helps.history');
+        Route::get('/helps', \App\Livewire\Customer\Helps\Index::class)->name('helps.index');
 
         // Notifications
         Route::get('/notifications', \App\Livewire\Customer\Notifications\Index::class)->name('notifications.index');
@@ -48,11 +49,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Route untuk balance management bisa ditambahkan di sini
         Route::get('/transactions', \App\Livewire\Customer\Transactions\Index::class)->name('transactions.index');
 
-        // Top Up Saldo (Livewire component)
+        // Top Up Saldo - New approval system
+        Route::get('/topup/request', \App\Livewire\Customer\TopupRequest::class)->name('topup.request');
+        Route::get('/topup/history', \App\Livewire\Customer\TopupHistory::class)->name('topup.history');
+        
+        // Top Up Saldo (Old Midtrans - kept for backward compatibility)
         Route::get('/top-up', \App\Livewire\Customer\Topup::class)->name('topup');
 
         // Chat (optional help id for opening detail directly)
         Route::get('/chat/{help?}', \App\Livewire\Customer\Chat::class)->name('chat');
+
+        // Ratings (customer receives ratings from mitra)
+        Route::get('/ratings', \App\Http\Livewire\Customer\Ratings\Index::class)->name('ratings');
+
+        // Help & Support
+        Route::view('/help-support', 'customer.help-support')->name('help-support');
 
         // Reports
         Route::get('/reports/create', \App\Livewire\Customer\Reports\Create::class)->name('reports.create');
@@ -98,6 +109,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Ratings
         Route::get('/ratings', \App\Livewire\Mitra\Ratings\Index::class)->name('ratings');
+
+        // Settings (Mitra) - similar to customer profile settings
+        Route::view('/settings', 'mitra.settings')->name('settings');
+        Route::view('/settings/notifications', 'mitra.settings.notifications')->name('settings.notifications');
+        Route::view('/settings/password', 'mitra.settings.password')->name('settings.password');
+
+        // Help & Support
+        Route::view('/help-support', 'mitra.help-support')->name('help-support');
 
         // Withdraw (Mitra) - form & history
         Route::get('/withdraw', [\App\Http\Controllers\WithdrawController::class, 'showForm'])->name('withdraw.form');
@@ -148,6 +167,12 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->na
     Route::get('/dashboard', \App\Livewire\SuperAdmin\Dashboard::class)->name('dashboard');
     Route::get('/users', \App\Livewire\SuperAdmin\Users::class)->name('users');
     Route::get('/cities', \App\Livewire\SuperAdmin\Cities::class)->name('cities');
+    // Notifications
+    Route::get('/notifications', \App\Livewire\SuperAdmin\Notifications::class)->name('notifications.index');
+    // Activity Logs
+    Route::get('/activity-logs', \App\Livewire\SuperAdmin\ActivityLogs::class)->name('activity.logs');
+    // Transaction Logs (detailed)
+    Route::get('/transactions/logs', \App\Livewire\SuperAdmin\TransactionsLog::class)->name('transactions.log');
     // Moderasi Bantuan page removed for SuperAdmin
     // Verifikasi KTP page removed for SuperAdmin
     // Help settings (minimum nominal and admin fee)
@@ -160,8 +185,9 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->na
 
 // Admin routes - require admin role only (for moderasi)
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', \App\Livewire\Admin\Dashboard::class)->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/helps', \App\Livewire\Admin\Helps\Index::class)->name('helps');
+    // Restore original verifications Livewire component
     Route::get('/verifications', \App\Livewire\Admin\Verifications\Index::class)->name('verifications');
 
     // Withdraw management (Admin)
@@ -198,6 +224,9 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::post('/partners/blocked/{id}/toggle', [\App\Http\Controllers\Admin\BlockedPartnerController::class, 'toggle'])->name('partners.blocked.toggle');
     // Backwards-compatible toggle route used by views: route('admin.partners.toggle', $id)
     Route::post('/partners/toggle/{id}', [\App\Http\Controllers\Admin\BlockedPartnerController::class, 'toggle'])->name('partners.toggle');
+
+    // Top-Up Approval Management
+    Route::get('/topup/approvals', \App\Livewire\Admin\TopupApproval::class)->name('topup.approvals');
 });
 
 // ========================================
