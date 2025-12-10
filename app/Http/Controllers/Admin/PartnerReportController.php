@@ -11,13 +11,27 @@ class PartnerReportController extends Controller
 {
     public function index()
     {
+        // Build base query for statistics
+        $statsQuery = PartnerReport::query();
+        
+        // Filter by admin's city if user is admin
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $statsQuery->where(function ($q) {
+                $q->whereHas('reporter', function ($sq) {
+                    $sq->where('city_id', auth()->user()->city_id);
+                })->orWhereHas('reportedUser', function ($sq) {
+                    $sq->where('city_id', auth()->user()->city_id);
+                });
+            });
+        }
+
         // Statistik ringkasan
-        $totalPending = PartnerReport::pending()->count();
-        $totalInProgress = PartnerReport::inProgress()->count();
-        $totalResolved = PartnerReport::resolved()->count();
-        $totalDismissed = PartnerReport::dismissed()->count();
-        $totalFromCustomer = PartnerReport::fromCustomer()->count();
-        $totalFromMitra = PartnerReport::fromMitra()->count();
+        $totalPending = (clone $statsQuery)->pending()->count();
+        $totalInProgress = (clone $statsQuery)->inProgress()->count();
+        $totalResolved = (clone $statsQuery)->resolved()->count();
+        $totalDismissed = (clone $statsQuery)->dismissed()->count();
+        $totalFromCustomer = (clone $statsQuery)->fromCustomer()->count();
+        $totalFromMitra = (clone $statsQuery)->fromMitra()->count();
 
         // Filter parameters
         $status = request('status', 'all');
@@ -29,6 +43,17 @@ class PartnerReportController extends Controller
 
         // Build query
         $query = PartnerReport::with(['reporter', 'reportedUser', 'reportedHelp', 'resolvedBy']);
+
+        // Filter by admin's city if user is admin
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $query->where(function ($q) {
+                $q->whereHas('reporter', function ($sq) {
+                    $sq->where('city_id', auth()->user()->city_id);
+                })->orWhereHas('reportedUser', function ($sq) {
+                    $sq->where('city_id', auth()->user()->city_id);
+                });
+            });
+        }
 
         // Apply filters
         if ($status !== 'all') {

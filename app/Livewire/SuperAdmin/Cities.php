@@ -90,20 +90,9 @@ class Cities extends Component
         ]);
 
         // Ensure selected user is actually an admin
-        $admin =
-            $validated['admin_id'] ? User::find($validated['admin_id']) : null;
+        $admin = User::find($validated['admin_id']);
         if (!$admin || $admin->role !== 'admin') {
             $this->addError('admin_id', 'Pilih user dengan role admin sebagai pengelola kota');
-            return;
-        }
-
-        // Ensure this admin isn't already assigned to another city (unless editing that same city)
-        $conflictQuery = City::where('admin_id', $admin->id);
-        if ($this->editMode && $this->cityId) {
-            $conflictQuery->where('id', '!=', $this->cityId);
-        }
-        if ($conflictQuery->exists()) {
-            $this->addError('admin_id', 'User ini sudah menjadi admin pengelola kota lain. Pilih admin lain.');
             return;
         }
 
@@ -228,12 +217,8 @@ class Cities extends Component
             ->latest()
             ->paginate($this->perPage);
 
-        $admins = User::where('role', 'admin')
-            ->where(function ($q) {
-                $q->whereNull('city_id');
-                if ($this->admin_id)
-                    $q->orWhere('id', $this->admin_id);
-            })->get();
+        // Show all admins in dropdown (superadmin can reassign any admin)
+        $admins = User::where('role', 'admin')->get();
 
         return view('superadmin.cities', compact('cities', 'admins'));
     }

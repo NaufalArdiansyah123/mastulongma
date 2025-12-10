@@ -87,12 +87,18 @@ class IndexNew extends Component
     public function render()
     {
         $query = Registration::query();
+        
         if ($this->search) {
             $query->where(function($q){
                 $q->where('full_name','like','%'.$this->search.'%')
                   ->orWhere('email','like','%'.$this->search.'%')
                   ->orWhere('nik','like','%'.$this->search.'%');
             });
+        }
+
+        // Filter by admin's city if user is admin
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $query->where('city_id', auth()->user()->city_id);
         }
 
         $registrations = $query->latest()->paginate($this->perPage);

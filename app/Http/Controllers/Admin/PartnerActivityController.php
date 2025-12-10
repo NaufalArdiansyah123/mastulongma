@@ -15,6 +15,15 @@ class PartnerActivityController extends Controller
     {
         $query = PartnerActivity::with('user');
 
+        // Filter by admin's city if user is admin
+        // Admin hanya melihat aktivitas customer dan mitra (bukan admin lain)
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $query->whereHas('user', function ($q) {
+                $q->where('city_id', auth()->user()->city_id)
+                  ->whereIn('role', ['customer', 'mitra']); // Hanya customer dan mitra
+            });
+        }
+
         // Filter search: user name/email, description, IP
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
@@ -157,6 +166,15 @@ class PartnerActivityController extends Controller
     protected function buildFilteredQuery(Request $request)
     {
         $query = PartnerActivity::with('user');
+
+        // Filter by admin's city if user is admin
+        // Admin hanya melihat aktivitas customer dan mitra (bukan admin lain)
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $query->whereHas('user', function ($q) {
+                $q->where('city_id', auth()->user()->city_id)
+                  ->whereIn('role', ['customer', 'mitra']); // Hanya customer dan mitra
+            });
+        }
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {

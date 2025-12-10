@@ -52,7 +52,7 @@ class Index extends Component
 
     public function render()
     {
-        $helps = Help::query()
+        $query = Help::query()
             ->with(['customer', 'category', 'city'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
@@ -62,14 +62,28 @@ class Index extends Component
             })
             ->when($this->statusFilter !== '', function ($query) {
                 $query->where('status', $this->statusFilter);
-            })
-            ->latest()
-            ->paginate($this->perPage);
+            });
 
-        // Statistics
-        $totalHelps = Help::count();
-        $pendingHelps = Help::where('status', 'pending')->count();
-        $completedHelps = Help::where('status', 'completed')->count();
+        // Filter by admin's city if user is admin
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $query->whereHas('customer', function ($q) {
+                $q->where('city_id', auth()->user()->city_id);
+            });
+        }
+
+        $helps = $query->latest()->paginate($this->perPage);
+
+        // Statistics - also filtered by city for admin
+        $statsQuery = Help::query();
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $statsQuery->whereHas('customer', function ($q) {
+                $q->where('city_id', auth()->user()->city_id);
+            });
+        }
+
+        $totalHelps = $statsQuery->count();
+        $pendingHelps = (clone $statsQuery)->where('status', 'pending')->count();
+        $completedHelps = (clone $statsQuery)->where('status', 'completed')->count();
 
         return view('admin.helps', compact('helps', 'totalHelps', 'pendingHelps', 'completedHelps'));
     }

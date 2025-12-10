@@ -2,6 +2,9 @@
 
 @section('content')
     @php
+        // Get current admin's city_id for filtering
+        $adminCityId = (auth()->user() && auth()->user()->role === 'admin') ? auth()->user()->city_id : null;
+
         // Collect stats server-side. Adjust model/column names if your app differs.
         $totalHelps = class_exists(\App\Models\Help::class) ? \App\Models\Help::count() : 0;
         $pendingHelps = class_exists(\App\Models\Help::class) ? \App\Models\Help::where('status', 'pending')->count() : 0;
@@ -22,16 +25,33 @@
             $verifiedMitras = 0;
         }
 
-        $latestHelps = class_exists(\App\Models\Help::class) ? \App\Models\Help::latest()->take(6)->get() : collect();
+        // Latest helps - filter by admin's city
+        if (class_exists(\App\Models\Help::class)) {
+            $latestHelpsQuery = \App\Models\Help::with('customer')->latest();
+            if ($adminCityId) {
+                $latestHelpsQuery->whereHas('customer', function($q) use ($adminCityId) {
+                    $q->where('city_id', $adminCityId);
+                });
+            }
+            $latestHelps = $latestHelpsQuery->take(6)->get();
+        } else {
+            $latestHelps = collect();
+        }
 
-        // prepare chart data for last 7 days
+        // prepare chart data for last 7 days - filter by admin's city
         $chartLabels = [];
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $day = now()->subDays($i);
             $chartLabels[] = $day->format('j M');
             if (class_exists(\App\Models\Help::class)) {
-                $chartData[] = \App\Models\Help::whereDate('created_at', $day->toDateString())->count();
+                $chartQuery = \App\Models\Help::whereDate('created_at', $day->toDateString());
+                if ($adminCityId) {
+                    $chartQuery->whereHas('customer', function($q) use ($adminCityId) {
+                        $q->where('city_id', $adminCityId);
+                    });
+                }
+                $chartData[] = $chartQuery->count();
             } else {
                 $chartData[] = 0;
             }

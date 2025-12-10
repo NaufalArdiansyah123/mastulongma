@@ -58,7 +58,14 @@ class Index extends Component
 
     public function render()
     {
-        $verifications = Registration::latest()->paginate($this->perPage);
+        $query = Registration::query();
+        
+        // Filter by admin's city if user is admin
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $query->where('city_id', auth()->user()->city_id);
+        }
+        
+        $verifications = $query->latest()->paginate($this->perPage);
         return view('admin.verifications', compact('verifications'));
     }
 }

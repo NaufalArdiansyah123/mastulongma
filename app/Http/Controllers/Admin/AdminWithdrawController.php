@@ -16,6 +16,13 @@ class AdminWithdrawController extends Controller
         $request = request();
         $query = WithdrawRequest::with('user');
 
+        // Filter by admin's city if user is admin
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $query->whereHas('user', function ($q) {
+                $q->where('city_id', auth()->user()->city_id);
+            });
+        }
+
         // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -51,13 +58,20 @@ class AdminWithdrawController extends Controller
         // For filter controls: list of bank codes present
         $banks = WithdrawRequest::select('bank_code')->distinct()->orderBy('bank_code')->pluck('bank_code');
 
-        // Summary counts
+        // Summary counts - filter by admin's city
+        $countsQuery = WithdrawRequest::query();
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $countsQuery->whereHas('user', function ($q) {
+                $q->where('city_id', auth()->user()->city_id);
+            });
+        }
+
         $counts = [
-            'all' => WithdrawRequest::count(),
-            'pending' => WithdrawRequest::where('status', WithdrawRequest::STATUS_PENDING)->count(),
-            'processing' => WithdrawRequest::where('status', WithdrawRequest::STATUS_PROCESSING)->count(),
-            'success' => WithdrawRequest::where('status', WithdrawRequest::STATUS_SUCCESS)->count(),
-            'failed' => WithdrawRequest::where('status', WithdrawRequest::STATUS_FAILED)->count(),
+            'all' => (clone $countsQuery)->count(),
+            'pending' => (clone $countsQuery)->where('status', WithdrawRequest::STATUS_PENDING)->count(),
+            'processing' => (clone $countsQuery)->where('status', WithdrawRequest::STATUS_PROCESSING)->count(),
+            'success' => (clone $countsQuery)->where('status', WithdrawRequest::STATUS_SUCCESS)->count(),
+            'failed' => (clone $countsQuery)->where('status', WithdrawRequest::STATUS_FAILED)->count(),
         ];
 
         return view('admin.withdraws.index', ['items' => $items, 'banks' => $banks, 'counts' => $counts]);

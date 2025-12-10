@@ -21,14 +21,41 @@ class ActivityLive extends Component
 
     public function loadData()
     {
-        $this->mitraActive = User::where('role', 'mitra')->where('status', 'active')->count();
-        $this->pendingHelps = Help::available()->count();
-        $this->inProgress = Help::taken()->count();
+        // Filter by admin's city if user is admin
+        $mitraQuery = User::where('role', 'mitra')->where('status', 'active');
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $mitraQuery->where('city_id', auth()->user()->city_id);
+        }
+        $this->mitraActive = $mitraQuery->count();
 
-        $this->feed = PartnerActivity::with('user')
+        // Filter helps by users from admin's city
+        $pendingQuery = Help::available();
+        $inProgressQuery = Help::taken();
+        
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $pendingQuery->whereHas('customer', function ($q) {
+                $q->where('city_id', auth()->user()->city_id);
+            });
+            $inProgressQuery->whereHas('customer', function ($q) {
+                $q->where('city_id', auth()->user()->city_id);
+            });
+        }
+
+        $this->pendingHelps = $pendingQuery->count();
+        $this->inProgress = $inProgressQuery->count();
+
+        // Filter partner activities by admin's city
+        $feedQuery = PartnerActivity::with('user')
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
+            ->limit(10);
+
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $feedQuery->whereHas('user', function ($q) {
+                $q->where('city_id', auth()->user()->city_id);
+            });
+        }
+
+        $this->feed = $feedQuery->get()
             ->map(function ($a) {
                 return [
                     'id' => $a->id,

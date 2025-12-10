@@ -12,6 +12,11 @@ class BlockedPartnerController extends Controller
         // Base query: users with role mitra or customer
         $baseQuery = User::whereIn('role', ['mitra', 'customer']);
 
+        // Filter by admin's city if user is admin
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $baseQuery->where('city_id', auth()->user()->city_id);
+        }
+
         // Counts for cards (fresh queries to avoid mutation)
         $totalCount = (clone $baseQuery)->count();
         $blockedCount = (clone $baseQuery)->where('status', 'blocked')->count();
@@ -21,6 +26,11 @@ class BlockedPartnerController extends Controller
 
         // Apply filters from request
         $query = User::whereIn('role', ['mitra', 'customer'])->with('city');
+
+        // Filter by admin's city if user is admin
+        if (auth()->user() && auth()->user()->role === 'admin' && auth()->user()->city_id) {
+            $query->where('city_id', auth()->user()->city_id);
+        }
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {

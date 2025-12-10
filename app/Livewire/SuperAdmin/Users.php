@@ -40,6 +40,7 @@ class Users extends Component
     public $religion = null;
     public $marital_status = null;
     public $occupation = null;
+    public $password = null;
 
     // modal flags
     public $showViewModal = false;
@@ -142,6 +143,7 @@ class Users extends Component
         $this->religion = null;
         $this->marital_status = null;
         $this->occupation = null;
+        $this->password = null;
     }
 
     public function saveUser()
@@ -165,9 +167,16 @@ class Users extends Component
             'nik' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:1000',
             'date_of_birth' => 'nullable|date',
-            'gender' => 'nullable|string|max:20',
+            'gender' => 'nullable|in:Laki-laki,Perempuan',
             'occupation' => 'nullable|string|max:150',
         ];
+
+        // Password validation - required for new users, optional for update
+        if ($this->selectedUser) {
+            $rules['password'] = 'nullable|string|min:8';
+        } else {
+            $rules['password'] = 'required|string|min:8';
+        }
 
         $this->validate($rules);
 
@@ -200,12 +209,17 @@ class Users extends Component
                 session()->flash('error', 'User not found');
                 return;
             }
+            // Only update password if provided
+            if (!empty($this->password)) {
+                $data['password'] = bcrypt($this->password);
+            } else {
+                unset($data['password']);
+            }
             $user->update($data);
             session()->flash('message', 'User updated successfully');
         } else {
-            // create new user with a random password (admin should reset)
-            $password = bcrypt(str()->random(10));
-            $data['password'] = $password;
+            // create new user with provided password
+            $data['password'] = bcrypt($this->password);
             $user = User::create($data);
             session()->flash('message', 'User created successfully');
         }

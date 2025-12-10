@@ -429,6 +429,21 @@
                                     </div>
 
                                     <div>
+                                        <label class="text-xs font-medium text-gray-700">Password 
+                                            @if($showEditModal)
+                                                <span class="text-gray-500 text-xs">(kosongkan jika tidak ingin mengubah)</span>
+                                            @else
+                                                <span class="text-red-500">*</span>
+                                            @endif
+                                        </label>
+                                        <input type="password" wire:model.defer="password" 
+                                            placeholder="{{ $showEditModal ? 'Isi untuk mengubah password' : 'Minimal 8 karakter' }}"
+                                            class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
+                                        @error('password') <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div>
                                         <label class="text-xs font-medium text-gray-700">Role</label>
                                         <select wire:model.defer="role"
                                             class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -474,9 +489,8 @@
                                             <select wire:model.defer="gender"
                                                 class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                                                 <option value="">-- Pilih --</option>
-                                                <option value="male">Laki-laki</option>
-                                                <option value="female">Perempuan</option>
-                                                <option value="other">Lainnya</option>
+                                                <option value="Laki-laki">Laki-laki</option>
+                                                <option value="Perempuan">Perempuan</option>
                                             </select>
                                         </div>
 
