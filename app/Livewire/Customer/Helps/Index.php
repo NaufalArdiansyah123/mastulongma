@@ -6,12 +6,14 @@ use App\Models\Help;
 use App\Models\City;
 use App\Models\Rating;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     protected $queryString = [
         'statusFilter' => ['except' => ''],
@@ -26,13 +28,22 @@ class Index extends Component
     // Confirmation modal for completion
     public $showConfirmModal = false;
     public $confirmingHelpId = null;
+    // Confirmation modal for deletion (cancel help)
+    public $showDeleteConfirm = false;
+    public $deletingHelpId = null;
     // Edit modal state
     public $editingHelp = null;
     public $editTitle;
     public $editDescription;
     public $editAmount;
     public $editLocation;
+    public $editFullAddress;
+    public $editEquipmentProvided;
     public $editCityId;
+    public $editLatitude;
+    public $editLongitude;
+    public $editPhoto;
+    public $editExistingPhoto;
     public $cities = [];
 
     public function takeHelp($helpId)
@@ -146,6 +157,51 @@ class Index extends Component
         session()->flash('message', 'Bantuan berhasil dihapus.');
     }
 
+    /**
+     * Open delete confirmation modal (so user must confirm before delete)
+     */
+    public function confirmDelete($helpId)
+    {
+        $help = Help::find($helpId);
+        if (!$help) {
+            session()->flash('error', 'Bantuan tidak ditemukan.');
+            return;
+        }
+
+        // Only owner can request deletion
+        if ($help->user_id !== auth()->id()) {
+            session()->flash('error', 'Anda tidak memiliki izin untuk menghapus bantuan ini.');
+            return;
+        }
+
+        $this->deletingHelpId = $helpId;
+        $this->showDeleteConfirm = true;
+    }
+
+    /**
+     * Called when user confirms deletion in the modal
+     */
+    public function deleteConfirmed()
+    {
+        if (!$this->deletingHelpId) {
+            $this->showDeleteConfirm = false;
+            return;
+        }
+
+        // Reuse existing delete logic
+        $this->deleteHelp($this->deletingHelpId);
+
+        // reset modal state
+        $this->deletingHelpId = null;
+        $this->showDeleteConfirm = false;
+    }
+
+    public function cancelDelete()
+    {
+        $this->deletingHelpId = null;
+        $this->showDeleteConfirm = false;
+    }
+
     public function showHelp($id)
     {
         // Load help details into `selectedHelpData` so the index view can
@@ -171,11 +227,22 @@ class Index extends Component
             'location' => $help->location,
             'user_name' => optional($help->user)->name ?? auth()->user()->name,
             'city_name' => optional($help->city)->name,
+            'full_address' => $help->full_address,
+            'equipment_provided' => $help->equipment_provided,
+            'latitude' => $help->latitude,
+            'longitude' => $help->longitude,
+            'admin_notes' => $help->admin_notes,
+            'admin_fee' => $help->admin_fee,
+            'total_amount' => $help->total_amount,
+            'category_name' => optional($help->category)->name,
+            'mitra_name' => optional($help->mitra)->name,
             'status' => $help->status,
             'created_at_human' => optional($help->created_at)->diffForHumans(),
             'updated_at' => optional($help->updated_at)->format('d M Y • H:i'),
             'taken_at' => optional($help->taken_at)->format('d M Y • H:i'),
         ];
+        // Dispatch browser event so client-side can initialize the detail map
+        $this->dispatch('open-detail', id: $help->id, latitude: $help->latitude, longitude: $help->longitude, full_address: $help->full_address);
     }
 
     public function closeHelp()
@@ -217,11 +284,16 @@ class Index extends Component
         $this->editDescription = $help->description;
         $this->editAmount = $help->amount;
         $this->editLocation = $help->location;
+        $this->editFullAddress = $help->full_address;
+        $this->editEquipmentProvided = $help->equipment_provided;
         $this->editCityId = $help->city_id;
+        $this->editLatitude = $help->latitude;
+        $this->editLongitude = $help->longitude;
+        $this->editExistingPhoto = $help->photo;
         Log::info('Customer\\Helps\\Index::editHelp called', ['id' => $id, 'user_id' => auth()->id()]);
 
         // Dispatch a browser event with the help data so client-side listeners (and fallbacks) can react.
-        $this->dispatch('open-edit', id: $help->id, title: $help->title, description: $help->description, amount: $help->amount, location: $help->location, city_id: $help->city_id);
+        $this->dispatch('open-edit', id: $help->id, title: $help->title, description: $help->description, amount: $help->amount, location: $help->location, city_id: $help->city_id, latitude: $help->latitude, longitude: $help->longitude);
     }
 
     /**
@@ -273,10 +345,13 @@ class Index extends Component
     {
         $this->validate([
             'editTitle' => 'required|string|max:255',
-            'editDescription' => 'nullable|string',
-            'editAmount' => 'nullable|numeric',
+            'editDescription' => 'required|string',
+            'editAmount' => 'required|numeric|min:10000|max:100000000',
             'editLocation' => 'nullable|string|max:255',
-            'editCityId' => 'nullable|exists:cities,id',
+            'editFullAddress' => 'nullable|string|max:500',
+            'editEquipmentProvided' => 'nullable|string|max:1000',
+            'editCityId' => 'required|exists:cities,id',
+            'editPhoto' => 'nullable|image|max:2048', // 2MB max
         ]);
 
         $help = Help::findOrFail($this->editingHelp);
@@ -286,13 +361,28 @@ class Index extends Component
             return;
         }
 
-        $help->update([
+        $updateData = [
             'title' => $this->editTitle,
             'description' => $this->editDescription,
             'amount' => $this->editAmount,
             'location' => $this->editLocation,
+            'full_address' => $this->editFullAddress,
+            'equipment_provided' => $this->editEquipmentProvided,
             'city_id' => $this->editCityId,
-        ]);
+            'latitude' => $this->editLatitude,
+            'longitude' => $this->editLongitude,
+        ];
+
+        // Handle photo upload
+        if ($this->editPhoto) {
+            // Delete old photo if exists
+            if ($help->photo) {
+                Storage::disk('public')->delete($help->photo);
+            }
+            $updateData['photo'] = $this->editPhoto->store('helps', 'public');
+        }
+
+        $help->update($updateData);
 
         session()->flash('message', 'Perubahan bantuan berhasil disimpan.');
         $this->closeEdit();
@@ -305,7 +395,13 @@ class Index extends Component
         $this->editDescription = null;
         $this->editAmount = null;
         $this->editLocation = null;
+        $this->editFullAddress = null;
+        $this->editEquipmentProvided = null;
         $this->editCityId = null;
+        $this->editLatitude = null;
+        $this->editLongitude = null;
+        $this->editPhoto = null;
+        $this->editExistingPhoto = null;
     }
 
     public function render()
@@ -321,23 +417,26 @@ class Index extends Component
                         $q->where('user_id', $user->id);
                     },
                 ])
+                ->withCount('chatMessages')
                 ->when($this->statusFilter !== '', function ($query) {
                     $query->where('status', $this->statusFilter);
                 })
                 ->latest()
                 ->paginate(10);
         } elseif ($user->isMitra()) {
-            if (request()->routeIs('helps.available')) {
+                if (request()->routeIs('helps.available')) {
                 // Mitra melihat bantuan yang available
                 $helps = Help::where('status', 'approved')
                     ->whereNull('mitra_id')
                     ->with(['user', 'city'])
+                        ->withCount('chatMessages')
                     ->latest()
                     ->paginate(10);
             } else {
                 // Mitra melihat bantuan yang sudah diambil
                 $helps = Help::where('mitra_id', $user->id)
                     ->with(['user', 'city'])
+                        ->withCount('chatMessages')
                     ->when($this->statusFilter !== '', function ($query) {
                         $query->where('status', $this->statusFilter);
                     })

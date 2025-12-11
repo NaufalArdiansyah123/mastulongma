@@ -161,6 +161,45 @@
             }
         });
     </script>
+    <script>
+        // Toggle blur on bottom nav when any confirmation modal is present in DOM.
+        function checkConfirmModalAndToggleBlur() {
+            try {
+                var modal = document.querySelector('[data-confirm-modal]');
+                var nav = document.querySelector('nav');
+                if (!nav) return;
+
+                if (modal) {
+                    nav.classList.add('filter', 'blur-sm');
+                } else {
+                    nav.classList.remove('filter', 'blur-sm');
+                }
+            } catch (e) {
+                console.warn('checkConfirmModalAndToggleBlur error', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            checkConfirmModalAndToggleBlur();
+        });
+
+        // Livewire fires these events after DOM updates
+        window.addEventListener('livewire:load', function () {
+            checkConfirmModalAndToggleBlur();
+        });
+
+        window.addEventListener('livewire:update', function () {
+            checkConfirmModalAndToggleBlur();
+        });
+
+        // Also observe mutations to catch cases where Livewire doesn't trigger events
+        try {
+            var observer = new MutationObserver(function () { checkConfirmModalAndToggleBlur(); });
+            observer.observe(document.body, { childList: true, subtree: true });
+        } catch (e) {
+            // ignore
+        }
+    </script>
 </body>
 
 </html>
