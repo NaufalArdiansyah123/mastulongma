@@ -4,6 +4,7 @@ namespace App\Livewire\Mitra;
 
 use App\Models\Help;
 use App\Models\UserBalance;
+use App\Services\LocationTrackingService;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -38,7 +39,7 @@ class Dashboard extends Component
         $this->resetPage();
     }
 
-    public function takeHelp($helpId)
+    public function takeHelp($helpId, $latitude = null, $longitude = null)
     {
         $help = Help::findOrFail($helpId);
 
@@ -49,11 +50,21 @@ class Dashboard extends Component
 
         $help->update([
             'mitra_id' => auth()->id(),
-            'status' => 'memperoleh_mitra',
+            'status' => 'taken',
             'taken_at' => now(),
         ]);
 
-        session()->flash('message', 'Bantuan berhasil diambil! Segera hubungi yang membutuhkan.');
+        // Set lokasi awal mitra jika GPS tersedia
+        if ($latitude && $longitude) {
+            $locationService = app(LocationTrackingService::class);
+            $locationService->setInitialLocation($help, $latitude, $longitude);
+        }
+
+        session()->flash('message', 'Bantuan berhasil diambil! GPS tracking aktif. Segera menuju lokasi customer.');
+        
+        // Emit event untuk mulai GPS tracking
+        $this->dispatch('start-gps-tracking', helpId: $helpId);
+        
         $this->setTab('diproses');
     }
 

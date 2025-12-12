@@ -1,106 +1,149 @@
-<div class="min-h-screen bg-gray-50">
-    <div class="px-5 pt-6 pb-4 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 rounded-b-3xl">
-        <div class="flex items-center justify-between mb-6">
-            <a href="{{ route('mitra.dashboard') }}"
-                class="bg-white p-2.5 rounded-full shadow-md hover:shadow-lg transition">
-                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            <h1 class="text-xl font-bold text-white flex-1 text-center">Bantuan Sedang Diproses</h1>
-            <div class="w-9"></div>
-        </div>
-    </div>
+<div class="min-h-screen bg-white">
+    <style>
+        :root{
+            --brand-500: #0ea5a4;
+            --brand-600: #08979a;
+            --muted-600: #6b7280;
+        }
 
-    <div class="px-5 pt-6 pb-24">
-        @if(session('success'))
-            <div class="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-green-700">{{ session('success') }}
+        .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card-shadow-hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(14,165,164,0.2); }
+        
+        /* BRImo-style decorative pattern */
+        .header-pattern {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-pattern::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .header-pattern::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+    </style>
+
+    <div class="max-w-md mx-auto">
+        <!-- Header - BRImo Style -->
+        <div class="px-5 pt-5 pb-8 relative overflow-hidden header-pattern" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+            
+            <div class="relative z-10">
+                <div class="flex items-center justify-between text-white mb-3">
+                    <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="text-center flex-1">
+                        <h1 class="text-lg font-bold">Bantuan Sedang Diproses</h1>
+                        <p class="text-xs text-white/90 mt-0.5">Kelola pekerjaan yang sedang berjalan</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('customer.notifications.index') }}" aria-label="Notifikasi" class="p-2 hover:bg-white/20 rounded-lg transition">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
             </div>
+
+            <!-- Curved separator (SVG) to create non-flat divider into content -->
+            <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,32 C360,72 1080,0 1440,40 L1440,72 L0,72 Z" fill="#ffffff"></path>
+            </svg>
+        </div>
+
+        <!-- Content -->
+        <div class="bg-white rounded-t-3xl -mt-6 px-5 pt-6 pb-20 min-h-[60vh]">
+        @if(session('success'))
+            <div class="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-green-700 text-sm">{{ session('success') }}</div>
         @endif
 
         @if(count($helps) === 0)
-            <div class="bg-white rounded-2xl shadow-lg p-6 text-center">
-                <p class="text-gray-600">Tidak ada bantuan yang sedang Anda proses saat ini.</p>
+            <div class="text-center py-16 bg-white rounded-xl shadow-sm">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-sm font-semibold text-gray-700">Belum ada bantuan yang diproses</p>
+                <p class="text-xs text-gray-500 mt-1">Bantuan yang Anda ambil akan muncul di sini</p>
             </div>
         @else
-            <div class="space-y-4">
+            <div class="space-y-3">
                 @foreach($helps as $help)
-                    <div class="bg-white rounded-2xl shadow p-4">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="flex-1">
-                                        <h3 class="font-bold text-gray-900 text-lg">{{ $help->title }}</h3>
-                                        @if(optional($help->category)->name)
-                                            <div class="text-xs text-gray-500 mt-1">{{ optional($help->category)->name }}</div>
-                                        @endif
+                    <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
+                        <div class="flex items-start gap-3">
+                            <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                @if($help->photo)
+                                    <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-lg">
+                                        {{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}
                                     </div>
-
-                                    <div class="text-right">
-                                        <div class="inline-block bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-bold">Rp {{ number_format($help->amount, 0, ',', '.') }}</div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-3">
-                                    @if($help->photo)
-                                        <img src="{{ asset('storage/' . $help->photo) }}" alt="Foto bantuan" class="w-full rounded-xl object-cover h-44">
-                                    @else
-                                        <div class="w-full rounded-xl bg-gray-100 h-44 flex items-center justify-center text-gray-400">Tidak ada foto</div>
-                                    @endif
-                                </div>
-
-                                <div class="mt-4 grid grid-cols-2 gap-3 text-sm text-gray-700">
-                                    <div class="bg-gray-50 rounded-lg p-3">
-                                        <div class="font-semibold">Lokasi</div>
-                                        <div class="text-xs text-gray-500">{{ $help->location ?? '-' }}</div>
-                                    </div>
-                                    <div class="bg-gray-50 rounded-lg p-3">
-                                        <div class="font-semibold">Waktu</div>
-                                        <div class="text-xs text-gray-500">Dibuat: {{ optional($help->created_at)->format('d M Y H:i') ?? '-' }}</div>
-                                        @if($help->taken_at)
-                                            <div class="text-xs text-gray-500">Diambil: {{ optional($help->taken_at)->format('d M Y H:i') }}</div>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <div class="mt-4">
-                                    <div class="font-semibold mb-2">Nama Customer</div>
-                                    <div class="flex items-center bg-white p-3 rounded-lg shadow-sm">
-                                        @php
-                                            $name = optional($help->user)->name ?? 'Pengguna';
-                                            $parts = explode(' ', $name);
-                                            $initials = '';
-                                            foreach($parts as $p){ $initials .= strtoupper(substr($p,0,1)); }
-                                        @endphp
-                                        <div class="w-12 h-12 rounded-md bg-gray-100 flex items-center justify-center text-gray-700 font-bold mr-3">{{ $initials }}</div>
-                                        <div class="flex-1">
-                                            <div class="font-semibold text-gray-900">{{ $name }}</div>
-                                            <div class="text-xs text-gray-500">{{ optional($help->user)->city?->name ?? '' }}</div>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            @if(optional($help->user)->phone)
-                                                <a href="tel:{{ optional($help->user)->phone }}" class="bg-blue-50 p-2 rounded-full text-blue-600">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                                </a>
-                                            @endif
-                                            <a href="{{ route('mitra.chat', ['help' => $help->id]) }}" class="bg-blue-500 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
+                                @endif
                             </div>
-                        </div>
 
-                        <div class="mt-4 flex items-center justify-between">
-                            <div></div>
-                            <div class="flex items-center gap-3">
-                                <a href="{{ route('mitra.help.detail', $help->id) }}" class="text-sm text-primary-600 font-semibold">Lihat</a>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-start justify-between gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
+                                    <span class="text-xs font-bold whitespace-nowrap" style="color: #0098e7;">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
+                                </div>
+
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(34, 197, 94, 0.08); color:#22c55e; border:1px solid rgba(34,197,94,0.12);">
+                                        Diproses
+                                    </span>
+                                    <span class="text-xs text-gray-400">{{ optional($help->taken_at)->diffForHumans() ?? optional($help->created_at)->diffForHumans() }}</span>
+                                </div>
+
+                                <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description ?? $help->location ?? '-', 100) }}</p>
+
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-xs text-gray-500">👤 {{ optional($help->user)->name ?? 'Customer' }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ route('mitra.helps.detail', $help->id) }}" class="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 transition">
+                                            Detail
+                                        </a>
+                                        @if(optional($help->user)->phone)
+                                            <a href="tel:{{ optional($help->user)->phone }}" class="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                                </svg>
+                                            </a>
+                                        @endif
+                                        <a href="{{ route('mitra.chat', ['help' => $help->id]) }}" class="p-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 @endforeach
             </div>
         @endif
+    </div>
     </div>
 </div>

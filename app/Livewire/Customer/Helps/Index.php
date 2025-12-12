@@ -16,10 +16,10 @@ class Index extends Component
     use WithPagination, WithFileUploads;
 
     protected $queryString = [
-        'statusFilter' => ['except' => ''],
+        'statusFilter' => ['except' => 'menunggu_mitra'],
     ];
 
-    public $statusFilter = '';
+    public $statusFilter = 'menunggu_mitra';
     public $selectedHelpData = null;
     // Rating flow
     public $ratingComment = null;

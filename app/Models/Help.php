@@ -25,6 +25,21 @@ class Help extends Model
         'taken_at',
         'completed_at',
         'admin_notes',
+        'order_id',
+        'voucher_code',
+        'discount_amount',
+        'booking_fee',
+        'mitra_assigned_at',
+        'partner_started_at',
+        'partner_arrived_at',
+        'service_started_at',
+        'service_completed_at',
+        'scheduled_at',
+        'partner_initial_lat',
+        'partner_initial_lng',
+        'partner_current_lat',
+        'partner_current_lng',
+        'partner_started_moving_at',
     ];
 
     protected $casts = [
@@ -35,6 +50,19 @@ class Help extends Model
         'total_amount' => 'decimal:2',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
+        'discount_amount' => 'decimal:2',
+        'booking_fee' => 'decimal:2',
+        'mitra_assigned_at' => 'datetime',
+        'partner_started_at' => 'datetime',
+        'partner_arrived_at' => 'datetime',
+        'service_started_at' => 'datetime',
+        'service_completed_at' => 'datetime',
+        'scheduled_at' => 'datetime',
+        'partner_initial_lat' => 'decimal:8',
+        'partner_initial_lng' => 'decimal:8',
+        'partner_current_lat' => 'decimal:8',
+        'partner_current_lng' => 'decimal:8',
+        'partner_started_moving_at' => 'datetime',
     ];
 
     public function user()

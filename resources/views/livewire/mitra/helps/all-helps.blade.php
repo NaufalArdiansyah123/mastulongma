@@ -1,147 +1,300 @@
-<!-- Mitra All Helps Page (grouped) -->
-<!-- Migrated content from resources/views/livewire/mitra/all-helps.blade.php -->
-<div class="max-w-md mx-auto min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 px-6 pt-6 pb-24">
-        <div class="flex items-center justify-between mb-6">
-            <a href="{{ route('mitra.dashboard') }}" class="text-white">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            <h1 class="text-xl font-bold text-white">Semua Bantuan</h1>
-            <div class="w-6"></div>
-        </div>
-        <style>
-            /* hide scrollbar for the horizontal cards container */
-            .hide-scrollbar {
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-            }
+<div class="min-h-screen bg-white">
+    <style>
+        :root{
+            --brand-500: #0ea5a4;
+            --brand-600: #08979a;
+            --muted-600: #6b7280;
+        }
 
-            .hide-scrollbar::-webkit-scrollbar {
-                display: none;
-            }
-        </style>
-        <!-- Search Bar -->
-        <div class="relative">
-            <input type="text" wire:model.debounce.400ms="search" placeholder="Cari nama, lokasi, atau bantuan..."
-                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-90 text-gray-900 placeholder-gray-500 focus:bg-opacity-100 focus:ring-2 focus:ring-blue-300 outline-none transition">
-            <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none"
-                stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-        </div>
-    </div>
+        .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card-shadow-hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(14,165,164,0.2); }
+        
+        /* BRImo-style decorative pattern */
+        .header-pattern {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-pattern::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .header-pattern::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
 
-    <!-- Filters Card -->
-    <div class="px-6 -mt-16 mb-6 relative z-10">
-        <div class="bg-white rounded-2xl shadow-lg p-4 space-y-4">
-            <!-- Improved Filters: chips with icons and horizontal scroll -->
-            <div>
-                <label class="text-xs font-semibold text-gray-700 block mb-3">Filter</label>
-                <div class="overflow-x-auto hide-scrollbar -mx-4 px-4">
-                    <div class="flex gap-3 items-center">
-                        <button wire:click="$set('filterStatus', 'all')"
-                            aria-pressed="{{ $filterStatus === 'all' ? 'true' : 'false' }}"
-                            class="flex items-center gap-2 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition shadow-sm {{ $filterStatus === 'all' ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 border border-gray-100 hover:shadow' }}">
-                            <span>Semua</span>
-                        </button>
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
-                        <button wire:click="$set('filterStatus', 'menunggu_mitra')"
-                            aria-pressed="{{ $filterStatus === 'menunggu_mitra' ? 'true' : 'false' }}"
-                            class="flex items-center gap-2 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition shadow-sm {{ $filterStatus === 'menunggu_mitra' ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 border border-gray-100 hover:shadow' }}">
-                            <span>Menunggu Mitra</span>
-                        </button>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
 
-                        <div class="ml-2 flex items-center gap-2">
-                            <label class="text-xs text-gray-500 mr-2">Sort:</label>
-                            <select wire:model="sortBy" class="px-3 py-2 rounded-lg border bg-white text-sm">
-                                <option value="latest">Terbaru</option>
-                                <option value="oldest">Terlama</option>
-                                <option value="nearby">Terdekat</option>
-                                <option value="price_high">Harga Tertinggi</option>
-                                <option value="price_low">Harga Terendah</option>
-                            </select>
-                        </div>
+    <div class="max-w-md mx-auto">
+        <!-- Header - BRImo Style -->
+        <div class="px-5 pt-5 pb-8 relative overflow-hidden header-pattern" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+            
+            <div class="relative z-10">
+                <div class="flex items-center justify-between text-white mb-3">
+                    <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="text-center flex-1">
+                        <h1 class="text-lg font-bold">Semua Bantuan</h1>
+                        <p class="text-xs text-white/90 mt-0.5">Cari bantuan yang tersedia</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('customer.notifications.index') }}" aria-label="Notifikasi" class="p-2 hover:bg-white/20 rounded-lg transition">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                        </a>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Help List (single-column cards matching screenshot) -->
-    <div class="px-6 pb-24">
-        @if($helps->count() > 0)
-            <div class="space-y-3">
-                        @foreach($helps as $help)
-                    <div class="relative bg-white rounded-xl border border-gray-100 shadow-sm p-3 flex items-start justify-between">
-                        <a href="{{ route('mitra.help.detail', $help->id) }}" class="flex items-start gap-2 w-full">
-                            <div class="w-12 h-12 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100">
-                                @if(!empty($help->photo))
-                                    <img src="{{ asset('storage/' . $help->photo) }}" alt="Foto bantuan" class="w-full h-full object-cover">
-                                @elseif(optional($help->user)->photo)
-                                    <img src="{{ asset('storage/' . optional($help->user)->photo) }}" alt="Avatar" class="w-full h-full object-cover">
+                <!-- Search Bar -->
+                {{-- <div class="relative mt-4">
+                    <input type="text" wire:model.debounce.400ms="search" placeholder="Cari nama, lokasi, atau bantuan..."
+                        class="w-full px-4 py-2.5 rounded-xl bg-white/95 text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-white/50 outline-none transition text-sm">
+                    <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div> --}}
+
+                <!-- Filter Tabs - centered and symmetric -->
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                    <button type="button" wire:click="$set('filterStatus', 'all')" role="tab"
+                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $filterStatus === 'all' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
+                        Semua
+                    </button>
+                    <button type="button" wire:click="$set('filterStatus', 'menunggu_mitra')" role="tab"
+                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $filterStatus === 'menunggu_mitra' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
+                        Menunggu Mitra
+                    </button>
+                </div>
+            </div>
+
+            <!-- Curved separator (SVG) to create non-flat divider into content -->
+            <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,32 C360,72 1080,0 1440,40 L1440,72 L0,72 Z" fill="#ffffff"></path>
+            </svg>
+        </div>
+
+        <!-- Content -->
+        <div class="bg-white rounded-t-3xl -mt-6 px-5 pt-6 pb-6 min-h-[60vh]">
+            <!-- Sort Filter -->
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs text-gray-500 font-medium">Urutkan:</span>
+                <select wire:model="sortBy" class="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-700 focus:ring-2 focus:ring-blue-200 outline-none">
+                    <option value="latest">Terbaru</option>
+                    <option value="oldest">Terlama</option>
+                    <option value="nearby">Terdekat</option>
+                    <option value="price_high">Harga Tertinggi</option>
+                    <option value="price_low">Harga Terendah</option>
+                </select>
+            </div> 
+            <div class="space-y-4">
+                {{-- Loading skeleton --}}
+                <div wire:loading class="space-y-3">
+                    @for($i=0;$i<4;$i++)
+                        <div class="bg-gray-50 rounded-2xl p-4 card-shadow animate-pulse">
+                            <div class="flex items-center gap-3">
+                                <div class="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                                <div class="flex-1">
+                                    <div class="h-4 bg-gray-200 rounded w-3/5 mb-2"></div>
+                                    <div class="h-3 bg-gray-200 rounded w-4/5"></div>
+                                </div>
+                                <div class="w-16 h-4 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                    @endfor
+                </div>
+
+                {{-- List based on filter --}}
+                @forelse($helps as $help)
+                    <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
+                        <div class="flex items-start gap-3">
+                            <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                @if($help->photo)
+                                    <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover">
                                 @else
-                                    <div class="w-full h-full flex items-center justify-center text-white text-base font-bold bg-gradient-to-br from-orange-300 to-orange-400">
-                                        {{ strtoupper(substr($help->user->name ?? 'U', 0, 1)) }}
+                                    <div class="w-full h-full flex items-center justify-center text-lg">
+                                        {{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}
                                     </div>
                                 @endif
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between">
-                                    <div class="text-sm font-medium text-gray-900 truncate">{{ $help->user->name ?? 'Unknown' }}</div>
-                                    <div class="text-[11px] text-gray-400 ml-2">{{ $help->created_at->diffForHumans() }}</div>
+                                <div class="flex items-start justify-between gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
+                                    <span class="text-xs font-bold whitespace-nowrap" style="color: #0098e7;">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
                                 </div>
 
-                                <div class="text-sm text-gray-600 mt-1 leading-tight line-clamp-2">{{ Str::limit($help->description, 120) }}</div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    @if($help->status === 'menunggu_mitra')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(255, 159, 67, 0.08); color:#ff8a00; border:1px solid rgba(255,159,67,0.12);">
+                                            Tersedia
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(107, 114, 128, 0.08); color:#6b7280;">
+                                            {{ ucfirst(str_replace('_',' ', $help->status)) }}
+                                        </span>
+                                    @endif
+                                    <span class="text-xs text-gray-400">{{ optional($help->created_at)->diffForHumans() }}</span>
+                                </div>
 
-                                <div class="mt-2 flex items-center justify-between">
+                                <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
+
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
                                     <div class="flex items-center gap-2">
-                                        <span class="text-xs px-2 py-1 rounded-md bg-green-50 text-green-700 font-semibold">Rp {{ number_format($help->amount ?? 0, 0, ',', '.') }}</span>
-                                        <div class="text-xs text-gray-500 flex items-center gap-1">
-                                            <svg class="w-3 h-3 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
-                                            </svg>
-                                            <span class="truncate">{{ $help->city->name ?? '-' }}</span>
-                                        </div>
+                                        @if(is_null($help->mitra_id))
+                                            <button type="button" onclick="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount }})" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-xs hover:bg-gray-200 transition">Lihat</button>
+                                            <button type="button" onclick="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount }})" class="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 transition">Ambil</button>
+                                        @else
+                                            <span class="px-3 py-1.5 bg-gray-50 text-gray-400 rounded-md text-xs">Diambil</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
-                        </a>
-
-                        <div class="ml-3 flex-shrink-0 self-start flex flex-col items-end gap-2">
-                            <a href="{{ route('mitra.help.detail', $help->id) }}" aria-label="Lihat detail bantuan {{ $help->id }}" class="text-sm font-medium text-primary-600 bg-white border border-gray-100 px-3 py-1 rounded-md hover:bg-gray-50">Lihat</a>
-                            @if(is_null($help->mitra_id))
-                                <button wire:click.stop="takeHelp({{ $help->id }})" class="text-sm font-medium bg-primary-600 text-white px-3 py-1 rounded-md hover:bg-primary-700">Ambil</button>
-                            @else
-                                <span class="text-xs text-gray-500">Diambil</span>
-                            @endif
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <!-- Empty State -->
+                    <div class="text-center py-16 bg-white rounded-xl shadow-sm">
+                        <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <p class="text-sm font-semibold text-gray-700">{{ $search ? 'Tidak ada bantuan ditemukan' : 'Belum ada bantuan tersedia' }}</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            {{ $search ? 'Coba cari dengan kata kunci lain' : 'Cek kembali nanti untuk bantuan baru' }}
+                        </p>
+                    </div>
+                @endforelse
+
+                <!-- Pagination -->
+                @if($helps->hasPages())
+                    <div class="mt-6">
+                        {{ $helps->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Preview Bantuan (Bottom Sheet Style) -->
+    <div id="helpPreviewModal" class="fixed inset-0 z-50 flex items-end justify-center bg-black/50 hidden pb-16">
+        <div class="bg-white rounded-t-3xl w-full max-w-md shadow-2xl max-h-[75vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white border-b px-5 py-4 rounded-t-3xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900">Preview Bantuan</h3>
+                    <button type="button" onclick="closePreviewModal()" class="p-2 hover:bg-gray-100 rounded-full transition">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <!-- Pagination -->
-            <div class="mt-4">
-                {{ $helps->links('pagination::tailwind') }}
-            </div>
-        @else
-            <!-- Empty State -->
-            <div class="flex flex-col items-center justify-center py-20 text-center">
-                <div class="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
+            <!-- Modal Content -->
+            <div class="p-5 pb-6">
+                <div class="mb-4">
+                    <p class="text-xs text-gray-600 font-semibold mb-1">Judul Bantuan</p>
+                    <p id="previewTitle" class="text-base font-bold text-gray-900">-</p>
                 </div>
-                <p class="text-gray-600 font-medium text-base mb-1">Tidak ada bantuan ditemukan</p>
-                <p class="text-gray-400 text-sm">
-                    {{ $search ? 'Coba cari dengan kata kunci lain' : 'Belum ada permintaan bantuan tersedia' }}
-                </p>
+
+                <div class="mb-4">
+                    <p class="text-xs text-gray-600 font-semibold mb-1">Nominal untuk Mitra</p>
+                    <div id="previewAmount" class="inline-block bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm">
+                        💰 Rp 0
+                    </div>
+                </div>
+
+                <!-- Notice -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <p class="text-xs font-semibold text-blue-800 mb-1">🔒 Informasi Terbatas</p>
+                    <p class="text-xs text-blue-700">
+                        Deskripsi, alamat lengkap, lokasi di peta, foto, dan kontak customer akan ditampilkan setelah Anda mengambil bantuan ini.
+                    </p>
+                </div>
             </div>
-        @endif
+
+            <!-- Sticky footer -->
+            <div class="sticky bottom-0 bg-white border-t pt-4 px-5 pb-5">
+                <div class="flex gap-3">
+                    <button type="button" onclick="closePreviewModal()" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition">
+                        Batal
+                    </button>
+                    <button type="button" id="previewTakeBtn" onclick="takeHelpFromModal()" class="flex-1 bg-primary-500 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-primary-600 transition">
+                        Ambil Bantuan
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        let currentHelpId = null;
+
+        function showHelpPreview(helpId, title, amount) {
+            currentHelpId = helpId;
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewAmount').textContent = '💰 Rp ' + amount.toLocaleString('id-ID');
+            document.getElementById('helpPreviewModal').classList.remove('hidden');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('helpPreviewModal').classList.add('hidden');
+            currentHelpId = null;
+        }
+
+        function takeHelpFromModal() {
+            if (currentHelpId) {
+                // Call Livewire method to take help
+                @this.takeHelp(currentHelpId);
+                closePreviewModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('helpPreviewModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePreviewModal();
+            }
+        });
+
+        // Listen for help-taken event from Livewire
+        window.addEventListener('help-taken', function(event) {
+            // Reload page to show updated list
+            window.location.reload();
+        });
+    </script>
 </div>

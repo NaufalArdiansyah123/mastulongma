@@ -68,11 +68,7 @@
                 </div>
 
                 <!-- Filter Tabs - centered and symmetric -->
-                <div class="grid grid-cols-4 gap-3 mt-1">
-                    <button type="button" wire:click="$set('statusFilter', '')" role="tab"
-                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === '' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
-                        Semua
-                    </button>
+                <div class="grid grid-cols-2 gap-3 mt-1">
                     <button type="button" wire:click="$set('statusFilter', 'menunggu_mitra')" role="tab"
                         class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'menunggu_mitra' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Menunggu Mitra
@@ -80,10 +76,6 @@
                     <button type="button" wire:click="$set('statusFilter', 'memperoleh_mitra')" role="tab"
                         class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'memperoleh_mitra' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Diproses
-                    </button>
-                    <button type="button" wire:click="$set('statusFilter', 'selesai')" role="tab"
-                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'selesai' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
-                        Selesai
                     </button>
                 </div>
             </div>
@@ -152,7 +144,7 @@
                                         <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
                                         <div class="flex-1"></div>
                                         <div class="flex items-center gap-2">
-                                            <button type="button" wire:click="showHelp({{ $help->id }})" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-xs hover:bg-gray-200 transition">Detail</button>
+                                            <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-xs hover:bg-gray-200 transition">Detail</a>
                                             <button type="button" wire:click.stop="editHelp({{ $help->id }})" class="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 transition">Edit</button>
                                             <button type="button" wire:click.stop="confirmDelete({{ $help->id }})" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-md text-xs hover:bg-red-100 transition">Batalkan</button>
                                         </div>
@@ -161,7 +153,8 @@
                             </div>
                         </div>
                     @elseif($statusFilter === 'memperoleh_mitra')
-                        {{-- Processing (memperoleh_mitra) Card - Simple (match Menunggu Mitra style) --}}
+                        {{-- Diproses: tampilkan semua help kecuali 'menunggu_mitra' dan 'selesai' --}}
+                        @if(in_array($help->status, ['memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses']))
                         <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
                             <div class="flex items-start gap-3">
                                 <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
@@ -227,61 +220,323 @@
                                             Selesai
                                         </button>
 
-                                        <button type="button" wire:click="showHelp({{ $help->id }})" class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition w-32">
+                                        <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition w-32 text-center">
                                             Detail
-                                        </button>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    @elseif($statusFilter === 'selesai')
+                        {{-- Completed (selesai) Card with Rating --}}
+                        <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                    @if($help->photo)
+                                        <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-lg">
+                                            {{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-2 mb-1">
+                                        <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
+                                        <span class="text-xs font-bold whitespace-nowrap text-green-600">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                            ✓ Selesai
+                                        </span>
+                                        <span class="text-xs text-gray-400">{{ optional($help->completed_at)->diffForHumans() ?? optional($help->created_at)->diffForHumans() }}</span>
+                                    </div>
+
+                                    <p class="text-xs text-gray-600 line-clamp-1 mb-2">{{ Str::limit($help->description, 100) }}</p>
+
+                                    {{-- Mitra Info --}}
+                                    @if($help->mitra)
+                                        <div class="flex items-center gap-1.5 mb-2">
+                                            <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </div>
+                                            <span class="text-xs text-gray-700 font-medium">{{ $help->mitra->name }}</span>
+                                        </div>
+                                    @endif
+
+                                    {{-- Rating Section --}}
+                                    @php
+                                        $userRating = $help->rating ?? null;
+                                        $hasRated = $userRating && $userRating->rating > 0;
+                                    @endphp
+
+                                    @if($hasRated)
+                                        {{-- Show existing rating --}}
+                                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-sm font-semibold text-gray-700">Rating Anda:</span>
+                                                <div class="flex items-center gap-1">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <svg class="w-5 h-5 {{ $i <= $userRating->rating ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                        </svg>
+                                                    @endfor
+                                                </div>
+                                            </div>
+                                            @if($userRating->review)
+                                                <p class="text-sm text-gray-600 italic">"{{ $userRating->review }}"</p>
+                                            @endif
+                                        </div>
+                                    @else
+                                        {{-- Rating form --}}
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                                            <p class="text-sm font-semibold text-gray-700 mb-2">Beri Rating:</p>
+                                            <div class="flex items-center gap-2 mb-3">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <button type="button" wire:click="setRating({{ $help->id }}, {{ $i }})" class="focus:outline-none transition transform hover:scale-110">
+                                                        <svg class="w-6 h-6 {{ ($pendingHelpForRating === $help->id && $pendingRating >= $i) ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                        </svg>
+                                                    </button>
+                                                @endfor
+                                            </div>
+
+                                            @if($pendingHelpForRating === $help->id && $pendingRating)
+                                                <textarea wire:model.defer="ratingComment" rows="3" placeholder="Tulis ulasan Anda (opsional)" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none mb-3"></textarea>
+                                                <button type="button" wire:click="submitRating({{ $help->id }})" class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition">
+                                                    Kirim Rating
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    {{-- Footer Actions --}}
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
+                                        <div class="flex-1"></div>
+                                        <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+                                            Detail
+                                        </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     @else
-                        {{-- Default Design for other statuses --}}
-                        <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all">
-                            <div class="flex items-start gap-4">
-                                <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center bg-gray-100">
+                        {{-- Tab "Semua": Render card based on actual help status --}}
+                        @if($help->status === 'menunggu_mitra')
+                            {{-- Menunggu Mitra Card --}}
+                            <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                                         @if($help->photo)
-                                            <img src="{{ asset('storage/' . $help->photo) }}" alt="Foto {{ $help->title }}" class="w-full h-full object-cover" loading="lazy">
+                                            <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover">
                                         @else
-                                            <span class="text-lg">{{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}</span>
+                                            <div class="w-full h-full flex items-center justify-center text-lg">
+                                                {{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}
+                                            </div>
                                         @endif
                                     </div>
-                                </div>
 
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-start justify-between gap-2 mb-1">
-                                        <h3 class="font-semibold text-sm text-gray-900 line-clamp-1 flex-1">{{ $help->title }}</h3>
-                                        <div class="flex-shrink-0 text-right">
-                                            <div class="text-xs font-bold whitespace-nowrap" style="color: #0098e7">Rp {{ number_format($help->amount, 0, ',', '.') }}</div>
-                                            <div class="text-xs text-gray-400 mt-0.5">{{ optional($help->created_at)->diffForHumans() }}</div>
-                                        </div>
-                                    </div>
-
-                                    <p class="text-xs text-gray-600 line-clamp-1 mb-2">{{ Str::limit($help->description, 80) }}</p>
-
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-1 text-xs text-gray-500">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            </svg>
-                                            <span class="truncate">{{ $help->city->name ?? '-' }}</span>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between gap-2 mb-1">
+                                            <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
+                                            <span class="text-xs font-bold whitespace-nowrap" style="color: #0098e7;">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
                                         </div>
 
-                                        <div class="flex items-center gap-2">
-                                            <button type="button" wire:click="showHelp({{ $help->id }})" class="px-3.5 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
-                                                Detail
-                                            </button>
-                                            <button type="button" wire:click.stop="editHelp({{ $help->id }})" class="px-3.5 py-2 text-sm font-medium rounded-lg transition" style="background: rgba(0, 152, 231, 0.12); color: #0098e7;">
-                                                Edit
-                                            </button>
-                                            <button type="button" wire:click.stop="confirmDelete({{ $help->id }})" class="px-3.5 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition">
-                                                Batalkan
-                                            </button>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(255, 159, 67, 0.08); color:#ff8a00; border:1px solid rgba(255,159,67,0.12);">
+                                                Menunggu Mitra
+                                            </span>
+                                            <span class="text-xs text-gray-400">{{ optional($help->created_at)->diffForHumans() }}</span>
+                                        </div>
+
+                                        <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
+
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
+                                            <div class="flex-1"></div>
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-xs hover:bg-gray-200 transition">Detail</a>
+                                                <button type="button" wire:click.stop="editHelp({{ $help->id }})" class="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 transition">Edit</button>
+                                                <button type="button" wire:click.stop="confirmDelete({{ $help->id }})" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-md text-xs hover:bg-red-100 transition">Batalkan</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @elseif($help->status === 'memperoleh_mitra')
+                            {{-- Diproses Card --}}
+                            <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                        @if($help->photo)
+                                            <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center text-lg">
+                                                {{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between gap-2 mb-1">
+                                            <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
+                                            <span class="text-xs font-bold whitespace-nowrap" style="color: #0098e7;">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(56,189,248,0.08); color:#0284c7; border:1px solid rgba(3,105,161,0.08);">
+                                                Sedang Diproses
+                                            </span>
+                                            <span class="text-xs text-gray-400">{{ optional($help->created_at)->diffForHumans() }}</span>
+                                        </div>
+
+                                        <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
+
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
+                                            <div class="flex-1"></div>
+                                            <div class="flex items-center gap-2">
+                                                @if($help->mitra)
+                                                    <div class="flex items-center gap-1.5">
+                                                        <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                                                            <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                                            </svg>
+                                                        </div>
+                                                        <span class="text-xs text-gray-700 font-medium">{{ $help->mitra->name }}</span>
+                                                    </div>
+                                                @endif
+
+                                                @if($help->chat_messages_count > 0)
+                                                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-50 text-xs text-gray-600">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                        {{ $help->chat_messages_count }}
+                                                    </span>
+                                                @endif
+
+                                                <a href="{{ route('customer.chat', $help->id) }}" class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white hover:shadow-md transition" style="background: linear-gradient(135deg, #0098e7 0%, #00b8d4 100%);" aria-label="Buka chat">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4-.8L3 20l1.2-4A7.963 7.963 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 flex items-center justify-end gap-2">
+                                            <button type="button" wire:click.stop="confirmCompletion({{ $help->id }})" class="px-5 py-2 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition w-32">
+                                                Selesai
+                                            </button>
+
+                                            <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition w-32 text-center">
+                                                Detail
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @elseif($help->status === 'selesai')
+                            {{-- Selesai Card with Rating --}}
+                            <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                        @if($help->photo)
+                                            <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center text-lg">
+                                                {{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between gap-2 mb-1">
+                                            <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
+                                            <span class="text-xs font-bold whitespace-nowrap text-green-600">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                                ✓ Selesai
+                                            </span>
+                                            <span class="text-xs text-gray-400">{{ optional($help->completed_at)->diffForHumans() ?? optional($help->created_at)->diffForHumans() }}</span>
+                                        </div>
+
+                                        <p class="text-xs text-gray-600 line-clamp-1 mb-2">{{ Str::limit($help->description, 100) }}</p>
+
+                                        @if($help->mitra)
+                                            <div class="flex items-center gap-1.5 mb-2">
+                                                <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                                                    <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-xs text-gray-700 font-medium">{{ $help->mitra->name }}</span>
+                                            </div>
+                                        @endif
+
+                                        @php
+                                            $userRating = $help->rating ?? null;
+                                            $hasRated = $userRating && $userRating->rating > 0;
+                                        @endphp
+
+                                        @if($hasRated)
+                                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="text-sm font-semibold text-gray-700">Rating Anda:</span>
+                                                    <div class="flex items-center gap-1">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <svg class="w-5 h-5 {{ $i <= $userRating->rating ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                            </svg>
+                                                        @endfor
+                                                    </div>
+                                                </div>
+                                                @if($userRating->review)
+                                                    <p class="text-sm text-gray-600 italic">"{{ $userRating->review }}"</p>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                                                <p class="text-sm font-semibold text-gray-700 mb-2">Beri Rating:</p>
+                                                <div class="flex items-center gap-2 mb-3">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <button type="button" wire:click="setRating({{ $help->id }}, {{ $i }})" class="focus:outline-none transition transform hover:scale-110">
+                                                            <svg class="w-6 h-6 {{ ($pendingHelpForRating === $help->id && $pendingRating >= $i) ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                            </svg>
+                                                        </button>
+                                                    @endfor
+                                                </div>
+
+                                                @if($pendingHelpForRating === $help->id && $pendingRating)
+                                                    <textarea wire:model.defer="ratingComment" rows="3" placeholder="Tulis ulasan Anda (opsional)" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none mb-3"></textarea>
+                                                    <button type="button" wire:click="submitRating({{ $help->id }})" class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition">
+                                                        Kirim Rating
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
+                                            <div class="flex-1"></div>
+                                            <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+                                                Detail
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @endif
                 @empty
                     <div class="text-center py-10 bg-white rounded-xl shadow-sm">

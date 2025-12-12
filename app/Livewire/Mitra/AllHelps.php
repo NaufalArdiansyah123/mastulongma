@@ -101,6 +101,9 @@ class AllHelps extends Component
 
         session()->flash('message', 'Bantuan berhasil diambil. Silakan hubungi pengguna.');
 
+        // Emit event untuk redirect ke detail page
+        $this->dispatch('help-taken', helpId: $helpId);
+
         // refresh pagination and query so the help disappears from the list
         $this->resetPage();
     }

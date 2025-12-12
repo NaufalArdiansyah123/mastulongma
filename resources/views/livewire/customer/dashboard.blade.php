@@ -90,6 +90,14 @@
                         </svg>
                         <span class="text-xs font-medium">Saldo Aktif</span>
                     </div>
+                    <div class="flex items-center gap-2 text-white/90">
+                        <a href="{{ route('customer.chat') }}" class="inline-flex items-center gap-2 text-white/90 hover:text-white/100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-5 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-1l-4 4z" />
+                            </svg>
+                            <span class="text-xs font-medium">Chat</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,7 +147,7 @@
 
             <!-- Quick Actions Row -->
             <div class="border-t pt-3 mt-3">
-                <div class="grid grid-cols-4 gap-2">
+                <div class="grid grid-cols-5 gap-2">
                     <a href="{{ route('customer.helps.create') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">
                             <svg class="w-5 h-5" style="color: #0098e7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,6 +182,14 @@
                             </svg>
                         </div>
                         <span class="text-[10px] font-medium text-gray-700 text-center">Profil</span>
+                    </a>
+                    <a href="{{ route('customer.chat') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">
+                            <svg class="w-5 h-5" style="color: #0098e7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-5 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-1l-4 4z" />
+                            </svg>
+                        </div>
+                        <span class="text-[10px] font-medium text-gray-700 text-center">Chat</span>
                     </a>
                 </div>
             </div>
@@ -240,8 +256,8 @@
 
                 @if($activeTab !== 'history')
                     @forelse($availableHelps as $help)
-                        <button type="button" wire:click="showHelp({{ $help->id }})"
-                            class="w-full text-left bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all">
+                        <a href="{{ route('customer.helps.detail', $help->id) }}"
+                            class="block w-full text-left bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all">
                             <div class="flex items-start gap-3">
                                 <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                                     @if($help->photo)
@@ -265,7 +281,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </button>
+                        </a>
                     @empty
                         <div class="text-center py-10 bg-white rounded-xl shadow-sm">
                             <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

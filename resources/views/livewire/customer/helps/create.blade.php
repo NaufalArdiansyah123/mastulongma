@@ -1,22 +1,74 @@
-<div class="max-w-md mx-auto min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 px-5 pt-6 pb-6 shadow-lg">
-        <div class="flex items-center justify-between mb-3">
-            <a href="{{ route('dashboard') }}" class="text-white">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            <h2 class="text-lg font-bold text-white absolute left-1/2 transform -translate-x-1/2">Buat Permintaan</h2>
-            <div class="w-5"></div>
-        </div>
-        <p class="text-xs text-white/90 text-center font-medium">Jelaskan kebutuhan bantuan Anda</p>
-    </div>
+<div class="min-h-screen bg-white">
+    <style>
+        :root{
+            --brand-500: #0ea5a4;
+            --brand-600: #08979a;
+            --muted-600: #6b7280;
+        }
 
-    <!-- Form Content -->
-    <div class="bg-gray-50 rounded-t-3xl -mt-4 px-5 pt-6 pb-24">
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-            <form wire:submit.prevent="prepareConfirm" enctype="multipart/form-data" class="space-y-3">
+        .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(14,165,164,0.2); }
+        
+        .header-pattern {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-pattern::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .header-pattern::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+    </style>
+
+    <div class="max-w-md mx-auto">
+        <!-- Header - BRImo Style (sama seperti index) -->
+        <div class="px-5 pt-5 pb-8 relative overflow-hidden header-pattern" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+            
+            <div class="relative z-10">
+                <div class="flex items-center justify-between text-white mb-3">
+                    <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="text-center flex-1">
+                        <h1 class="text-lg font-bold">Buat Permintaan Baru</h1>
+                        <p class="text-xs text-white/90 mt-0.5">Isi form di bawah untuk membuat permintaan</p>
+                    </div>
+
+                    <div class="w-9"></div>
+                </div>
+            </div>
+
+            <!-- Curved separator -->
+            <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,32 C360,72 1080,0 1440,40 L1440,72 L0,72 Z" fill="#ffffff"></path>
+            </svg>
+        </div>
+
+        <!-- Content -->
+        <div class="bg-white rounded-t-3xl -mt-6 px-5 pt-6 pb-8"> 
+            <form wire:submit.prevent="prepareConfirm" enctype="multipart/form-data" class="space-y-4">
                 <!-- Title -->
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1.5">
@@ -32,7 +84,7 @@
                         </span>
                     </label>
                     <input type="text" wire:model="title" placeholder="Contoh: Butuh Bantuan Makanan untuk Keluarga"
-                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm">
+                        class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition bg-white">
                     @error('title')
                         <span class="text-red-500 text-xs mt-1.5 block flex items-center">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -64,7 +116,7 @@
                         <span
                             class="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500 font-bold text-sm">Rp</span>
                         <input type="number" wire:model="amount" placeholder="50000" min="10000" step="1000"
-                            class="w-full pl-12 pr-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm">
+                            class="w-full pl-12 pr-4 py-3 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition bg-white">
                     </div>
                     <p class="text-xs text-gray-500 mt-1.5 flex items-center">
                         <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -100,7 +152,7 @@
                         </span>
                     </label>
                     <select wire:model="city_id"
-                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm">
+                        class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition bg-white">
                         <option value="">-- Pilih Kota --</option>
                         @foreach($cities as $city)
                             <option value="{{ $city->id }}">📍 {{ $city->name }}, {{ $city->province }}</option>
@@ -132,7 +184,7 @@
                         </span>
                     </label>
                     <input type="text" wire:model="location" placeholder="Contoh: Jl. Merdeka No. 123, RT 01/RW 05"
-                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm">
+                        class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition bg-white">
                     @error('location')
                         <span class="text-red-500 text-xs mt-1.5 block flex items-center">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -160,7 +212,7 @@
                     </label>
                     <textarea wire:model="full_address" rows="3"
                         placeholder="Contoh: Dukuh Sabet, Desa Sumberejo, Kecamatan Balong, Kabupaten Ponorogo, Jawa Timur"
-                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition resize-none bg-white shadow-sm"></textarea>
+                        class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none bg-white"></textarea>
                     <p class="text-xs text-gray-500 mt-1.5 flex items-center">
                         <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
@@ -196,7 +248,7 @@
                     </label>
 
                     <!-- Map Container -->
-                    <div id="map" class="w-full h-64 rounded-xl border-2 border-gray-200 mb-2 bg-gray-100"></div>
+                    <div id="map" class="w-full h-56 rounded-lg border border-gray-300 mb-2 bg-gray-50"></div>
 
                     <!-- Koordinat Display -->
                     <div id="coordinates-display"
@@ -241,7 +293,7 @@
                     </label>
                     <textarea wire:model="description" rows="4"
                         placeholder="Jelaskan detail kebutuhan bantuan Anda secara lengkap..."
-                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition resize-none bg-white shadow-sm"></textarea>
+                        class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none bg-white"></textarea>
                     @error('description')
                         <span class="text-red-500 text-xs mt-1.5 block flex items-center">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -267,7 +319,7 @@
                     </label>
                     <textarea wire:model="equipment_provided" rows="3"
                         placeholder="Contoh: Sudah ada gerobak dorong, ember besar 2 buah, timbangan digital"
-                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition resize-none bg-white shadow-sm"></textarea>
+                        class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none bg-white"></textarea>
                     <p class="text-xs text-gray-500 mt-1.5 flex items-center">
                         <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
@@ -304,14 +356,28 @@
                     <div class="relative">
                         <input type="file" wire:model="photo" accept="image/*" id="photo-input" class="hidden">
                         <label for="photo-input"
-                            class="flex flex-col items-center justify-center w-full h-36 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary-400 cursor-pointer transition bg-white shadow-sm hover:bg-gray-50">
-                            <svg class="w-6 h-6 text-gray-400 mb-2" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span class="text-sm font-medium text-gray-600">Pilih atau ambil foto</span>
-                            <span class="text-xs text-gray-400 mt-1">Klik untuk upload gambar</span>
+                            class="flex items-center justify-center w-full h-32 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 cursor-pointer transition bg-gray-50 hover:bg-blue-50 overflow-hidden relative">
+                            @if ($photo)
+                                <img src="{{ $photo->temporaryUrl() }}" alt="preview" class="w-full h-full object-cover">
+
+                                <button type="button" onclick="event.stopPropagation()" wire:click="$set('photo', null)"
+                                    class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            @else
+                                <div class="flex flex-col items-center justify-center w-full">
+                                    <svg class="w-6 h-6 text-gray-400 mb-2" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-600">Pilih atau ambil foto</span>
+                                    <span class="text-xs text-gray-400 mt-1">Klik untuk upload gambar</span>
+                                </div>
+                            @endif
                         </label>
                     </div>
                     <p class="text-xs text-gray-500 mt-1.5 flex items-center">
@@ -333,28 +399,17 @@
                         </span>
                     @enderror
 
-                    @if ($photo)
-                        <div class="mt-3 relative">
-                            <img src="{{ $photo->temporaryUrl() }}" class="w-full h-48 object-cover rounded-xl shadow-md">
-                            <button type="button" wire:click="$set('photo', null)"
-                                class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                    @endif
+                    {{-- Preview is rendered inside the upload box above --}}
                 </div>
 
                 <!-- Submit Button -->
-                <div class="flex gap-3 pt-4">
+                <div class="flex gap-3 pt-6">
                     <a href="{{ route('dashboard') }}"
-                        class="flex-1 inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-4 py-2.5 text-sm rounded-lg font-semibold hover:bg-gray-50 transition">
+                        class="flex-1 inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-5 py-3 text-sm rounded-lg font-semibold hover:bg-gray-50 transition">
                         Batal
                     </a>
                     <button type="submit" wire:loading.attr="disabled"
-                        class="flex-1 inline-flex items-center justify-center bg-primary-500 text-white px-4 py-2.5 text-sm rounded-lg font-semibold shadow hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-600">
+                        class="flex-1 inline-flex items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-3 text-sm rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
                         <span wire:loading.remove wire:target="save">Kirim Permintaan</span>
                     </button>
                 </div>
@@ -376,72 +431,62 @@
         </div>
     </div>
 
-    <!-- Insufficient Balance Modal -->
+    <!-- Insufficient Balance Modal - Simplified -->
     @if($showInsufficientModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div class="absolute inset-0 bg-black/50" wire:click="closeInsufficientModal"></div>
-            <div class="relative bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
-                <div class="flex items-start justify-between">
-                    <h3 class="text-lg font-bold">Saldo Tidak Cukup</h3>
-                    <button wire:click="closeInsufficientModal" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg w-full max-w-sm p-5">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Saldo Tidak Cukup</h3>
+                <p class="text-sm text-gray-600 mb-5">{{ $insufficientMessage }}</p>
 
-                <p class="mt-4 text-sm text-gray-700">{{ $insufficientMessage }}</p>
-
-                <div class="mt-6 flex gap-3">
+                <div class="flex gap-3">
                     <button wire:click="closeInsufficientModal"
-                        class="flex-1 px-4 py-2 rounded-lg border border-gray-200">Tutup</button>
+                        class="flex-1 px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition">
+                        Tutup
+                    </button>
                     <a href="{{ route('customer.topup') }}"
-                        class="flex-1 px-4 py-2 rounded-lg bg-primary-500 text-white text-center">Top Up Saldo</a>
+                        class="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-center hover:from-blue-600 hover:to-cyan-600 transition">
+                        Top Up Saldo
+                    </a>
                 </div>
             </div>
         </div>
     @endif
 
-    <!-- Confirmation Modal -->
+    <!-- Confirmation Modal - Simplified -->
     @if($showConfirmModal)
-        <div class="fixed inset-0 z-[9999] flex items-center justify-center px-4 pointer-events-auto">
-            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" wire:click="closeConfirmModal"></div>
-            <div class="relative z-10 bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
-                <div class="flex items-start justify-between">
-                    <h3 class="text-lg font-bold">Konfirmasi Permintaan</h3>
-                    <button wire:click="closeConfirmModal" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" wire:click="closeConfirmModal">
+            <div class="bg-white rounded-lg shadow-md max-w-sm w-full p-5" wire:click.stop>
+                <h3 class="text-lg font-semibold text-gray-800 mb-1">Konfirmasi Permintaan</h3>
+                <p class="text-xs text-gray-500 mb-4">Pastikan detail permintaan sudah benar</p>
 
-                <div class="mt-4 text-sm text-gray-700">
-                    <div class="flex justify-between mb-2">
-                        <div>Saldo Saat Ini</div>
-                        <div class="font-medium">Rp {{ number_format($currentBalance ?? 0, 0, ',', '.') }}</div>
+                <div class="space-y-2 text-sm mb-5">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Saldo Saat Ini</span>
+                        <span class="font-medium">Rp {{ number_format($currentBalance ?? 0, 0, ',', '.') }}</span>
                     </div>
-                    <div class="flex justify-between mb-2">
-                        <div>Nominal Bantuan</div>
-                        <div class="font-medium">Rp {{ number_format($confirmAmount ?? 0, 0, ',', '.') }}</div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Nominal Bantuan</span>
+                        <span class="font-medium">Rp {{ number_format($confirmAmount ?? 0, 0, ',', '.') }}</span>
                     </div>
-                    <div class="flex justify-between mb-2">
-                        <div>Biaya Admin</div>
-                        <div class="font-medium">Rp {{ number_format($confirmAdminFee ?? 0, 0, ',', '.') }}</div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Biaya Admin</span>
+                        <span class="font-medium">Rp {{ number_format($confirmAdminFee ?? 0, 0, ',', '.') }}</span>
                     </div>
-                    <div class="flex justify-between mt-4 pt-2 border-t">
-                        <div class="text-sm font-semibold">Total Yang Akan Dibayarkan</div>
-                        <div class="text-sm font-bold">Rp {{ number_format($confirmTotal ?? 0, 0, ',', '.') }}</div>
+                    <div class="flex justify-between pt-2 border-t">
+                        <span class="font-semibold text-gray-800">Total</span>
+                        <span class="font-bold text-blue-600">Rp {{ number_format($confirmTotal ?? 0, 0, ',', '.') }}</span>
                     </div>
                 </div>
 
-                <div class="mt-6 flex gap-3">
+                <div class="flex gap-3">
                     <button wire:click="closeConfirmModal" type="button"
-                        class="flex-1 px-4 py-2 rounded-lg border border-gray-200">Kembali</button>
+                        class="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                        Kembali
+                    </button>
                     <button wire:click="save" type="button" wire:loading.attr="disabled"
-                        class="flex-1 px-4 py-2 rounded-lg bg-primary-500 text-white">Konfirmasi & Kirim</button>
+                        class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition">
+                        Konfirmasi
+                    </button>
                 </div>
             </div>
         </div>

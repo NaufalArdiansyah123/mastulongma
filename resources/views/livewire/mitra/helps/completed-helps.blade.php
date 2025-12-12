@@ -91,17 +91,10 @@
                                 @if($customerRated)
                                     <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-md">✓ Customer telah dinilai</span>
                                 @else
-                                    <button 
-                                        onclick="window.location.href='{{ route('mitra.help.detail', $help->id) }}#rating-section'"
-                                        class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-md hover:bg-yellow-200 transition">
-                                        ⭐ Beri rating customer
-                                    </button>
+                                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-md">Selesai</span>
                                 @endif
                             </div>
                         </div>
-
-                        <a href="{{ route('mitra.help.detail', $help->id) }}"
-                            class="flex-shrink-0 text-blue-600 hover:text-blue-800 text-sm font-semibold">Lihat</a>
                     </div>
                 </div>
             @endforeach

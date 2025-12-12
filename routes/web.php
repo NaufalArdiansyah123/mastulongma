@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Helps Management (specific routes BEFORE general routes)
         Route::get('/helps/create', \App\Livewire\Customer\Helps\Create::class)->name('helps.create');
         Route::get('/helps/history', \App\Livewire\Customer\Helps\History::class)->name('helps.history');
+        Route::get('/helps/{id}/detail', \App\Livewire\Customer\Helps\Detail::class)->name('helps.detail');
         Route::get('/helps', \App\Livewire\Customer\Helps\Index::class)->name('helps.index');
 
         // Notifications
@@ -81,7 +82,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Helps Management
         Route::get('/helps', \App\Livewire\Mitra\Helps\AllHelps::class)->name('helps.all');
         Route::get('/helps/completed', \App\Livewire\Mitra\Helps\CompletedHelps::class)->name('helps.completed');
-        Route::get('/help/{id}', \App\Livewire\Mitra\Helps\HelpDetail::class)->name('help.detail');
+        Route::get('/helps/{id}/detail', \App\Livewire\Mitra\Helps\HelpDetail::class)->name('helps.detail');
 
         // Profile
         Route::get('/profile', \App\Livewire\Mitra\Profile\Index::class)->name('profile');

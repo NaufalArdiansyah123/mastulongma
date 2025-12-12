@@ -84,10 +84,6 @@
                         </div>
 
                         <div class="pt-3">
-                            <a href="{{ route('mitra.help.detail', $help->id) }}"
-                                class="block w-full text-center bg-primary-500 text-white px-4 py-2 rounded-lg mb-2">Lihat
-                                Halaman Bantuan</a>
-
                             <div class="grid grid-cols-2 gap-2">
                                 <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.help', $help->id) : route('customer.reports.create.help', $help->id) }}"
                                     class="block text-center bg-red-500 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-red-600">Laporkan

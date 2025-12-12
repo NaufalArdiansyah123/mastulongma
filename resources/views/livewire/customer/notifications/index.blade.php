@@ -1,167 +1,196 @@
-<div class="min-h-screen bg-gray-50">
-    <!-- Header with Blue Background -->
-    <div class="bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 px-6 pt-8 pb-24">
-        <div class="flex items-center justify-between mb-4">
-            <a href="{{ route('dashboard') }}" class="text-white">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            <h2 class="text-xl font-bold text-white absolute left-1/2 transform -translate-x-1/2">Notification</h2>
-            <button class="bg-white p-2 rounded-full">
-                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-            </button>
-        </div>
-    </div>
+<div class="min-h-screen bg-white">
+    <div class="max-w-md mx-auto">
+        <!-- Header - BRImo Style -->
+        <div class="px-5 pt-5 pb-8 relative overflow-hidden" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+            
+            <div class="relative z-10">
+                <div class="flex items-center justify-between text-white mb-3">
+                    <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
 
-    <!-- Flash Message -->
-    @if (session()->has('message'))
-        <div class="px-6 -mt-20 mb-4 relative z-10">
-            <div
-                class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-3 rounded-2xl shadow-lg flex items-center gap-3">
-                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span class="font-medium text-sm">{{ session('message') }}</span>
+                    <div class="text-center flex-1">
+                        <h1 class="text-lg font-bold">Notifikasi</h1>
+                        @if($unreadCount > 0)
+                            <p class="text-xs text-white/90 mt-0.5">{{ $unreadCount }} belum dibaca</p>
+                        @else
+                            <p class="text-xs text-white/90 mt-0.5">Semua sudah dibaca</p>
+                        @endif
+                    </div>
+
+                    @if($unreadCount > 0)
+                        <button wire:click="markAllAsRead" aria-label="Tandai Semua" class="p-2 hover:bg-white/20 rounded-lg transition">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </button>
+                    @else
+                        <div class="w-9"></div>
+                    @endif
+                </div>
             </div>
+
+            <!-- Curved separator -->
+            <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,32 C360,72 1080,0 1440,40 L1440,72 L0,72 Z" fill="#ffffff"></path>
+            </svg>
         </div>
-    @endif
 
-    <!-- Notifications List with White Background Card -->
-    <div class="px-6 -mt-16 pb-24">
-        <div class="bg-gray-50 rounded-t-3xl min-h-[75vh] p-6">
+        <!-- Content -->
+        <div class="bg-white rounded-t-3xl -mt-6 px-5 pt-6 pb-8">
             @if($notifications->count() > 0)
-                @php
-                    $groupedNotifications = $notifications->groupBy(function ($notification) {
-                        $date = $notification->created_at;
-                        if ($date->isToday()) {
-                            return 'Today';
-                        } elseif ($date->isYesterday()) {
-                            return 'Yesterday';
-                        } elseif ($date->isCurrentWeek()) {
-                            return 'This Week';
-                        } else {
-                            return 'Older';
-                        }
-                    });
-                @endphp
+                <!-- Filter Tabs -->
+                <div class="flex gap-2 mb-4">
+                    <button id="tab-all" data-mode="all" class="tab-btn flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold transition bg-primary-600 text-white">
+                        Semua
+                    </button>
+                    <button id="tab-unread" data-mode="unread" class="tab-btn flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold transition bg-gray-100 text-gray-700">
+                        Belum Dibaca
+                        @if($unreadCount > 0)
+                            <span class="ml-1.5 inline-flex items-center justify-center bg-primary-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $unreadCount }}</span>
+                        @endif
+                    </button>
+                    @if($unreadCount > 0)
+                        <button wire:click="markAllAsRead" class="px-4 py-2.5 rounded-xl text-sm font-semibold transition bg-green-600 text-white hover:bg-green-700 whitespace-nowrap flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Tandai Semua
+                        </button>
+                    @endif
+                </div>
 
-                @foreach(['Today', 'Yesterday', 'This Week', 'Older'] as $period)
-                    @if(isset($groupedNotifications[$period]))
-                        <div class="mb-6">
-                            <h3 class="text-sm font-semibold text-gray-600 mb-3">{{ $period }}</h3>
-                            <div class="space-y-3">
-                                @foreach($groupedNotifications[$period] as $notification)
-                                    @php
-                                        $data = $notification->data;
-                                        $isUnread = is_null($notification->read_at);
-                                    @endphp
+                <!-- Notifications List -->
+                <div id="notifications-list" class="space-y-3">
+                    @foreach($notifications as $notification)
+                        @php
+                            $data = $notification->data;
+                            $isUnread = is_null($notification->read_at);
+                        @endphp
 
-                                    <div wire:key="notification-{{ $notification->id }}"
-                                        class="flex items-start gap-3 p-3 hover:bg-gray-100/30 rounded-xl transition-colors cursor-pointer {{ $isUnread ? 'bg-blue-50/30' : '' }}">
-                                        <!-- Icon -->
-                                        <div
-                                            class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 {{ $isUnread ? 'bg-gradient-to-br from-primary-400 to-primary-600' : 'bg-gray-100' }}">
-                                            <span class="text-xl">
-                                                @if($data['type'] === 'help_taken')
-                                                    🎉
-                                                @else
-                                                    🔔
-                                                @endif
-                                            </span>
-                                        </div>
+                        <div wire:key="notification-{{ $notification->id }}" 
+                            class="notification-item relative bg-white rounded-xl border transition-all {{ $isUnread ? 'unread border-primary-200 bg-primary-50/30' : 'border-gray-200' }} hover:shadow-md">
+                            
+                            <!-- Unread indicator -->
+                            @if($isUnread)
+                                <div class="absolute left-0 top-4 bottom-4 w-1 bg-primary-600 rounded-r-full"></div>
+                            @endif
 
-                                        <!-- Content -->
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-start justify-between mb-1">
-                                                <h4 class="font-semibold text-gray-900 text-sm">
-                                                    @if($data['type'] === 'help_taken')
-                                                        Bantuan Diambil!
-                                                    @else
-                                                        Notifikasi Baru
-                                                    @endif
-                                                </h4>
-                                                @if($isUnread)
-                                                    <span class="bg-primary-500 h-2 w-2 rounded-full flex-shrink-0 ml-2 mt-1"></span>
-                                                @endif
-                                            </div>
-
-                                            <p class="text-xs text-gray-600 mb-2 leading-relaxed">{{ $data['message'] }}</p>
-
-                                            <!-- Details -->
-                                            <div class="flex items-center justify-between">
-                                                <div class="flex items-center gap-2 text-xs">
-                                                    @if(isset($data['help_amount']))
-                                                        <span class="text-primary-600 font-bold">
-                                                            Rp {{ number_format($data['help_amount'], 0, ',', '.') }}
-                                                        </span>
-                                                        <span class="text-gray-400">•</span>
-                                                    @endif
-                                                </div>
-                                                <span
-                                                    class="text-xs text-primary-500 font-medium">{{ $notification->created_at->format('H:i - M d') }}</span>
-                                            </div>
-
-                                            <!-- Actions -->
-                                            <div class="flex items-center gap-3 mt-3">
-                                                @if($isUnread)
-                                                    <button wire:click="markAsRead('{{ $notification->id }}')"
-                                                        class="text-xs font-semibold text-primary-600 hover:text-primary-700">
-                                                        Tandai Dibaca
-                                                    </button>
-                                                @endif
-                                                <button wire:click="deleteNotification('{{ $notification->id }}')"
-                                                    class="text-xs font-semibold text-red-500 hover:text-red-600">
-                                                    Hapus
-                                                </button>
-                                            </div>
-                                        </div>
+                            <div class="p-4 {{ $isUnread ? 'pl-5' : 'pl-4' }}">
+                                <div class="flex items-start gap-3">
+                                    <!-- Icon -->
+                                    <div class="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center {{ $isUnread ? 'bg-gradient-to-br from-primary-400 to-primary-600' : 'bg-gray-100' }}">
+                                        @if(isset($data['type']) && $data['type'] === 'help_taken')
+                                            <svg class="w-6 h-6 {{ $isUnread ? 'text-white' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        @else
+                                            <svg class="w-6 h-6 {{ $isUnread ? 'text-white' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                            </svg>
+                                        @endif
                                     </div>
 
-                                    @if(!$loop->last)
-                                        <div class="border-t-2 border-gray-300"></div>
-                                    @endif
-                                @endforeach
+                                    <!-- Content -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between gap-2 mb-1">
+                                            <h3 class="text-sm font-bold text-gray-900">
+                                                @if(isset($data['type']) && $data['type'] === 'help_taken')
+                                                    Bantuan Diambil
+                                                @else
+                                                    Notifikasi
+                                                @endif
+                                            </h3>
+                                            <span class="text-xs text-gray-500 whitespace-nowrap">{{ $notification->created_at->diffForHumans() }}</span>
+                                        </div>
+
+                                        <p class="text-sm text-gray-700 leading-relaxed mb-2">{{ $data['message'] ?? 'Notifikasi baru' }}</p>
+
+                                        @if(isset($data['help_amount']))
+                                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 rounded-lg mb-2">
+                                                <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span class="text-sm font-bold text-primary-700">Rp {{ number_format($data['help_amount'], 0, ',', '.') }}</span>
+                                            </div>
+                                        @endif
+
+                                        <!-- Actions -->
+                                        <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
+                                            @if($isUnread)
+                                                <button wire:click="markAsRead('{{ $notification->id }}')" class="text-xs font-semibold text-primary-600 hover:text-primary-700 transition">
+                                                    Tandai Dibaca
+                                                </button>
+                                            @endif
+                                            <button wire:click="deleteNotification('{{ $notification->id }}')" class="text-xs font-semibold text-red-500 hover:text-red-600 transition {{ $isUnread ? '' : 'ml-0' }}">
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    @endif
-                @endforeach
-
-                <!-- Mark All as Read Button -->
-                @if($unreadCount > 0)
-                    <div class="mt-6 text-center">
-                        <button wire:click="markAllAsRead"
-                            class="text-sm font-semibold text-primary-600 hover:text-primary-700 px-6 py-2 rounded-full hover:bg-primary-50 transition-all">
-                            Tandai Semua Dibaca ({{ $unreadCount }})
-                        </button>
-                    </div>
-                @endif
+                    @endforeach
+                </div>
 
                 <!-- Pagination -->
                 @if($notifications->hasPages())
-                    <div class="mt-8">
+                    <div class="mt-6">
                         {{ $notifications->links() }}
                     </div>
                 @endif
             @else
                 <!-- Empty State -->
-                <div class="text-center py-20">
-                    <div
-                        class="bg-gradient-to-br from-gray-100 to-gray-200 w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                <div class="text-center py-16">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                     </div>
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Belum Ada Notifikasi</h3>
-                    <p class="text-sm text-gray-500 max-w-xs mx-auto">Notifikasi Anda akan muncul di sini</p>
+                    <p class="text-sm text-gray-500">Notifikasi Anda akan muncul di sini</p>
                 </div>
             @endif
         </div>
     </div>
+
+
+<style>
+    .notifications-list.show-only-unread .notification-item:not(.unread) {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabAll = document.getElementById('tab-all');
+        const tabUnread = document.getElementById('tab-unread');
+        const list = document.getElementById('notifications-list');
+        
+        if (!tabAll || !tabUnread || !list) return;
+
+        function setActive(mode) {
+            if (mode === 'unread') {
+                tabUnread.classList.remove('bg-gray-100', 'text-gray-700');
+                tabUnread.classList.add('bg-primary-600', 'text-white');
+                tabAll.classList.remove('bg-primary-600', 'text-white');
+                tabAll.classList.add('bg-gray-100', 'text-gray-700');
+                list.classList.add('show-only-unread');
+            } else {
+                tabAll.classList.remove('bg-gray-100', 'text-gray-700');
+                tabAll.classList.add('bg-primary-600', 'text-white');
+                tabUnread.classList.remove('bg-primary-600', 'text-white');
+                tabUnread.classList.add('bg-gray-100', 'text-gray-700');
+                list.classList.remove('show-only-unread');
+            }
+        }
+
+        tabAll.addEventListener('click', () => setActive('all'));
+        tabUnread.addEventListener('click', () => setActive('unread'));
+    });
+</script>
 </div>

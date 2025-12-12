@@ -1,359 +1,211 @@
-<!-- Mitra Help Detail Page (grouped) -->
-<!-- Migrated content from resources/views/livewire/mitra/help-detail.blade.php -->
 <div class="min-h-screen bg-gray-50">
-    <!-- Header Section -->
-    <div class="px-5 pt-6 pb-4 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 rounded-b-3xl">
-        <div class="flex items-center justify-between mb-6">
-            <a href="{{ route('mitra.dashboard') }}"
-                class="bg-white p-2.5 rounded-full shadow-md hover:shadow-lg transition">
-                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            <h1 class="text-xl font-bold text-white flex-1 text-center">Detail Bantuan</h1>
-            <div class="w-9"></div>
+    {{-- Header - BRImo Style --}}
+    <div class="px-5 pt-5 pb-8 relative overflow-hidden" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+        <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+
+        <div class="relative z-10 max-w-md mx-auto">
+            <div class="flex items-center justify-between text-white mb-6">
+                <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+
+                <div class="text-center flex-1 px-2">
+                    <h1 class="text-lg font-bold">Detail Pesanan</h1>
+                    <p class="text-xs text-white/90 mt-0.5">Informasi lengkap pesanan Anda</p>
+                </div>
+
+                <div class="w-9"></div>
+            </div>
         </div>
+
+        <!-- Curved separator -->
+        <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,32 C360,72 1080,0 1440,40 L1440,72 L0,72 Z" fill="#f9fafb"></path>
+        </svg>
     </div>
 
-    <!-- Main Content -->
-    <div class="px-5 pt-6 pb-24">
-        <!-- Help Card -->
-        <div id="helpCard" class="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <!-- Status Badge -->
-            <div class="flex items-center justify-between mb-4">
-                <span class="text-sm font-semibold text-gray-600">
-                    @if($help->status === 'menunggu_mitra')
-                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">Menunggu
-                            Mitra</span>
-                    @elseif($help->status === 'memperoleh_mitra')
-                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold">Sedang
-                            Diproses</span>
+    <!-- Content -->
+    <div class="bg-gray-50 -mt-6 px-5 pt-6 pb-20 max-w-md mx-auto">
+        {{-- GPS Tracker - Auto tracking untuk status aktif --}}
+        @if(in_array($help->status, ['memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived']))
+            <div class="mb-3">
+                <livewire:mitra.gps-tracker :helpId="$help->id" :key="'gps-tracker-'.$help->id" />
+            </div>
+        @endif
+
+        @if(session('message'))
+            <div class="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-green-700 text-sm flex items-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                {{ session('message') }}
+            </div>
+        @endif
+
+        {{-- Service Info --}}
+        <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+            <div class="flex items-start gap-3">
+                <div class="w-14 h-14 rounded-lg bg-pink-100 flex items-center justify-center flex-shrink-0">
+                    @if($help->photo)
+                        <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover rounded-lg">
                     @else
-                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">Selesai</span>
-                    @endif
-                </span>
-                <span class="text-xs text-gray-500">{{ $help->created_at->format('d M Y H:i') }}</span>
-            </div>
-
-            <!-- Help Title -->
-            <h2 class="text-lg font-bold text-gray-900 mb-2">{{ $help->title }}</h2>
-
-            <!-- Amount Badge -->
-            <div class="inline-block bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm mb-4">
-                💰 Rp {{ number_format($help->amount, 0, ',', '.') }}
-            </div>
-
-            @php
-                // Check if current mitra has taken this help
-                $isTakenByCurrentMitra = $help->mitra_id === auth()->id();
-                $showFullDetails = $isTakenByCurrentMitra;
-            @endphp
-
-            @if($showFullDetails)
-                <!-- FULL DETAILS - Only shown after mitra takes the help -->
-
-                <!-- Description -->
-                <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                    <p class="text-xs font-semibold text-gray-600 mb-2">📝 Deskripsi</p>
-                    <p class="text-sm text-gray-700 leading-relaxed">{{ $help->description }}</p>
-                </div>
-
-                <!-- Peralatan yang Sudah Disediakan -->
-                @if($help->equipment_provided)
-                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                        <p class="text-xs font-semibold text-amber-800 mb-2">🛠️ Peralatan yang Sudah Disediakan</p>
-                        <p class="text-sm text-amber-900 leading-relaxed">{{ $help->equipment_provided }}</p>
-                    </div>
-                @endif
-
-                <!-- Alamat Lengkap (Manual) -->
-                @if($help->full_address)
-                    <div class="bg-blue-50 rounded-xl p-4 mb-4">
-                        <p class="text-xs font-semibold text-blue-800 mb-2">📍 Alamat Lengkap</p>
-                        <p class="text-sm text-blue-900 leading-relaxed">{{ $help->full_address }}</p>
-                    </div>
-                @endif
-
-                <!-- Google Maps Location -->
-                @if($help->latitude && $help->longitude)
-                    <div class="mb-4">
-                        <p class="text-xs font-semibold text-gray-700 mb-2">🗺️ Lokasi di Peta</p>
-                        <div id="detailMap" class="w-full h-64 rounded-xl overflow-hidden border-2 border-gray-200 mb-2"></div>
-
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mt-2">
-                            <p class="text-xs font-semibold text-gray-700 mb-1">Koordinat:</p>
-                            <p class="text-xs text-gray-600 font-mono">
-                                Lat: {{ number_format($help->latitude, 6) }},
-                                Lng: {{ number_format($help->longitude, 6) }}
-                            </p>
-                            <a href="https://www.google.com/maps?q={{ $help->latitude }},{{ $help->longitude }}" target="_blank"
-                                class="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-semibold mt-2">
-                                Buka di Peta
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Lokasi Tambahan (jika ada field location yang lama) -->
-                @if($help->location)
-                    <div class="bg-purple-50 rounded-xl p-3 mb-4">
-                        <p class="text-xs text-gray-600 font-semibold mb-1">📌 Lokasi Singkat</p>
-                        <p class="text-sm font-bold text-gray-900">{{ $help->location }}</p>
-                    </div>
-                @endif
-
-                <!-- Details Grid: only fields that belong to the `helps` table -->
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <!-- City (city_id exists on helps) -->
-                    <div class="bg-purple-50 rounded-xl p-3">
-                        <p class="text-xs text-gray-600 font-semibold mb-1">Kota</p>
-                        <p class="text-sm font-bold text-gray-900">{{ optional($help->city)->name ?? '-' }}</p>
-                    </div>
-
-                    <!-- Requester (user_id on helps) -->
-                    <div class="bg-indigo-50 rounded-xl p-3">
-                        <p class="text-xs text-gray-600 font-semibold mb-1">Pemohon</p>
-                        <p class="text-sm font-bold text-gray-900">{{ optional($help->user)->name ?? '-' }}</p>
-                    </div>
-                </div>
-
-                <!-- Photos Section -->
-                @if($help->photo)
-                    <div class="mb-6">
-                        <p class="text-sm font-semibold text-gray-700 mb-2">📷 Foto Bukti</p>
-                        <img src="{{ asset('storage/' . $help->photo) }}" alt="Help photo"
-                            class="w-full rounded-xl object-cover h-48">
-                    </div>
-                @endif
-
-                @if(optional($help->user)->phone || optional($help->user)->email)
-                    <!-- Requester Contact Section -->
-                    <div class="bg-gradient-to-br from-primary-50 to-blue-50 rounded-xl p-4 mb-6">
-                        <p class="text-xs font-semibold text-gray-700 mb-3">📞 Hubungi Pemohon Bantuan</p>
-                        <div class="space-y-2">
-                            @if(optional($help->user)->phone)
-                                <a href="tel:{{ optional($help->user)->phone }}"
-                                    class="flex items-center space-x-3 bg-white rounded-lg p-3 hover:shadow-md transition">
-                                    <svg class="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                    </svg>
-                                    <div class="flex-1">
-                                        <p class="text-xs text-gray-600">Telepon</p>
-                                        <p class="text-sm font-semibold text-gray-900">{{ optional($help->user)->phone }}</p>
-                                    </div>
-                                </a>
-                            @endif
-
-                            @if(optional($help->user)->email)
-                                <a href="mailto:{{ optional($help->user)->email }}"
-                                    class="flex items-center space-x-3 bg-white rounded-lg p-3 hover:shadow-md transition">
-                                    <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                    <div class="flex-1">
-                                        <p class="text-xs text-gray-600">Email</p>
-                                        <p class="text-sm font-semibold text-gray-900">{{ optional($help->user)->email }}</p>
-                                    </div>
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-
-            @else
-                <!-- LIMITED INFO - Before taking the help -->
-
-            @endif
-
-            <!-- Rating Section for Completed Helps -->
-            @if($showFullDetails && in_array($help->status, ['completed', 'selesai']))
-                <div id="rating-section" class="mt-8 mb-8 pt-6 border-t-2 border-gray-300">
-                    <h3 class="text-sm font-bold text-gray-900 mb-4">📊 Penilaian Customer</h3>
-                    <p class="text-xs text-gray-500 mb-4">Bagaimana pengalaman Anda dengan customer ini?</p>
-                    <livewire:mitra.rate-customer :helpId="$help->id" :key="'rate-customer-'.$help->id" />
-                </div>
-            @endif
-
-            <!-- Action Buttons -->
-            <div class="flex gap-3">
-                @if($help->status === 'menunggu_mitra' && !$showFullDetails)
-                    <!-- Open confirmation modal instead of calling takeHelp directly -->
-                    <button id="openConfirmTakeBtn" type="button"
-                        class="flex-1 bg-primary-500 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-primary-600 transition disabled:opacity-50">
-                        Ambil Bantuan Ini
-                    </button>
-                    <button onclick="history.back()"
-                        class="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition">
-                        Batal
-                    </button>
-                @elseif($showFullDetails)
-                    <a href="{{ route('chat.show', ['help' => $help->id]) }}"
-                        class="flex-1 bg-primary-500 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-primary-600 transition text-center">
-                        Chat
-                    </a>
-                    <button onclick="history.back()"
-                        class="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition">
-                        Kembali
-                    </button>
-                @endif
-            </div>
-
-            <!-- Report links -->
-            <div class="mt-3 flex gap-2">
-                <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.help', $help->id) : route('customer.reports.create.help', $help->id) }}"
-                    class="flex-1 text-center bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition text-sm font-semibold">
-                    Laporkan Bantuan
-                </a>
-
-                @if(optional($help->user)->id)
-                    <a href="{{ auth()->user() && auth()->user()->role === 'mitra' ? route('mitra.reports.create.user', optional($help->user)->id) : route('customer.reports.create.user', optional($help->user)->id) }}"
-                        class="flex-1 text-center bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition text-sm font-semibold">
-                        Laporkan Pengguna
-                    </a>
-                @endif
-            </div>
-
-            <!-- Confirmation Modal -->
-            <div id="confirmTakeModal"
-                class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 hidden">
-                <div class="bg-white rounded-xl w-11/12 max-w-md p-6">
-                    <h3 class="text-lg font-bold mb-2">Konfirmasi</h3>
-                    <p class="text-sm text-gray-700 mb-4">Apakah Anda yakin ingin mengambil bantuan ini?</p>
-                    <div class="flex gap-3">
-                        <button id="confirmTakeYes" wire:click="takeHelp" wire:loading.attr="disabled" type="button"
-                            class="flex-1 bg-primary-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-primary-600 transition">
-                            Ya, Ambil
-                        </button>
-                        <button id="confirmTakeNo" type="button"
-                            class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-bold hover:bg-gray-200 transition">
-                            Batal
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Success Modal -->
-            <div id="successTakeModal"
-                class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/30 hidden">
-                <div class="bg-white rounded-xl w-11/12 max-w-sm p-6 text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        <svg class="w-7 h-7 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
                         </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-900">Berhasil! 🎉</h3>
-                    <p class="text-sm text-gray-700 mb-6">Bantuan berhasil diambil. Silakan lanjutkan ke halaman
-                        pemrosesan bantuan.</p>
-                    <div class="flex flex-col gap-3">
-                        <a href="{{ route('mitra.helps.processing') }}"
-                            class="w-full bg-primary-500 text-white px-4 py-3 rounded-xl font-bold hover:bg-primary-600 transition">
-                            Lihat Bantuan yang Diproses
-                        </a>
-                        <button id="successTakeClose" type="button"
-                            class="w-full bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold hover:bg-gray-200 transition">
-                            Tetap di Halaman Ini
-                        </button>
-                    </div>
+                    @endif
+                </div>
+                <div class="flex-1">
+                    <h2 class="font-semibold text-base text-gray-900">{{ $help->title }}</h2>
+                    <p class="text-sm text-gray-600 mt-0.5">{{ $help->equipment_provided ?? 'Layanan 1 Unit' }}</p>
+                    <p class="text-lg font-bold text-blue-600 mt-2">Rp {{ number_format($help->amount, 0, ',', '.') }}</p>
                 </div>
             </div>
-
-            <script>
-                (function () {
-                    const openBtn = document.getElementById('openConfirmTakeBtn');
-                    const confirmModal = document.getElementById('confirmTakeModal');
-                    const successModal = document.getElementById('successTakeModal');
-                    const confirmNo = document.getElementById('confirmTakeNo');
-                    const confirmYes = document.getElementById('confirmTakeYes');
-                    const successClose = document.getElementById('successTakeClose');
-
-                    function show(el) { el.classList.remove('hidden'); }
-                    function hide(el) { el.classList.add('hidden'); }
-
-                    if (openBtn) {
-                        openBtn.addEventListener('click', function () {
-                            show(confirmModal);
-                        });
-                    }
-
-                    if (confirmNo) {
-                        confirmNo.addEventListener('click', function () { hide(confirmModal); });
-                    }
-
-                    // On confirm: call Livewire method and close confirm modal
-                    if (confirmYes) {
-                        confirmYes.addEventListener('click', function () {
-                            // Close the confirmation modal; Livewire's wire:click handles the server call.
-                            hide(confirmModal);
-                            // Immediately hide the help card to avoid intermediate UI state
-                            const helpCard = document.getElementById('helpCard');
-                            if (helpCard) helpCard.style.display = 'none';
-                        });
-                    }
-
-                    // Listen for Livewire dispatched event (server sent)
-                    window.addEventListener('help-taken', function () {
-                        show(successModal);
-                        // Reload page to show full details after taking
-                        setTimeout(function () {
-                            location.reload();
-                        }, 500);
-                    });
-
-                    // Also listen for Livewire client event if emitted via Livewire.on
-                    if (window.livewire) {
-                        try {
-                            window.livewire.on('help-taken', function () {
-                                show(successModal);
-                                setTimeout(function () {
-                                    location.reload();
-                                }, 500);
-                            });
-                        } catch (e) { /* ignore */ }
-                    }
-
-                    if (successClose) {
-                        successClose.addEventListener('click', function () {
-                            hide(successModal);
-                            location.reload(); // Reload to show full details
-                        });
-                    }
-                })();
-            </script>
-
-            <!-- Leaflet CSS & JS for Detail View -->
-            @if($showFullDetails && $help->latitude && $help->longitude)
-                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-                    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-
-                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-                    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        const location = [{{ $help->latitude }}, {{ $help->longitude }}];
-
-                        // Initialize map
-                        const detailMap = L.map('detailMap').setView(location, 15);
-
-                        // Add OpenStreetMap tiles
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                            maxZoom: 19,
-                        }).addTo(detailMap);
-
-                        // Add marker
-                        L.marker(location).addTo(detailMap)
-                            .bindPopup('{{ addslashes($help->title) }}')
-                            .openPopup();
-                    });
-                </script>
-            @endif
         </div>
+
+        {{-- Customer Info --}}
+        <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-semibold text-sm text-gray-900">Informasi Customer</h3>
+            </div>
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                    {{ strtoupper(substr($help->user->name ?? 'C', 0, 1)) }}
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-sm text-gray-900">{{ $help->user->name }}</h4>
+                    @if($help->user->phone)
+                        <p class="text-sm text-gray-600 mt-0.5">{{ $help->user->phone }}</p>
+                    @endif
+                    <p class="text-sm text-gray-600">{{ $help->city->name ?? '-' }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                @if($help->user->phone)
+                    <a href="tel:{{ $help->user->phone }}" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                        <span class="text-sm font-semibold text-gray-700">Telepon</span>
+                    </a>
+                @endif
+                <a href="{{ route('mitra.chat', ['help' => $help->id]) }}" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-700">Chat</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- Description --}}
+        <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+            <h3 class="font-semibold text-sm text-gray-900 mb-2 flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                </svg>
+                Deskripsi Bantuan
+            </h3>
+            <p class="text-sm text-gray-600 leading-relaxed">{{ $help->description }}</p>
+        </div>
+
+        {{-- Location --}}
+        <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+            <h3 class="font-semibold text-sm text-gray-900 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Lokasi
+            </h3>
+            <div class="space-y-2 text-sm">
+                @if($help->location)
+                    <p class="font-medium text-gray-900">{{ $help->location }}</p>
+                @endif
+                @if($help->full_address)
+                    <p class="text-gray-600">{{ $help->full_address }}</p>
+                @endif
+                @if($help->latitude && $help->longitude)
+                    <a href="https://www.google.com/maps?q={{ $help->latitude }},{{ $help->longitude }}" target="_blank" 
+                        class="inline-flex items-center gap-2 mt-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                        </svg>
+                        Buka Peta
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        {{-- GPS Simulator (Only in non-production) --}}
+        @if(config('app.env') !== 'production' && $help->mitra_id === auth()->id() && !in_array($help->status, ['selesai', 'dibatalkan']))
+            <div class="mb-3">
+                <livewire:mitra.gps-simulator :help-id="$help->id" :key="'gps-simulator-'.$help->id" />
+            </div>
+        @endif
+
+        {{-- Update Status Section --}}
+
+
+        {{-- Status Timeline --}}
+        @if($help->partner_started_at || $help->partner_arrived_at || $help->service_started_at || $help->service_completed_at || $help->completed_at)
+            <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="font-semibold text-sm text-gray-900 mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Riwayat Timeline
+                </h3>
+                <div class="space-y-2 text-xs">
+                    @if($help->partner_started_at)
+                        <div class="flex items-center justify-between text-gray-600 py-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                <span>Mulai Perjalanan</span>
+                            </div>
+                            <span class="text-gray-500">{{ \Carbon\Carbon::parse($help->partner_started_at)->format('d M, H:i') }}</span>
+                        </div>
+                    @endif
+                    @if($help->partner_arrived_at)
+                        <div class="flex items-center justify-between text-gray-600 py-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                <span>Tiba di Lokasi</span>
+                            </div>
+                            <span class="text-gray-500">{{ \Carbon\Carbon::parse($help->partner_arrived_at)->format('d M, H:i') }}</span>
+                        </div>
+                    @endif
+                    @if($help->service_started_at)
+                        <div class="flex items-center justify-between text-gray-600 py-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                <span>Mulai Pengerjaan</span>
+                            </div>
+                            <span class="text-gray-500">{{ \Carbon\Carbon::parse($help->service_started_at)->format('d M, H:i') }}</span>
+                        </div>
+                    @endif
+                    @if($help->service_completed_at)
+                        <div class="flex items-center justify-between text-gray-600 py-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                <span>Selesai Pengerjaan</span>
+                            </div>
+                            <span class="text-gray-500">{{ \Carbon\Carbon::parse($help->service_completed_at)->format('d M, H:i') }}</span>
+                        </div>
+                    @endif
+                    @if($help->completed_at)
+                        <div class="flex items-center justify-between text-green-700 font-semibold py-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-green-600"></div>
+                                <span>Pesanan Selesai</span>
+                            </div>
+                            <span class="text-green-600">{{ \Carbon\Carbon::parse($help->completed_at)->format('d M, H:i') }}</span>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
     </div>
 </div>
