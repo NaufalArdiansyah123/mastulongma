@@ -208,9 +208,11 @@
                         [
                             'key' => 'searching',
                             'title' => 'Mencari Rekan Jasa',
-                            'time' => $help->mitra_assigned_at,
-                            'active' => in_array($help->status, ['mencari_mitra', 'menunggu_mitra', 'memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived', 'in_progress', 'sedang_diproses', 'selesai', 'completed']),
-                            'current' => $help->status === 'mencari_mitra'
+                            // show time when mitra assigned or when taken
+                            'time' => $help->mitra_assigned_at ?? $help->taken_at,
+                            // not active while still waiting for mitra; becomes active once a mitra is assigned/taken
+                            'active' => !in_array($help->status, ['menunggu_mitra']),
+                            'current' => in_array($help->status, ['mencari_mitra', 'memperoleh_mitra', 'taken'])
                         ],
                         [
                             'key' => 'accepted',
