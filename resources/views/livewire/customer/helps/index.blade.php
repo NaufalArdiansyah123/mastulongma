@@ -68,14 +68,18 @@
                 </div>
 
                 <!-- Filter Tabs - centered and symmetric -->
-                <div class="grid grid-cols-2 gap-3 mt-1">
+                <div class="grid grid-cols-3 gap-3 mt-1">
                     <button type="button" wire:click="$set('statusFilter', 'menunggu_mitra')" role="tab"
                         class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'menunggu_mitra' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Menunggu Mitra
                     </button>
-                    <button type="button" wire:click="$set('statusFilter', 'memperoleh_mitra')" role="tab"
-                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'memperoleh_mitra' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
+                    <button type="button" wire:click="$set('statusFilter', 'diproses')" role="tab"
+                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'diproses' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Diproses
+                    </button>
+                    <button type="button" wire:click="$set('statusFilter', 'waiting_customer_confirmation')" role="tab"
+                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'waiting_customer_confirmation' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
+                        Menunggu Konfirmasi
                     </button>
                 </div>
             </div>
@@ -152,9 +156,8 @@
                                 </div>
                             </div>
                         </div>
-                    @elseif($statusFilter === 'memperoleh_mitra')
-                        {{-- Diproses: tampilkan semua help kecuali 'menunggu_mitra' dan 'selesai' --}}
-                        @if(in_array($help->status, ['memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses']))
+                    @elseif($statusFilter === 'diproses')
+                        {{-- Diproses: tampilkan semua bantuan dalam proses (query sudah filter) --}}
                         <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
                             <div class="flex items-start gap-3">
                                 <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
@@ -175,7 +178,21 @@
 
                                     <div class="flex items-center gap-2 mb-2">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(56,189,248,0.08); color:#0284c7; border:1px solid rgba(3,105,161,0.08);">
-                                            Sedang Diproses
+                                            @if($help->status === 'memperoleh_mitra')
+                                                Mitra Ditemukan
+                                            @elseif($help->status === 'taken')
+                                                Diambil Mitra
+                                            @elseif($help->status === 'partner_on_the_way')
+                                                Rekan Jasa Menuju Lokasi
+                                            @elseif($help->status === 'partner_arrived')
+                                                Rekan Jasa Tiba di Lokasi
+                                            @elseif(in_array($help->status, ['in_progress', 'sedang_diproses']))
+                                                Sedang Dikerjakan
+                                            @elseif($help->status === 'waiting_customer_confirmation')
+                                                Menunggu Konfirmasi Anda
+                                            @else
+                                                Sedang Diproses
+                                            @endif
                                         </span>
                                         <span class="text-xs text-gray-400">{{ optional($help->created_at)->diffForHumans() }}</span>
                                     </div>
@@ -216,8 +233,68 @@
                                     </div>
 
                                     <div class="mt-3 flex items-center justify-end gap-2">
+                                        <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition w-32 text-center">
+                                            Detail
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($statusFilter === 'waiting_customer_confirmation')
+                        {{-- Menunggu Konfirmasi: bantuan yang mitra sudah tandai selesai dan menunggu konfirmasi customer --}}
+                        <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                    @if($help->photo)
+                                        <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-lg">
+                                            {{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-2 mb-1">
+                                        <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
+                                        <span class="text-xs font-bold whitespace-nowrap" style="color: #0098e7;">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(255, 159, 67, 0.08); color:#ff8a00; border:1px solid rgba(255,159,67,0.12);">
+                                            Menunggu Konfirmasi Anda
+                                        </span>
+                                        <span class="text-xs text-gray-400">{{ optional($help->service_completed_at)->diffForHumans() }}</span>
+                                    </div>
+
+                                    <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
+
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
+                                        <div class="flex-1"></div>
+                                        <div class="flex items-center gap-2">
+                                            @if($help->mitra)
+                                                <div class="flex items-center gap-1.5">
+                                                    <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                                                        <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    </div>
+                                                    <span class="text-xs text-gray-700 font-medium">{{ $help->mitra->name }}</span>
+                                                </div>
+                                            @endif
+
+                                            <a href="{{ route('customer.chat', $help->id) }}" class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white hover:shadow-md transition" style="background: linear-gradient(135deg, #0098e7 0%, #00b8d4 100%);" aria-label="Buka chat">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4-.8L3 20l1.2-4A7.963 7.963 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3 flex items-center justify-end gap-2">
                                         <button type="button" wire:click.stop="confirmCompletion({{ $help->id }})" class="px-5 py-2 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition w-32">
-                                            Selesai
+                                            Konfirmasi
                                         </button>
 
                                         <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition w-32 text-center">
@@ -227,7 +304,6 @@
                                 </div>
                             </div>
                         </div>
-                        @endif
                     @elseif($statusFilter === 'selesai')
                         {{-- Completed (selesai) Card with Rating --}}
                         <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">

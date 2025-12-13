@@ -248,7 +248,7 @@
                     </label>
 
                     <!-- Map Container -->
-                    <div id="map" class="w-full h-56 rounded-lg border border-gray-300 mb-2 bg-gray-50"></div>
+                    <div wire:ignore id="map" class="w-full h-56 rounded-lg border border-gray-300 mb-2 bg-gray-50"></div>
 
                     <!-- Koordinat Display -->
                     <div id="coordinates-display"

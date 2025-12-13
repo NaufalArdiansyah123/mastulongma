@@ -88,7 +88,7 @@
                 </div> --}}
 
                 <!-- Filter Tabs - centered and symmetric -->
-                <div class="grid grid-cols-2 gap-3 mt-3">
+                {{-- <div class="grid grid-cols-2 gap-3 mt-3">
                     <button type="button" wire:click="$set('filterStatus', 'all')" role="tab"
                         class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $filterStatus === 'all' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Semua
@@ -97,7 +97,7 @@
                         class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $filterStatus === 'menunggu_mitra' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Menunggu Mitra
                     </button>
-                </div>
+                </div> --}}
             </div>
 
             <!-- Curved separator (SVG) to create non-flat divider into content -->

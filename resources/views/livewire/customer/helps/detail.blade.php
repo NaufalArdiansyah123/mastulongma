@@ -1,5 +1,5 @@
-<div class="min-h-screen bg-gray-50" 
-    wire:poll.5s="{{ in_array($help->status, ['memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived', 'in_progress', 'sedang_diproses']) ? 'loadHelp' : '' }}"
+    <div class="min-h-screen bg-gray-50" 
+    wire:poll.5s="{{ in_array($help->status, ['memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived', 'in_progress', 'sedang_diproses', 'waiting_customer_confirmation']) ? 'loadHelp' : '' }}"
     x-data="{ 
         showNotification: false, 
         notificationMessage: '' 
@@ -142,7 +142,7 @@
         </div>
 
         {{-- Warning Info --}}
-        <div class="bg-yellow-50 mt-2 px-4 py-3 rounded-lg shadow-sm border border-yellow-100">
+        {{-- <div class="bg-yellow-50 mt-2 px-4 py-3 rounded-lg shadow-sm border border-yellow-100">
             <div class="flex gap-3">
                 <div class="w-9 h-9 rounded-md bg-yellow-100 flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
@@ -154,7 +154,7 @@
                     <p class="text-xs text-gray-700 leading-relaxed">Pastikan hanya transaksi di aplikasi agar pesananmu terlindungi asuransi. Laporkan Rekan Jasa yang meminta pembayaran di luar aplikasi untuk dapatkan pengembalian dana atau layanan gratis.</p>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- Location --}}
         <div class="bg-white mt-2 px-4 py-4 rounded-lg shadow-sm border border-gray-100">
@@ -191,145 +191,122 @@
             </div>
         </div>
 
-        {{-- Status Timeline - Simplified Version --}}
+        {{-- Status Timeline - Redesigned visual to match reference --}}
         <div class="bg-white mt-2 px-4 py-4 rounded-lg shadow-sm border border-gray-100">
             <h3 class="font-bold text-sm text-gray-900 mb-4">Status Pesanan</h3>
-            
-            <div class="space-y-3">
-                @php
-                    $statuses = [
-                        [
-                            'key' => 'payment',
-                            'title' => 'Pembayaran',
-                            'time' => $help->created_at,
-                            'active' => in_array($help->status, ['menunggu_pembayaran', 'mencari_mitra', 'menunggu_mitra', 'memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived', 'in_progress', 'sedang_diproses', 'selesai', 'completed']),
-                            'current' => $help->status === 'menunggu_pembayaran'
-                        ],
-                        [
-                            'key' => 'searching',
-                            'title' => 'Mencari Rekan Jasa',
-                            // show time when mitra assigned or when taken
-                            'time' => $help->mitra_assigned_at ?? $help->taken_at,
-                            // not active while still waiting for mitra; becomes active once a mitra is assigned/taken
-                            'active' => !in_array($help->status, ['menunggu_mitra']),
-                            'current' => in_array($help->status, ['mencari_mitra', 'memperoleh_mitra', 'taken'])
-                        ],
-                        [
-                            'key' => 'accepted',
-                            'title' => 'Pesanan Diterima',
-                            'time' => $help->taken_at,
-                            'active' => in_array($help->status, ['menunggu_mitra', 'memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived', 'in_progress', 'sedang_diproses', 'selesai', 'completed']),
-                            'current' => in_array($help->status, ['menunggu_mitra', 'memperoleh_mitra', 'taken'])
-                        ],
-                        [
-                            'key' => 'on_the_way',
-                            'title' => 'Menuju Lokasi',
-                            'time' => $help->partner_started_moving_at,
-                            'active' => in_array($help->status, ['partner_on_the_way', 'partner_arrived', 'in_progress', 'sedang_diproses', 'selesai', 'completed']),
-                            'current' => $help->status === 'partner_on_the_way'
-                        ],
-                        [
-                            'key' => 'arrived',
-                            'title' => 'Tiba di Lokasi',
-                            'time' => $help->partner_arrived_at,
-                            'active' => in_array($help->status, ['partner_arrived', 'in_progress', 'sedang_diproses', 'selesai', 'completed']),
-                            'current' => $help->status === 'partner_arrived'
-                        ],
-                        [
-                            'key' => 'in_progress',
-                            'title' => 'Sedang Dikerjakan',
-                            'time' => $help->service_started_at,
-                            'active' => in_array($help->status, ['in_progress', 'sedang_diproses', 'selesai', 'completed']),
-                            'current' => in_array($help->status, ['in_progress', 'sedang_diproses'])
-                        ],
-                        [
-                            'key' => 'completed',
-                            'title' => 'Selesai',
-                            'time' => $help->service_completed_at ?? $help->completed_at,
-                            'active' => in_array($help->status, ['selesai', 'completed']),
-                            'current' => in_array($help->status, ['selesai', 'completed'])
-                        ]
-                    ];
-                @endphp
 
-                @foreach($statuses as $status)
-                    <div class="flex items-center gap-3 py-2">
-                        {{-- Icon --}}
-                        <div class="flex-shrink-0">
-                            @if($status['active'])
-                                <div class="w-7 h-7 rounded-full {{ $status['current'] ? 'bg-blue-500 ring-4 ring-blue-100' : 'bg-green-500' }} flex items-center justify-center">
-                                    @if($status['current'])
-                                        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            @php
+                $statuses = [
+                    [ 'key' => 'payment', 'title' => 'Pembayaran', 'time' => $help->created_at, 'active' => in_array($help->status, ['menunggu_pembayaran','mencari_mitra','menunggu_mitra','memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'menunggu_pembayaran' ],
+                    [ 'key' => 'searching', 'title' => 'Mencari Rekan Jasa', 'time' => $help->mitra_assigned_at ?? $help->taken_at, 'active' => in_array($help->status, ['memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'mencari_mitra' ],
+                    [ 'key' => 'accepted', 'title' => 'Menunggu Rekan Jasa berangkat', 'time' => $help->taken_at, 'active' => in_array($help->status, ['menunggu_mitra','memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => in_array($help->status, ['menunggu_mitra','memperoleh_mitra','taken']) ],
+                    [ 'key' => 'on_the_way', 'title' => 'Rekan Jasa menuju ke lokasi', 'time' => $help->partner_started_moving_at, 'active' => in_array($help->status, ['partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'partner_on_the_way' ],
+                    [ 'key' => 'arrived', 'title' => 'Rekan Jasa tiba di lokasi', 'time' => $help->partner_arrived_at, 'active' => in_array($help->status, ['partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'partner_arrived' ],
+                    [ 'key' => 'in_progress', 'title' => 'Pelayanan dalam proses', 'time' => $help->service_started_at, 'active' => in_array($help->status, ['in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => in_array($help->status, ['in_progress','sedang_diproses']) ],
+                    [ 'key' => 'waiting_confirmation', 'title' => 'Menunggu konfirmasi Anda', 'time' => $help->service_completed_at, 'active' => in_array($help->status, ['waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'waiting_customer_confirmation' ],
+                    [ 'key' => 'completed', 'title' => 'Pesanan selesai', 'time' => $help->completed_at, 'active' => in_array($help->status, ['selesai','completed']), 'current' => in_array($help->status, ['selesai','completed']) ]
+                ];
+            @endphp
+
+            <div>
+                <div class="space-y-4">
+                    @foreach($statuses as $index => $status)
+                        <div class="flex items-start">
+                            {{-- left column: dot + connector --}}
+                            <div class="w-12 flex flex-col items-center">
+                                {{-- dot --}}
+                                <div class="relative z-10">
+                                    @if($status['active'])
+                                        @if($status['current'])
+                                            <div class="w-5 h-5 rounded-full border-2 border-blue-500 bg-white flex items-center justify-center">
+                                                <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
+                                            </div>
+                                        @else
+                                            <div class="w-4 h-4 rounded-full bg-blue-500"></div>
+                                        @endif
                                     @else
-                                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                        </svg>
+                                        <div class="w-4 h-4 rounded-full border-2 border-gray-300 bg-white"></div>
                                     @endif
                                 </div>
-                            @else
-                                <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <div class="w-2.5 h-2.5 rounded-full border-2 border-gray-400"></div>
-                                </div>
-                            @endif
-                        </div>
 
-                        {{-- Content --}}
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between gap-2">
-                                <h4 class="text-sm font-semibold {{ $status['active'] ? 'text-gray-900' : 'text-gray-400' }}">
-                                    {{ $status['title'] }}
-                                </h4>
-                                <span class="text-xs {{ $status['active'] ? 'text-gray-600' : 'text-gray-400' }} whitespace-nowrap">
-                                    @if($status['time'])
-                                        {{ \Carbon\Carbon::parse($status['time'])->format('H:i') }}
-                                    @else
-                                        -
-                                    @endif
-                                </span>
+                                {{-- connector below dot (except last) --}}
+                                @if(!$loop->last)
+                                    <div class="flex-1 w-px mt-2 {{ $status['active'] ? 'bg-blue-200' : 'bg-gray-200' }}"></div>
+                                @endif
                             </div>
-                            
-                            {{-- Additional info for current status --}}
-                            @if($status['current'])
-                                <div class="mt-1">
-                                    @if($status['key'] === 'on_the_way' && $help->partner_current_lat && $help->latitude)
-                                        @php
-                                            $earthRadius = 6371000;
-                                            $lat1 = deg2rad($help->partner_current_lat);
-                                            $lat2 = deg2rad($help->latitude);
-                                            $latDiff = deg2rad($help->latitude - $help->partner_current_lat);
-                                            $lngDiff = deg2rad($help->longitude - $help->partner_current_lng);
-                                            $a = sin($latDiff / 2) * sin($latDiff / 2) + cos($lat1) * cos($lat2) * sin($lngDiff / 2) * sin($lngDiff / 2);
-                                            $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-                                            $distance = round($earthRadius * $c);
-                                        @endphp
-                                        <p class="text-xs text-blue-600 flex items-center gap-1">
-                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                                            </svg>
-                                            Jarak: {{ $distance > 1000 ? number_format($distance/1000, 1) . ' km' : $distance . ' m' }}
-                                        </p>
-                                    @elseif($status['key'] === 'accepted')
-                                        <p class="text-xs text-blue-600">GPS tracking aktif</p>
-                                    @elseif($status['key'] === 'arrived')
-                                        <p class="text-xs text-green-600">Rekan jasa sudah sampai</p>
-                                    @elseif($status['key'] === 'in_progress')
-                                        <p class="text-xs text-blue-600">Pekerjaan sedang berlangsung</p>
-                                    @endif
-                                </div>
-                            @endif
-                        </div>
-                    </div>
 
-                    {{-- Divider (except for last item) --}}
-                    @if(!$loop->last)
-                        <div class="border-t border-gray-100 -mx-4 px-4"></div>
-                    @endif
-                @endforeach
+                            {{-- content --}}
+                            <div class="flex-1 pl-2">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-sm font-semibold {{ $status['active'] ? 'text-gray-900' : 'text-gray-400' }}">{{ $status['title'] }}</h4>
+                                    <div class="text-xs {{ $status['active'] ? 'text-gray-600' : 'text-gray-400' }} whitespace-nowrap">
+                                        @if($status['time'])
+                                            {{ \Carbon\Carbon::parse($status['time'])->format('d M, H:i') }}
+                                        @else
+                                            -
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if($status['current'])
+                                    <div class="mt-1 text-xs">
+                                        @if($status['key'] === 'on_the_way' && $help->partner_current_lat && $help->latitude)
+                                            @php
+                                                $earthRadius = 6371000;
+                                                $lat1 = deg2rad($help->partner_current_lat);
+                                                $lat2 = deg2rad($help->latitude);
+                                                $latDiff = deg2rad($help->latitude - $help->partner_current_lat);
+                                                $lngDiff = deg2rad($help->longitude - $help->partner_current_lng);
+                                                $a = sin($latDiff / 2) * sin($latDiff / 2) + cos($lat1) * cos($lat2) * sin($lngDiff / 2) * sin($lngDiff / 2);
+                                                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+                                                $distance = round($earthRadius * $c);
+                                            @endphp
+                                            <p class="text-xs text-blue-600 flex items-center gap-1">Jarak: {{ $distance > 1000 ? number_format($distance/1000, 1) . ' km' : $distance . ' m' }}</p>
+                                        @elseif($status['key'] === 'accepted')
+                                            <p class="text-xs text-blue-600">GPS tracking aktif</p>
+                                        @elseif($status['key'] === 'arrived')
+                                            <p class="text-xs text-green-600">Rekan jasa sudah sampai</p>
+                                        @elseif($status['key'] === 'in_progress')
+                                            <p class="text-xs text-blue-600">Pekerjaan sedang berlangsung</p>
+                                        @elseif($status['key'] === 'waiting_confirmation')
+                                            <p class="text-xs text-orange-600 font-semibold">Silakan konfirmasi pesanan selesai</p>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
 
+        {{-- Confirmation Button --}}
+        @if($help->status === 'waiting_customer_confirmation')
+            <div class="bg-gradient-to-r from-orange-50 to-yellow-50 mt-2 px-4 py-4 border border-orange-200 rounded-lg">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-sm text-gray-900 mb-1">Konfirmasi Penyelesaian Pesanan</h3>
+                        <p class="text-xs text-gray-700 leading-relaxed">Rekan jasa telah menyelesaikan pekerjaan. Silakan konfirmasi bahwa pesanan telah selesai dengan baik.</p>
+                    </div>
+                </div>
+                <button wire:click="confirmCompletion" 
+                        class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Konfirmasi Pesanan Selesai
+                </button>
+                <p class="text-xs text-center text-gray-600 mt-2">Dengan mengkonfirmasi, Anda menyatakan bahwa layanan telah selesai</p>
+            </div>
+        @endif
+
         {{-- Satisfaction Guarantee --}}
-        @if($help->status === 'selesai')
+        {{-- @if($help->status === 'selesai')
             <div class="bg-gradient-to-r from-blue-50 to-cyan-50 mt-2 px-4 py-4 border border-blue-100 rounded-lg">
                 <div class="flex items-start gap-3">
                     <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
@@ -344,7 +321,7 @@
                     </div>
                 </div>
             </div>
-        @endif
+        @endif --}}
 
         {{-- Payment Details --}}
         <div class="bg-white mt-2 px-4 py-4">
@@ -384,11 +361,11 @@
                 </div>
             </div>
 
-            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+            {{-- <div class="mt-4 p-3 bg-blue-50 rounded-lg">
                 <p class="text-xs text-gray-700 leading-relaxed">
                     Kamu bisa meminta tindakan tambahan pada unit AC saat sesi layanan berlangsung. Pastikan hanya transaksi di aplikasi agar pesananmu terlindungi asuransi.
                 </p>
-            </div>
+            </div> --}}
         </div>
 
         {{-- Cancel Button --}}

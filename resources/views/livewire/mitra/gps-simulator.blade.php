@@ -37,8 +37,34 @@
             <p class="text-xs font-mono text-purple-700">{{ number_format($currentLat, 6) }}, {{ number_format($currentLng, 6) }}</p>
         </div>
         <div class="bg-white rounded-lg p-2.5 border border-purple-100">
-            <p class="text-xs text-gray-600 mb-1">Jarak ke Target</p>
-            <p class="text-xs font-bold text-purple-900" x-text="distanceText"></p>
+            <div class="flex items-center justify-between mb-1">
+                <p class="text-xs text-gray-600">Jarak ke Target</p>
+                @if($this->distanceToTarget < 50 && $isSimulating)
+                    <span class="text-xs text-green-600 font-bold">✓ Dekat</span>
+                @endif
+            </div>
+            @php
+                $distance = $this->distanceToTarget;
+                
+                // Jika simulasi belum dimulai dan jarak = 0, tampilkan placeholder
+                if (!$isSimulating && $distance < 1) {
+                    $distanceText = 'Klik Mulai';
+                    $colorClass = 'text-gray-500';
+                } elseif ($distance >= 1000) {
+                    $distanceText = number_format($distance / 1000, 2) . ' km';
+                    $colorClass = 'text-orange-600';
+                } elseif ($distance >= 100) {
+                    $distanceText = round($distance) . ' m';
+                    $colorClass = 'text-blue-600';
+                } elseif ($distance >= 50) {
+                    $distanceText = round($distance) . ' m';
+                    $colorClass = 'text-yellow-600';
+                } else {
+                    $distanceText = round($distance) . ' m';
+                    $colorClass = 'text-green-600';
+                }
+            @endphp
+            <p class="text-sm font-bold {{ $colorClass }}" wire:poll.2s>{{ $distanceText }}</p>
         </div>
     </div>
 
@@ -124,7 +150,7 @@
     <div class="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p class="text-xs text-blue-800 leading-relaxed">
             <strong>💡 Tips:</strong> Gunakan simulator ini untuk testing GPS tracking tanpa harus bergerak fisik. 
-            Klik <strong>Mulai</strong> untuk auto-simulate pergerakan menuju lokasi customer.
+            Klik <strong>Mulai</strong> untuk generate lokasi random (500-1000m dari target) dan auto-simulate pergerakan menuju lokasi customer.
         </p>
     </div>
 </div>

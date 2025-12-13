@@ -149,6 +149,50 @@
         {{-- Update Status Section --}}
 
 
+        {{-- Action Buttons --}}
+        @if($help->status === 'partner_arrived')
+            <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+                <button wire:click="startService" 
+                    class="w-full py-3 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Mulai Pekerjaan
+                </button>
+                <p class="text-xs text-gray-500 text-center mt-2">Klik tombol ini setelah Anda sampai di lokasi dan siap memulai pekerjaan</p>
+            </div>
+        @endif
+
+        @if($help->status === 'in_progress' || $help->status === 'sedang_diproses')
+            <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+                <button wire:click="markCompleted" 
+                    class="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Selesai
+                </button>
+                <p class="text-xs text-gray-500 text-center mt-2">Klik tombol ini setelah pekerjaan selesai dikerjakan</p>
+            </div>
+        @endif
+
+        @if($help->status === 'waiting_customer_confirmation')
+            <div class="bg-orange-50 px-4 py-3 rounded-xl border border-orange-100 mb-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-sm text-gray-900">Menunggu konfirmasi customer</h4>
+                        <p class="text-xs text-gray-600 mt-1">Anda telah menandai pekerjaan selesai. Tunggu konfirmasi dari customer sebelum pesanan dianggap final.</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         {{-- Status Timeline --}}
         @if($help->partner_started_at || $help->partner_arrived_at || $help->service_started_at || $help->service_completed_at || $help->completed_at)
             <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100">
@@ -193,6 +237,15 @@
                                 <span>Selesai Pengerjaan</span>
                             </div>
                             <span class="text-gray-500">{{ \Carbon\Carbon::parse($help->service_completed_at)->format('d M, H:i') }}</span>
+                        </div>
+                    @endif
+                    @if($help->status === 'waiting_customer_confirmation')
+                        <div class="flex items-center justify-between text-orange-700 font-semibold py-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+                                <span>Menunggu Konfirmasi Customer</span>
+                            </div>
+                            <span class="text-orange-600">{{ \Carbon\Carbon::parse($help->service_completed_at ?? now())->format('d M, H:i') }}</span>
                         </div>
                     @endif
                     @if($help->completed_at)

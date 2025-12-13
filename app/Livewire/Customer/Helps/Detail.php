@@ -93,6 +93,24 @@ class Detail extends Component
         $this->showCancelConfirm = false;
     }
 
+    public function confirmCompletion()
+    {
+        // Only allow confirmation if status is waiting_customer_confirmation
+        if ($this->help->status !== 'waiting_customer_confirmation') {
+            session()->flash('error', 'Status pesanan tidak valid untuk konfirmasi.');
+            return;
+        }
+
+        $this->help->update([
+            'status' => 'selesai',
+            'completed_at' => now(),
+        ]);
+
+        $this->loadHelp();
+
+        session()->flash('success', 'Pesanan telah dikonfirmasi selesai!');
+    }
+
     public function handleStatusChanged($data)
     {
         // Reload help data saat status berubah dari GPS tracking
@@ -112,6 +130,7 @@ class Detail extends Component
             'partner_on_the_way' => '🚗 Rekan jasa sedang menuju lokasi Anda',
             'partner_arrived' => '📍 Rekan jasa telah tiba di lokasi',
             'in_progress' => '⚙️ Pekerjaan sedang dikerjakan',
+            'waiting_customer_confirmation' => '✋ Menunggu konfirmasi Anda untuk menyelesaikan pesanan',
             'completed', 'selesai' => '✅ Pesanan telah selesai',
             default => 'Status pesanan diperbarui'
         };
@@ -126,6 +145,7 @@ class Detail extends Component
             'partner_on_the_way' => 'bg-blue-100 text-blue-700',
             'partner_arrived' => 'bg-green-100 text-green-700',
             'in_progress', 'sedang_diproses' => 'bg-cyan-100 text-cyan-700',
+            'waiting_customer_confirmation' => 'bg-orange-100 text-orange-700',
             'completed', 'selesai' => 'bg-green-100 text-green-700',
             'dibatalkan', 'cancelled' => 'bg-red-100 text-red-700',
             default => 'bg-gray-100 text-gray-700',
@@ -142,6 +162,7 @@ class Detail extends Component
             'partner_on_the_way' => 'Rekan Jasa menuju lokasi',
             'partner_arrived' => 'Rekan Jasa tiba di lokasi',
             'in_progress', 'sedang_diproses' => 'Pelayanan dalam proses',
+            'waiting_customer_confirmation' => 'Menunggu konfirmasi customer',
             'completed', 'selesai' => 'Pesanan selesai',
             'dibatalkan', 'cancelled' => 'Dibatalkan',
             default => ucfirst(str_replace('_', ' ', $this->help->status)),

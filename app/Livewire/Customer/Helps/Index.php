@@ -20,6 +20,17 @@ class Index extends Component
     ];
 
     public $statusFilter = 'menunggu_mitra';
+
+    // Status-status yang termasuk dalam filter 'diproses'
+    protected $diprosesStatuses = [
+        'memperoleh_mitra',
+        'taken',
+        'partner_on_the_way',
+        'partner_arrived',
+        'in_progress',
+        'sedang_diproses',
+        'waiting_customer_confirmation'
+    ];
     public $selectedHelpData = null;
     // Rating flow
     public $ratingComment = null;
@@ -93,7 +104,7 @@ class Index extends Component
         }
 
         // Require that a mitra was assigned and status is in progress
-        if (!$help->mitra_id || $help->status !== 'memperoleh_mitra') {
+        if (!$help->mitra_id || $help->status !== 'waiting_customer_confirmation') {
             session()->flash('error', 'Permintaan belum dalam status yang dapat dikonfirmasi.');
             return;
         }
@@ -119,7 +130,7 @@ class Index extends Component
             return;
         }
 
-        if (!$help->mitra_id || $help->status !== 'memperoleh_mitra') {
+        if (!$help->mitra_id || $help->status !== 'waiting_customer_confirmation') {
             session()->flash('error', 'Permintaan belum dalam status yang dapat dikonfirmasi.');
             $this->showConfirmModal = false;
             $this->confirmingHelpId = null;
@@ -419,7 +430,11 @@ class Index extends Component
                 ])
                 ->withCount('chatMessages')
                 ->when($this->statusFilter !== '', function ($query) {
-                    $query->where('status', $this->statusFilter);
+                    if ($this->statusFilter === 'diproses') {
+                        $query->whereIn('status', $this->diprosesStatuses);
+                    } else {
+                        $query->where('status', $this->statusFilter);
+                    }
                 })
                 ->latest()
                 ->paginate(10);

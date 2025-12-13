@@ -66,11 +66,24 @@ class HelpDetail extends Component
         $this->updateStatus('sedang_diproses', 'service_completed_at');
     }
 
+    public function startService()
+    {
+        // Ubah status ke in_progress dan set service_started_at
+        $this->help->update([
+            'status' => 'in_progress',
+            'service_started_at' => now(),
+        ]);
+
+        $this->currentStatus = 'in_progress';
+        $this->help->refresh();
+
+        session()->flash('message', 'Pekerjaan telah dimulai!');
+    }
+
     public function markCompleted()
     {
         $this->help->update([
-            'status' => 'selesai',
-            'completed_at' => now(),
+            'status' => 'waiting_customer_confirmation',
         ]);
 
         // If service_completed_at is not set, set it now
@@ -78,10 +91,10 @@ class HelpDetail extends Component
             $this->help->update(['service_completed_at' => now()]);
         }
 
-        $this->currentStatus = 'selesai';
+        $this->currentStatus = 'waiting_customer_confirmation';
         $this->help->refresh();
 
-        session()->flash('message', 'Pesanan telah diselesaikan!');
+        session()->flash('message', 'Menunggu konfirmasi dari customer!');
     }
 
     public function render()

@@ -10,7 +10,7 @@ class LocationTrackingService
     /**
      * Jarak minimum untuk menganggap mitra mulai bergerak (dalam meter)
      */
-    const MOVING_THRESHOLD = 10;
+    const MOVING_THRESHOLD = 5;
 
     /**
      * Jarak maksimum untuk menganggap mitra sudah tiba di lokasi (dalam meter)

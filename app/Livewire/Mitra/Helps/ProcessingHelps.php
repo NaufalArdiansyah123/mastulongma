@@ -18,8 +18,17 @@ class ProcessingHelps extends Component
 
     public function loadHelps()
     {
-        // Accept several possible status values (English/Indonesian variants) to be resilient
-        $statuses = ['in_progress', 'taken', 'memperoleh_mitra', 'memperoleh_mitra', 'diproses_mitra'];
+        // Include all processing statuses including new GPS tracking statuses
+        $statuses = [
+            'memperoleh_mitra',
+            'taken',
+            'partner_on_the_way',
+            'partner_arrived',
+            'in_progress',
+            'sedang_diproses',
+            'diproses_mitra',
+            'waiting_customer_confirmation'
+        ];
 
         $this->helps = Help::where('mitra_id', auth()->id())
             ->whereIn('status', $statuses)
@@ -35,13 +44,17 @@ class ProcessingHelps extends Component
             return;
         }
 
+        // Set to waiting_customer_confirmation instead of marking complete immediately
         $help->update([
-            'status' => 'selesai',
-            'completed_at' => now(),
+            'status' => 'waiting_customer_confirmation',
         ]);
 
+        if (!$help->service_completed_at) {
+            $help->update(['service_completed_at' => now()]);
+        }
+
         $this->dispatch('help-completed');
-        session()->flash('success', 'Bantuan berhasil diselesaikan');
+        session()->flash('success', 'Menunggu konfirmasi dari customer');
         $this->loadHelps();
     }
 

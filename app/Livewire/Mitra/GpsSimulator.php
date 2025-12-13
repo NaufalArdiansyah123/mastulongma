@@ -38,9 +38,17 @@ class GpsSimulator extends Component
         $this->targetLat = floatval($help->latitude);
         $this->targetLng = floatval($help->longitude);
         
-        // SELALU generate random start location untuk simulator
-        // Tidak peduli apakah ada partner_initial atau tidak
-        $this->generateRandomStartLocation();
+        // Jika sudah ada partner location di database, gunakan itu
+        // Jika belum, set ke lokasi target dulu (akan diupdate saat simulasi dimulai)
+        if ($help->partner_current_lat && $help->partner_current_lng) {
+            $this->currentLat = floatval($help->partner_current_lat);
+            $this->currentLng = floatval($help->partner_current_lng);
+        } else {
+            // Set ke target location sebagai default (distance = 0)
+            // Akan generate random location hanya saat simulasi dimulai
+            $this->currentLat = $this->targetLat;
+            $this->currentLng = $this->targetLng;
+        }
         
         Log::info('GPS Simulator Mounted', [
             'help_id' => $this->helpId,
@@ -107,9 +115,18 @@ class GpsSimulator extends Component
             return;
         }
 
-        // Set lokasi awal jika belum ada
+        // Generate random start location HANYA saat simulasi dimulai
+        $this->generateRandomStartLocation();
+
+        // Set lokasi awal di database
         if (!$help->partner_initial_lat) {
             $this->locationService->setInitialLocation($help, $this->currentLat, $this->currentLng);
+        } else {
+            // Update current location ke random location
+            $help->update([
+                'partner_current_lat' => $this->currentLat,
+                'partner_current_lng' => $this->currentLng,
+            ]);
         }
 
         $this->isSimulating = true;
@@ -117,8 +134,9 @@ class GpsSimulator extends Component
         
         Log::info('GPS Simulator: Simulation started', [
             'help_id' => $this->helpId,
-            'start_location' => [$this->currentLat, $this->currentLng],
-            'target_location' => [$this->targetLat, $this->targetLng]
+            'random_start_location' => [$this->currentLat, $this->currentLng],
+            'target_location' => [$this->targetLat, $this->targetLng],
+            'distance' => $this->calculateDistanceSimple($this->currentLat, $this->currentLng, $this->targetLat, $this->targetLng)
         ]);
     }
 
@@ -238,6 +256,20 @@ class GpsSimulator extends Component
         }
         
         $this->stopSimulation();
+    }
+
+    public function getDistanceToTargetProperty()
+    {
+        if (!$this->currentLat || !$this->currentLng || !$this->targetLat || !$this->targetLng) {
+            return 0;
+        }
+        
+        return $this->calculateDistanceSimple(
+            $this->currentLat, 
+            $this->currentLng, 
+            $this->targetLat, 
+            $this->targetLng
+        );
     }
 
     public function render()
