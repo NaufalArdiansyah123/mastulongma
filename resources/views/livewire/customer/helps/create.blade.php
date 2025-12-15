@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-white">
+<div>
     <style>
         :root{
             --brand-500: #0ea5a4;
@@ -37,7 +37,8 @@
         }
     </style>
 
-    <div class="max-w-md mx-auto">
+    <div id="main-content" class="min-h-screen bg-white">
+        <div class="max-w-md mx-auto">
         <!-- Header - BRImo Style (sama seperti index) -->
         <div class="px-5 pt-5 pb-8 relative overflow-hidden header-pattern" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
             <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
@@ -415,6 +416,7 @@
                 </div>
             </form>
         </div>
+        </div>
     </div>
 
     <!-- Global submit overlay shown only while Livewire 'save' is processing (kept inside component root) -->
@@ -431,61 +433,127 @@
         </div>
     </div>
 
-    <!-- Insufficient Balance Modal - Simplified -->
+    <!-- Insufficient Balance Modal - Bottom Sheet Style -->
     @if($showInsufficientModal)
-        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-lg w-full max-w-sm p-5">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Saldo Tidak Cukup</h3>
-                <p class="text-sm text-gray-600 mb-5">{{ $insufficientMessage }}</p>
+        <div class="modal-overlay fixed inset-0 z-[9999] flex items-end justify-center animate-fade-in" style="background: rgba(0,0,0,0.5);" wire:click="closeInsufficientModal">
+            <div class="bg-white rounded-t-3xl w-full max-w-md shadow-2xl animate-slide-up relative" wire:click.stop style="padding-bottom: env(safe-area-inset-bottom,24px);">
+                <div class="sticky top-0 bg-white border-b px-5 py-4 rounded-t-3xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-gray-900">Saldo Tidak Cukup</h3>
+                        <button type="button" wire:click="closeInsufficientModal" class="p-2 hover:bg-gray-100 rounded-full transition">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-                <div class="flex gap-3">
-                    <button wire:click="closeInsufficientModal"
-                        class="flex-1 px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition">
-                        Tutup
-                    </button>
-                    <a href="{{ route('customer.topup') }}"
-                        class="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-center hover:from-blue-600 hover:to-cyan-600 transition">
-                        Top Up Saldo
-                    </a>
+                <div class="p-5 pb-6">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-gray-700 text-center mb-6">{{ $insufficientMessage }}</p>
+
+                    <div class="flex gap-3">
+                        <button wire:click="closeInsufficientModal"
+                            class="flex-1 px-5 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition">
+                            Tutup
+                        </button>
+                        <a href="{{ route('customer.topup') }}"
+                            class="flex-1 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold text-center hover:from-blue-600 hover:to-blue-700 transition">
+                            Top Up Saldo
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     @endif
 
-    <!-- Confirmation Modal - Simplified -->
+    <!-- Confirmation Modal - Bottom Sheet Style -->
     @if($showConfirmModal)
-        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" wire:click="closeConfirmModal">
-            <div class="bg-white rounded-lg shadow-md max-w-sm w-full p-5" wire:click.stop>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Konfirmasi Permintaan</h3>
-                <p class="text-xs text-gray-500 mb-4">Pastikan detail permintaan sudah benar</p>
-
-                <div class="space-y-2 text-sm mb-5">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Saldo Saat Ini</span>
-                        <span class="font-medium">Rp {{ number_format($currentBalance ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Nominal Bantuan</span>
-                        <span class="font-medium">Rp {{ number_format($confirmAmount ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Biaya Admin</span>
-                        <span class="font-medium">Rp {{ number_format($confirmAdminFee ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="flex justify-between pt-2 border-t">
-                        <span class="font-semibold text-gray-800">Total</span>
-                        <span class="font-bold text-blue-600">Rp {{ number_format($confirmTotal ?? 0, 0, ',', '.') }}</span>
+        <div class="modal-overlay fixed inset-0 z-[9999] flex items-end justify-center animate-fade-in" style="background: rgba(0,0,0,0.5);" wire:click="closeConfirmModal">
+            <div class="bg-white rounded-t-3xl w-full max-w-md shadow-2xl max-h-[85vh] overflow-y-auto hide-scrollbar animate-slide-up relative" wire:click.stop style="padding-bottom: env(safe-area-inset-bottom,24px);">
+                <div class="sticky top-0 bg-white border-b px-5 py-4 rounded-t-3xl z-10">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-gray-900">Konfirmasi Permintaan</h3>
+                        <button type="button" wire:click="closeConfirmModal" class="p-2 hover:bg-gray-100 rounded-full transition">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
-                <div class="flex gap-3">
+                <!-- Modal Content -->
+                <div class="p-5 pb-6">
+                    <p class="text-sm text-gray-600 mb-4">Periksa ringkasan pesanan sebelum mengonfirmasi.</p>
+
+                    <!-- Saldo Info Card -->
+                    <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 mb-4 border border-blue-100">
+                        <div class="flex items-center justify-between mb-3 pb-3 border-b border-blue-100">
+                            <span class="text-xs font-semibold text-gray-600">Saldo Tersedia</span>
+                            <span class="text-lg font-bold text-gray-900">Rp {{ number_format($currentBalance ?? 0, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="space-y-2.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Nominal Bantuan</span>
+                                <span class="text-sm font-semibold text-gray-900">Rp {{ number_format($confirmAmount ?? 0, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Biaya Admin</span>
+                                <span class="text-sm font-semibold text-gray-900">Rp {{ number_format($confirmAdminFee ?? 0, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="bg-white border-2 border-blue-200 rounded-2xl p-4 mb-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <span class="text-xs font-semibold text-gray-600">Total Pembayaran</span>
+                                <div class="text-2xl font-bold text-blue-600 mt-1">Rp {{ number_format($confirmTotal ?? 0, 0, ',', '.') }}</div>
+                            </div>
+                            <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <svg class="w-7 h-7 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5">
+                        <div class="flex gap-2">
+                            <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                            <p class="text-xs text-amber-900 leading-relaxed">Dengan menekan <strong>Konfirmasi</strong>, Anda menyetujui bahwa saldo akan dipotong sesuai total pembayaran di atas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sticky footer with action buttons (always visible) -->
+                <div class="sticky bottom-0 bg-white border-t px-5 py-4 z-20 flex gap-3">
                     <button wire:click="closeConfirmModal" type="button"
-                        class="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                        class="flex-1 px-5 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition">
                         Kembali
                     </button>
                     <button wire:click="save" type="button" wire:loading.attr="disabled"
-                        class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition">
-                        Konfirmasi
+                        class="flex-1 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:from-blue-600 hover:to-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="save">Konfirmasi</span>
+                        <span wire:loading wire:target="save" class="flex items-center justify-center gap-2">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            Memproses...
+                        </span>
                     </button>
                 </div>
             </div>
@@ -502,6 +570,93 @@
 
     <!-- OpenStreetMap Script -->
     <script>
+        // Modal overlay observer with full page blur
+        (function () {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                /* Hide scrollbar */
+                .hide-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+                .hide-scrollbar {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+                
+                /* Animasi untuk modal */
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                @keyframes slideUp {
+                    from { 
+                        opacity: 0;
+                        transform: translateY(100%);
+                    }
+                    to { 
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                .animate-fade-in {
+                    animation: fadeIn 0.2s ease-out;
+                }
+                
+                .animate-slide-up {
+                    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                
+                /* Blur effect untuk konten halaman dan maps */
+                .blur-target {
+                    filter: blur(8px);
+                    transition: filter 0.3s ease;
+                }
+                
+                body.modal-open {
+                    overflow: hidden;
+                }
+                
+                /* Pastikan modal tidak pernah blur */
+                .modal-overlay {
+                    filter: none !important;
+                }
+            `;
+            document.head.appendChild(style);
+
+            function updateModalState() {
+                const hasOverlay = document.querySelector('.modal-overlay') !== null;
+                const mainContent = document.getElementById('main-content');
+                
+                if (hasOverlay) {
+                    document.body.classList.add('modal-open');
+                    if (mainContent) {
+                        mainContent.classList.add('blur-target');
+                    }
+                } else {
+                    document.body.classList.remove('modal-open');
+                    if (mainContent) {
+                        mainContent.classList.remove('blur-target');
+                    }
+                }
+            }
+
+            // Observe modal changes
+            const observer = new MutationObserver(updateModalState);
+
+            document.addEventListener('DOMContentLoaded', function () {
+                updateModalState();
+                observer.observe(document.body, { 
+                    childList: true, 
+                    subtree: true 
+                });
+            });
+
+            // Update on Livewire navigation
+            document.addEventListener('livewire:navigated', updateModalState);
+        })();
+
         document.addEventListener('DOMContentLoaded', function () {
             // Default location (Ponorogo, Jawa Timur)
             const defaultLocation = [-7.8664, 111.4620];

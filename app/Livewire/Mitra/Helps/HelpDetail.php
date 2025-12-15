@@ -13,11 +13,13 @@ class HelpDetail extends Component
     public $helpId;
     public $help;
     public $currentStatus;
+    public $rating = 0;
+    public $review = '';
 
     public function mount($id)
     {
         $this->helpId = $id;
-        $this->help = Help::with(['user', 'city'])->findOrFail($id);
+        $this->help = Help::with(['user', 'city', 'rating'])->findOrFail($id);
         
         // Verify this help belongs to the authenticated mitra
         if ($this->help->mitra_id !== auth()->id()) {
@@ -95,6 +97,63 @@ class HelpDetail extends Component
         $this->help->refresh();
 
         session()->flash('message', 'Menunggu konfirmasi dari customer!');
+    }
+
+    public function submitCustomerRating()
+    {
+        $this->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'review' => 'nullable|string|max:500',
+        ], [
+            'rating.required' => 'Rating harus diisi',
+            'rating.min' => 'Rating minimal 1 bintang',
+            'rating.max' => 'Rating maksimal 5 bintang',
+            'review.max' => 'Review maksimal 500 karakter',
+        ]);
+
+        // Check if already rated
+        $existingRating = \App\Models\Rating::where('help_id', $this->help->id)
+            ->where('rater_id', auth()->id())
+            ->where('type', 'mitra_to_customer')
+            ->first();
+
+        if ($existingRating) {
+            session()->flash('error', 'Anda sudah memberikan rating untuk customer ini.');
+            return;
+        }
+
+        // Check if order is completed
+        if (!in_array($this->help->status, ['selesai', 'completed'])) {
+            session()->flash('error', 'Rating hanya bisa diberikan untuk pesanan yang sudah selesai.');
+            return;
+        }
+
+        // Create rating
+        \App\Models\Rating::create([
+            'help_id' => $this->help->id,
+            'user_id' => $this->help->user_id, // Legacy: customer being rated
+            'mitra_id' => auth()->id(), // Legacy: mitra giving rating
+            'rater_id' => auth()->id(), // New: mitra giving rating
+            'ratee_id' => $this->help->user_id, // New: customer receiving rating
+            'type' => 'mitra_to_customer',
+            'rating' => $this->rating,
+            'review' => $this->review,
+        ]);
+
+        // Reset form
+        $this->rating = 0;
+        $this->review = '';
+
+        // Reload help
+        $this->help->refresh();
+        $this->help->load('rating');
+
+        session()->flash('message', 'Terima kasih atas rating Anda!');
+    }
+
+    public function setRating($value)
+    {
+        $this->rating = $value;
     }
 
     public function render()

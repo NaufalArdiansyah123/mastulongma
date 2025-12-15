@@ -1,8 +1,16 @@
     <div class="min-h-screen bg-gray-50" 
-    wire:poll.5s="{{ in_array($help->status, ['memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived', 'in_progress', 'sedang_diproses', 'waiting_customer_confirmation']) ? 'loadHelp' : '' }}"
+    wire:poll.5s="loadHelp"
     x-data="{ 
         showNotification: false, 
-        notificationMessage: '' 
+        notificationMessage: '',
+        trackingData: {
+            partnerLat: {{ $help->partner_current_lat ?? ($help->mitra->latitude ?? ($help->latitude ? $help->latitude - 0.01 : -6.2088)) }},
+            partnerLng: {{ $help->partner_current_lng ?? ($help->mitra->longitude ?? ($help->longitude ? $help->longitude - 0.01 : 106.8456)) }},
+            customerLat: {{ $help->latitude ?? -6.2088 }},
+            customerLng: {{ $help->longitude ?? 106.8456 }},
+            partnerName: '{{ $help->mitra->name ?? "Mitra" }}',
+            location: '{{ $help->location ?? "Tujuan" }}'
+        }
     }"
     @show-status-notification.window="
         notificationMessage = $event.detail.message;
@@ -113,7 +121,15 @@
                                 <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                 </svg>
-                                <span class="text-sm font-semibold text-gray-900">{{ number_format($help->mitra->rating ?? 4.86, 2) }}</span>
+                                @php
+                                    $mitra = $help->mitra;
+                                    $avgRating = $mitra ? ($mitra->mitra_average_rating ?? ($mitra->rating ?? 0)) : 0;
+                                    $ratingCount = $mitra ? ($mitra->mitra_rating_count ?? null) : null;
+                                @endphp
+                                <span class="text-sm font-semibold text-gray-900">{{ number_format($avgRating, 2) }}</span>
+                                @if($ratingCount)
+                                    <span class="text-xs text-gray-400 ml-2">({{ $ratingCount }})</span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -131,14 +147,56 @@
                     </div>
                 </div>
 
-                <button class="w-full mt-3 py-2.5 bg-teal-600 text-white rounded-lg font-semibold text-sm hover:bg-teal-700 transition flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            @endif
+
+            @php
+                $status = $help->status;
+                $statusLabel = match($status) {
+                    'menunggu_pembayaran' => 'Pembayaran',
+                    'mencari_mitra', 'menunggu_mitra', 'memperoleh_mitra' => 'Mencari Rekan Jasa',
+                    'taken' => 'Menunggu Rekan Jasa berangkat',
+                    'partner_on_the_way' => 'Rekan Jasa menuju ke lokasi',
+                    'partner_arrived' => 'Rekan Jasa tiba di lokasi',
+                    'in_progress', 'sedang_diproses' => 'Pelayanan dalam proses',
+                    'waiting_customer_confirmation' => 'Menunggu konfirmasi Anda',
+                    'selesai', 'completed' => 'Pesanan selesai',
+                    'dibatalkan', 'cancelled' => 'Dibatalkan',
+                    default => ucfirst(str_replace('_', ' ', $status)),
+                };
+
+                $statusBg = match($status) {
+                    'menunggu_pembayaran' => 'bg-yellow-500',
+                    'mencari_mitra', 'menunggu_mitra', 'memperoleh_mitra' => 'bg-blue-600',
+                    'taken', 'partner_on_the_way' => 'bg-blue-600',
+                    'partner_arrived' => 'bg-green-600',
+                    'in_progress', 'sedang_diproses' => 'bg-cyan-600',
+                    'waiting_customer_confirmation' => 'bg-orange-500',
+                    'selesai', 'completed' => 'bg-green-700',
+                    default => 'bg-gray-400'
+                };
+            @endphp
+
+            <button 
+                @if(in_array($help->status, ['taken', 'partner_on_the_way', 'partner_arrived']))
+                    wire:click="showTrackingMap"
+                @endif
+                class="w-full mt-3 py-2.5 text-white rounded-lg font-semibold text-sm hover:opacity-95 transition flex items-center justify-center gap-2 {{ $statusBg }} {{ in_array($help->status, ['taken', 'partner_on_the_way', 'partner_arrived']) ? 'cursor-pointer' : '' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    @if(in_array($help->status, ['taken', 'partner_on_the_way', 'partner_arrived']))
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    @else
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    @endif
+                </svg>
+                {{ $statusLabel }}
+                @if(in_array($help->status, ['taken', 'partner_on_the_way', 'partner_arrived']))
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
-                    Menunggu Rekan Jasa berangkat
-                </button>
-            @endif
+                @endif
+            </button>
         </div>
 
         {{-- Warning Info --}}
@@ -198,8 +256,8 @@
             @php
                 $statuses = [
                     [ 'key' => 'payment', 'title' => 'Pembayaran', 'time' => $help->created_at, 'active' => in_array($help->status, ['menunggu_pembayaran','mencari_mitra','menunggu_mitra','memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'menunggu_pembayaran' ],
-                    [ 'key' => 'searching', 'title' => 'Mencari Rekan Jasa', 'time' => $help->mitra_assigned_at ?? $help->taken_at, 'active' => in_array($help->status, ['memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'mencari_mitra' ],
-                    [ 'key' => 'accepted', 'title' => 'Menunggu Rekan Jasa berangkat', 'time' => $help->taken_at, 'active' => in_array($help->status, ['menunggu_mitra','memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => in_array($help->status, ['menunggu_mitra','memperoleh_mitra','taken']) ],
+                    [ 'key' => 'searching', 'title' => 'Mencari Rekan Jasa', 'time' => $help->mitra_assigned_at ?? $help->taken_at, 'active' => in_array($help->status, ['mencari_mitra','menunggu_mitra','memperoleh_mitra','taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => in_array($help->status, ['mencari_mitra','menunggu_mitra','memperoleh_mitra']) ],
+                    [ 'key' => 'accepted', 'title' => 'Menunggu Rekan Jasa berangkat', 'time' => $help->taken_at, 'active' => in_array($help->status, ['taken','partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'taken' ],
                     [ 'key' => 'on_the_way', 'title' => 'Rekan Jasa menuju ke lokasi', 'time' => $help->partner_started_moving_at, 'active' => in_array($help->status, ['partner_on_the_way','partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'partner_on_the_way' ],
                     [ 'key' => 'arrived', 'title' => 'Rekan Jasa tiba di lokasi', 'time' => $help->partner_arrived_at, 'active' => in_array($help->status, ['partner_arrived','in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => $help->status === 'partner_arrived' ],
                     [ 'key' => 'in_progress', 'title' => 'Pelayanan dalam proses', 'time' => $help->service_started_at, 'active' => in_array($help->status, ['in_progress','sedang_diproses','waiting_customer_confirmation','selesai','completed']), 'current' => in_array($help->status, ['in_progress','sedang_diproses']) ],
@@ -305,45 +363,131 @@
             </div>
         @endif
 
-        {{-- Satisfaction Guarantee --}}
-        {{-- @if($help->status === 'selesai')
-            <div class="bg-gradient-to-r from-blue-50 to-cyan-50 mt-2 px-4 py-4 border border-blue-100 rounded-lg">
-                <div class="flex items-start gap-3">
-                    <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-sm text-gray-900 mb-1">Tidak puas? Pengerjaan ulang gratis!</h3>
-                        <p class="text-xs text-gray-700 mb-3 leading-relaxed">Klaim garansi 1x24 jam setelah layanan selesai</p>
-                        <a href="#" class="text-blue-600 text-sm font-semibold">Lihat Selengkapnya →</a>
+        {{-- Rating Form --}}
+        @if(in_array($help->status, ['selesai', 'completed']))
+            @php
+                $customerRating = \App\Models\Rating::where('help_id', $help->id)
+                    ->where('rater_id', auth()->id())
+                    ->where('type', 'customer_to_mitra')
+                    ->first();
+            @endphp
+
+            @if($customerRating)
+                {{-- Already Rated - Show Rating --}}
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 mt-2 px-4 py-4 border border-green-200 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-sm text-gray-900 mb-2">Rating Anda</h3>
+                            <div class="flex items-center gap-1 mb-2">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <svg class="w-5 h-5 {{ $i <= $customerRating->rating ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                @endfor
+                                <span class="ml-2 text-sm font-semibold text-gray-900">{{ $customerRating->rating }}/5</span>
+                            </div>
+                            @if($customerRating->review)
+                                <p class="text-sm text-gray-700 italic">"{{ $customerRating->review }}"</p>
+                            @endif
+                            <p class="text-xs text-gray-500 mt-2">{{ $customerRating->created_at->diffForHumans() }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endif --}}
+            @else
+                {{-- Rating Form --}}
+                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 mt-2 px-4 py-4 border border-yellow-200 rounded-lg">
+                    <div class="flex items-start gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-sm text-gray-900 mb-1">Bagaimana Pengalaman Anda?</h3>
+                            <p class="text-xs text-gray-700">Berikan rating untuk {{ $help->mitra->name ?? 'mitra' }}</p>
+                        </div>
+                    </div>
+
+                    {{-- Star Rating --}}
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">Rating *</label>
+                        <div class="flex items-center gap-2">
+                            @for($i = 1; $i <= 5; $i++)
+                                <button 
+                                    type="button"
+                                    wire:click="setRating({{ $i }})"
+                                    class="focus:outline-none transition-transform hover:scale-110">
+                                    <svg class="w-10 h-10 {{ $rating >= $i ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                </button>
+                            @endfor
+                            @if($rating > 0)
+                                <span class="ml-2 text-sm font-semibold text-gray-900">{{ $rating }}/5</span>
+                            @endif
+                        </div>
+                        @error('rating')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Review Text --}}
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">Ulasan (Opsional)</label>
+                        <textarea 
+                            wire:model="review"
+                            rows="3"
+                            placeholder="Ceritakan pengalaman Anda..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-sm"
+                            maxlength="500"></textarea>
+                        <div class="flex justify-between items-center mt-1">
+                            @error('review')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @else
+                                <p class="text-xs text-gray-500">Maksimal 500 karakter</p>
+                            @enderror
+                            <p class="text-xs text-gray-500">{{ strlen($review ?? '') }}/500</p>
+                        </div>
+                    </div>
+
+                    {{-- Submit Button --}}
+                    <button 
+                        wire:click="submitRating"
+                        wire:loading.attr="disabled"
+                        class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-gray-900 font-semibold py-3 px-4 rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove class="text-gray-900 font-semibold">Kirim Rating</span>
+                        <span wire:loading class="text-gray-900 font-semibold">Mengirim...</span>
+                    </button>
+                </div>
+            @endif
+        @endif
 
         {{-- Payment Details --}}
         <div class="bg-white mt-2 px-4 py-4">
-            <h3 class="font-bold text-sm text-gray-900 mb-4">Detail Pesanan</h3>
-            
+            <h3 class="font-bold text-sm text-gray-900 mb-4">Rincian Pembayaran</h3>
+
             <div class="space-y-3">
                 <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-700">{{ $help->title }}</span>
+                    <span class="text-gray-700">Harga Asli</span>
                     <span class="font-semibold text-gray-900">Rp{{ number_format($help->amount, 0, ',', '.') }}</span>
                 </div>
-                
+
                 <div class="flex items-center justify-between text-sm">
                     <span class="text-gray-700">{{ $help->equipment_provided ?? 'Layanan 1 Unit' }}</span>
                     <span class="font-semibold text-gray-900"></span>
                 </div>
 
                 <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-700">Biaya Pemesanan</span>
-                    <span class="font-semibold text-gray-900">Rp{{ number_format($help->booking_fee ?? 3500, 0, ',', '.') }}</span>
+                    <span class="text-gray-700">Biaya Admin</span>
+                    <span class="font-semibold text-gray-900">Rp{{ number_format($help->admin_fee ?? $help->booking_fee ?? 0, 0, ',', '.') }}</span>
                 </div>
 
-                @if($help->voucher_code)
+                @if(!empty($help->voucher_code) && ($help->discount_amount ?? 0) > 0)
                     <div class="flex items-center justify-between text-sm">
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -351,13 +495,13 @@
                             </svg>
                             <span class="text-red-500 font-semibold">{{ $help->voucher_code }}</span>
                         </div>
-                        <span class="font-semibold text-red-500">-Rp{{ number_format($help->discount_amount ?? 30000, 0, ',', '.') }}</span>
+                        <span class="font-semibold text-red-500">-Rp{{ number_format($help->discount_amount ?? 0, 0, ',', '.') }}</span>
                     </div>
                 @endif
 
                 <div class="border-t pt-3 flex items-center justify-between">
                     <span class="font-bold text-gray-900">Total Pembayaran</span>
-                    <span class="font-bold text-gray-900">Rp{{ number_format($help->total_amount ?? ($help->amount + ($help->booking_fee ?? 3500) - ($help->discount_amount ?? 0)), 0, ',', '.') }}</span>
+                    <span class="font-bold text-gray-900">Rp{{ number_format($help->total_amount ?? ($help->amount + ($help->admin_fee ?? $help->booking_fee ?? 0) - ($help->discount_amount ?? 0)), 0, ',', '.') }}</span>
                 </div>
             </div>
 
@@ -388,6 +532,78 @@
         </div>
     </div>
 
+    {{-- Real-time Tracking Map Modal --}}
+    @if($showMapModal)
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center" wire:click="closeMapModal">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl sm:mx-4 h-[90vh] sm:h-[600px] flex flex-col" wire:click.stop>
+                {{-- Header --}}
+                <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-3xl sm:rounded-t-2xl">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-bold text-base">Tracking Real-time</h3>
+                            <p class="text-white/80 text-xs" x-text="'Lokasi ' + trackingData.partnerName"></p>
+                        </div>
+                    </div>
+                    <button wire:click="closeMapModal" class="text-white hover:bg-white/20 p-2 rounded-lg transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- ETA Info Bar --}}
+                <div class="px-5 py-3 bg-blue-50 border-b border-blue-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center animate-pulse">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-600">Estimasi Tiba</p>
+                                <p class="text-sm font-bold text-blue-700" id="eta-time">Menghitung...</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-gray-600">Jarak</p>
+                            <p class="text-sm font-bold text-blue-700" id="distance-text">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Map Container --}}
+                <div class="flex-1 relative">
+                    <div id="tracking-map" class="w-full h-full"></div>
+                    
+                    {{-- Loading Overlay --}}
+                    <div id="map-loading" class="absolute inset-0 bg-white/90 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                            <p class="text-sm text-gray-600">Memuat peta...</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Footer Info --}}
+                <div class="px-5 py-3 border-t border-gray-200 bg-gray-50">
+                    <div class="flex items-center gap-2 text-xs text-gray-600">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Lokasi diperbarui setiap 5 detik</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Cancel Confirmation Modal --}}
     @if($showCancelConfirm)
         <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4" wire:click="closeModal">
@@ -412,6 +628,319 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    {{-- Leaflet Maps Script (Free, No API Key Required) --}}
+    @if($showMapModal)
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    
+    <script>
+        let map;
+        let partnerMarker;
+        let customerMarker;
+        let routingControl;
+        let trackingInterval;
+        let routePolyline;
+
+        // Initialize map when modal opens
+        setTimeout(() => {
+            initializeMap();
+        }, 100);
+
+        function initializeMap() {
+            // Get tracking data from Alpine
+            const trackingData = Alpine.$data(document.querySelector('[x-data]')).trackingData;
+            
+            const partnerLat = trackingData.partnerLat;
+            const partnerLng = trackingData.partnerLng;
+            const customerLat = trackingData.customerLat;
+            const customerLng = trackingData.customerLng;
+
+            console.log('Tracking data:', { partnerLat, partnerLng, customerLat, customerLng });
+
+            // Validate coordinates
+            if (!partnerLat || !partnerLng || !customerLat || !customerLng) {
+                document.getElementById('map-loading').innerHTML = `
+                    <div class="text-center">
+                        <svg class="w-12 h-12 text-red-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="text-sm text-red-600">Data lokasi tidak tersedia</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Initialize map centered between partner and customer
+            const centerLat = (partnerLat + customerLat) / 2;
+            const centerLng = (partnerLng + customerLng) / 2;
+
+            map = L.map('tracking-map', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([centerLat, centerLng], 14);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Custom icon for partner (blue pulse)
+            const partnerIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `
+                    <div style="position: relative;">
+                        <div style="position: absolute; width: 40px; height: 40px; background: rgba(37, 99, 235, 0.3); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <div style="position: absolute; width: 24px; height: 24px; margin: 8px; background: #2563eb; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
+                    </div>
+                    <style>
+                        @keyframes pulse {
+                            0% { transform: scale(1); opacity: 1; }
+                            50% { transform: scale(1.3); opacity: 0.5; }
+                            100% { transform: scale(1); opacity: 1; }
+                        }
+                    </style>
+                `,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+
+            // Custom icon for customer (red marker)
+            const customerIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `
+                    <div style="position: relative;">
+                        <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 0C9.37 0 4 5.37 4 12c0 7.07 12 30 12 30s12-22.93 12-30c0-6.63-5.37-12-12-12z" fill="#dc2626"/>
+                            <circle cx="16" cy="12" r="5" fill="white"/>
+                        </svg>
+                    </div>
+                `,
+                iconSize: [32, 42],
+                iconAnchor: [16, 42]
+            });
+
+            // Create markers
+            partnerMarker = L.marker([partnerLat, partnerLng], { 
+                icon: partnerIcon,
+                title: trackingData.partnerName
+            }).addTo(map);
+
+            customerMarker = L.marker([customerLat, customerLng], { 
+                icon: customerIcon,
+                title: 'Lokasi Anda'
+            }).addTo(map);
+
+            // Add popups
+            partnerMarker.bindPopup(`
+                <div class="p-2">
+                    <strong>${trackingData.partnerName}</strong><br>
+                    <small>Sedang menuju ke lokasi Anda</small>
+                </div>
+            `);
+
+            customerMarker.bindPopup(`
+                <div class="p-2">
+                    <strong>Lokasi Anda</strong><br>
+                    <small>${trackingData.location}</small>
+                </div>
+            `);
+
+            // Calculate and display route
+            calculateRoute(partnerLat, partnerLng, customerLat, customerLng);
+
+            // Fit bounds to show both markers
+            const bounds = L.latLngBounds([
+                [partnerLat, partnerLng],
+                [customerLat, customerLng]
+            ]);
+            map.fitBounds(bounds, { padding: [50, 50] });
+
+            // Hide loading overlay
+            document.getElementById('map-loading').style.display = 'none';
+
+            // Start tracking updates every 5 seconds
+            trackingInterval = setInterval(() => {
+                updatePartnerLocation();
+            }, 5000);
+        }
+
+        function calculateRoute(fromLat, fromLng, toLat, toLng) {
+            // Remove old routing control if exists
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+            
+            // Remove old polyline if exists
+            if (routePolyline) {
+                map.removeLayer(routePolyline);
+            }
+
+            // Create routing control (using OSRM - free routing service)
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(fromLat, fromLng),
+                    L.latLng(toLat, toLng)
+                ],
+                routeWhileDragging: false,
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: false,
+                showAlternatives: false,
+                lineOptions: {
+                    styles: [{
+                        color: '#2563eb',
+                        opacity: 0.8,
+                        weight: 5
+                    }]
+                },
+                createMarker: function() { return null; }, // Don't create default markers
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                })
+            }).addTo(map);
+
+            // Hide the routing instructions panel
+            const routingContainer = document.querySelector('.leaflet-routing-container');
+            if (routingContainer) {
+                routingContainer.style.display = 'none';
+            }
+
+            // Listen for route found event
+            routingControl.on('routesfound', function(e) {
+                const routes = e.routes;
+                const route = routes[0];
+                
+                // Get distance and time
+                const distanceKm = (route.summary.totalDistance / 1000).toFixed(1);
+                const timeMinutes = Math.ceil(route.summary.totalTime / 60);
+                
+                // Calculate ETA
+                const hours = Math.floor(timeMinutes / 60);
+                const minutes = timeMinutes % 60;
+                let etaText = '';
+                
+                if (hours > 0) {
+                    etaText = `${hours} jam ${minutes} menit`;
+                } else {
+                    etaText = `${minutes} menit`;
+                }
+
+                // Update UI
+                document.getElementById('distance-text').textContent = distanceKm + ' km';
+                document.getElementById('eta-time').textContent = etaText;
+            });
+
+            // Fallback: calculate straight-line distance if routing fails
+            routingControl.on('routingerror', function() {
+                const distance = calculateDistance(fromLat, fromLng, toLat, toLng);
+                const distanceKm = distance.toFixed(1);
+                
+                // Draw straight line as fallback
+                routePolyline = L.polyline([
+                    [fromLat, fromLng],
+                    [toLat, toLng]
+                ], {
+                    color: '#2563eb',
+                    weight: 5,
+                    opacity: 0.8,
+                    dashArray: '10, 10'
+                }).addTo(map);
+
+                // Estimate time (assuming 40 km/h average speed)
+                const estimatedMinutes = Math.ceil((distance / 40) * 60);
+                
+                document.getElementById('distance-text').textContent = distanceKm + ' km';
+                document.getElementById('eta-time').textContent = estimatedMinutes + ' menit (estimasi)';
+            });
+        }
+
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            // Haversine formula for distance calculation
+            const R = 6371; // Earth radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                     Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function updatePartnerLocation() {
+            // Fetch updated location via Livewire
+            @this.call('loadHelp').then(() => {
+                // Get updated tracking data from Alpine
+                const trackingData = Alpine.$data(document.querySelector('[x-data]')).trackingData;
+                
+                const newLat = trackingData.partnerLat;
+                const newLng = trackingData.partnerLng;
+                const customerLat = trackingData.customerLat;
+                const customerLng = trackingData.customerLng;
+
+                if (newLat && newLng && partnerMarker) {
+                    // Animate marker movement
+                    animateMarker(partnerMarker, [newLat, newLng]);
+
+                    // Recalculate route
+                    setTimeout(() => {
+                        calculateRoute(newLat, newLng, customerLat, customerLng);
+                    }, 1000);
+                }
+            });
+        }
+
+        function animateMarker(marker, newLatLng) {
+            const startLatLng = marker.getLatLng();
+            const endLatLng = L.latLng(newLatLng);
+            
+            let step = 0;
+            const numSteps = 50;
+            const deltaLat = (endLatLng.lat - startLatLng.lat) / numSteps;
+            const deltaLng = (endLatLng.lng - startLatLng.lng) / numSteps;
+
+            const moveMarker = setInterval(() => {
+                step++;
+                const lat = startLatLng.lat + (deltaLat * step);
+                const lng = startLatLng.lng + (deltaLng * step);
+                marker.setLatLng([lat, lng]);
+
+                if (step >= numSteps) {
+                    clearInterval(moveMarker);
+                }
+            }, 20);
+        }
+
+        // Cleanup when modal closes
+        window.addEventListener('beforeunload', () => {
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+            }
+        });
+
+        // Update Alpine data when Livewire refreshes
+        document.addEventListener('livewire:updated', () => {
+            // Update tracking data in Alpine
+            const alpineComponent = Alpine.$data(document.querySelector('[x-data]'));
+            if (alpineComponent && alpineComponent.trackingData) {
+                alpineComponent.trackingData.partnerLat = {{ $help->partner_current_lat ?? ($help->mitra->latitude ?? ($help->latitude ? $help->latitude - 0.01 : -6.2088)) }};
+                alpineComponent.trackingData.partnerLng = {{ $help->partner_current_lng ?? ($help->mitra->longitude ?? ($help->longitude ? $help->longitude - 0.01 : 106.8456)) }};
+                alpineComponent.trackingData.customerLat = {{ $help->latitude ?? -6.2088 }};
+                alpineComponent.trackingData.customerLng = {{ $help->longitude ?? 106.8456 }};
+            }
+
+            // Listen for modal close
+            if (!{{ $showMapModal ? 'true' : 'false' }}) {
+                if (trackingInterval) {
+                    clearInterval(trackingInterval);
+                }
+            }
+        });
+    </script>
     @endif
 
     {{-- Toast notification for copy --}}

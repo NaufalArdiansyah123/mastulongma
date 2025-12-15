@@ -1,43 +1,43 @@
 <div class="min-h-screen bg-white">
     <div class="max-w-md mx-auto">
-        <!-- Header - BRImo Style -->
-        <div class="px-5 pt-5 pb-20 relative overflow-hidden" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
-            <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+        <!-- Header - BRImo Style (smaller) -->
+        <div class="px-4 pt-4 pb-12 relative overflow-hidden" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
             
             <div class="relative z-10">
-                <div class="flex items-center justify-between text-white mb-6">
+                <div class="flex items-center justify-between text-white mb-4">
                     <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
 
-                    <h1 class="text-lg font-bold flex-1 text-center">Rating & Ulasan</h1>
+                    <h1 class="text-base font-semibold flex-1 text-center">Rating & Ulasan</h1>
 
                     <div class="w-9"></div>
                 </div>
 
-                <!-- Rating Summary Card -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center">
-                    <div class="flex items-center justify-center gap-2 mb-3">
+                <!-- Rating Summary Card (compact) -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center">
+                    <div class="flex items-center justify-center gap-2 mb-2">
                         @for($i = 1; $i <= 5; $i++)
                             @if($i <= $averageRating)
-                                <svg class="w-6 h-6 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                 </svg>
                             @else
-                                <svg class="w-6 h-6 text-white/30" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-white/30" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                 </svg>
                             @endif
                         @endfor
                     </div>
                     <div class="flex items-baseline justify-center gap-2">
-                        <span class="text-4xl font-bold text-white">{{ $averageRating }}</span>
-                        <span class="text-lg text-white/80">/5.0</span>
+                        <span class="text-3xl font-bold text-white">{{ $averageRating }}</span>
+                        <span class="text-sm text-white/80">/5.0</span>
                     </div>
-                    <p class="text-sm text-white/90 mt-2">{{ $totalRatings }} ulasan</p>
+                    <p class="text-sm text-white/90 mt-1">{{ $totalRatings }} ulasan</p>
                 </div>
             </div>
 

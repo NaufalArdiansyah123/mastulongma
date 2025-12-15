@@ -68,7 +68,7 @@ class Index extends Component
 
         $help->update([
             'mitra_id' => auth()->id(),
-            'status' => 'memperoleh_mitra',
+            'status' => 'taken',
             'taken_at' => now(),
         ]);
 

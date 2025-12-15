@@ -11,6 +11,10 @@ class Detail extends Component
     public $help;
     public $helpId;
     public $showCancelConfirm = false;
+    public $showMapModal = false;
+    public $showRatingForm = false;
+    public $rating = 0;
+    public $review = '';
 
     protected $listeners = [
         'refreshHelp' => '$refresh',
@@ -30,7 +34,7 @@ class Detail extends Component
             'mitra',
             'city',
             'category',
-            'rating'
+            'ratings'
         ])->findOrFail($this->helpId);
 
         // Check authorization
@@ -91,6 +95,92 @@ class Detail extends Component
     public function closeModal()
     {
         $this->showCancelConfirm = false;
+    }
+
+    public function showTrackingMap()
+    {
+        // Check if partner is on the way or at nearby statuses
+        if (!in_array($this->help->status, ['taken', 'partner_on_the_way', 'partner_arrived'])) {
+            session()->flash('error', 'Tracking hanya tersedia saat mitra sedang menuju lokasi.');
+            return;
+        }
+
+        // Reload help data to get latest coordinates
+        $this->loadHelp();
+
+        // Validate coordinates exist
+        if (!$this->help->latitude || !$this->help->longitude) {
+            session()->flash('error', 'Lokasi customer tidak tersedia.');
+            return;
+        }
+
+        // Check if we have partner location
+        $partnerLat = $this->help->partner_current_lat ?? $this->help->mitra->latitude ?? null;
+        $partnerLng = $this->help->partner_current_lng ?? $this->help->mitra->longitude ?? null;
+
+        if (!$partnerLat || !$partnerLng) {
+            session()->flash('error', 'Lokasi mitra belum tersedia. Mitra mungkin belum mengaktifkan GPS tracking.');
+            return;
+        }
+
+        $this->showMapModal = true;
+    }
+
+    public function closeMapModal()
+    {
+        $this->showMapModal = false;
+    }
+
+    public function submitRating()
+    {
+        $this->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'review' => 'nullable|string|max:500',
+        ], [
+            'rating.required' => 'Rating harus diisi',
+            'rating.min' => 'Rating minimal 1 bintang',
+            'rating.max' => 'Rating maksimal 5 bintang',
+            'review.max' => 'Review maksimal 500 karakter',
+        ]);
+
+        // Check if this user already rated this help (prevent duplicate from same user)
+        if (\App\Models\Rating::hasRated($this->help->id, auth()->id(), 'customer_to_mitra')) {
+            session()->flash('error', 'Anda sudah memberikan rating untuk pesanan ini.');
+            return;
+        }
+
+        // Check if order is completed
+        if (!in_array($this->help->status, ['selesai', 'completed'])) {
+            session()->flash('error', 'Rating hanya bisa diberikan untuk pesanan yang sudah selesai.');
+            return;
+        }
+
+        // Create rating
+        \App\Models\Rating::create([
+            'help_id' => $this->help->id,
+            'user_id' => auth()->id(), // Legacy field
+            'mitra_id' => $this->help->mitra_id, // Legacy field
+            'rater_id' => auth()->id(), // New field: who gives rating (customer)
+            'ratee_id' => $this->help->mitra_id, // New field: who receives rating (mitra)
+            'type' => 'customer_to_mitra',
+            'rating' => $this->rating,
+            'review' => $this->review,
+        ]);
+
+        // Reset form
+        $this->rating = 0;
+        $this->review = '';
+        $this->showRatingForm = false;
+
+        // Reload help
+        $this->loadHelp();
+
+        session()->flash('success', 'Terima kasih atas rating Anda!');
+    }
+
+    public function setRating($value)
+    {
+        $this->rating = $value;
     }
 
     public function confirmCompletion()
