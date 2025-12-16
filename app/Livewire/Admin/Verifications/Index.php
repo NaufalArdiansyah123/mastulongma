@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\Registration;
+use App\Models\User;
 
 #[Layout('layouts.admin')]
 class Index extends Component
@@ -40,6 +41,25 @@ class Index extends Component
             return;
         }
         $reg->update(['status' => 'approved']);
+
+        // Jika ada user terkait (dibuat saat registrasi step4), update status dan verifikasi
+        try {
+            if (!empty($reg->email)) {
+                $user = User::where('email', $reg->email)->first();
+                if ($user) {
+                    $user->verified = true;
+                    $user->status = 'active';
+                    // Mark email_verified_at as now if column exists
+                    if (array_key_exists('email_verified_at', $user->getAttributes())) {
+                        $user->email_verified_at = now();
+                    }
+                    $user->save();
+                }
+            }
+        } catch (\Exception $e) {
+            // do not block admin action if user update fails
+        }
+
         session()->flash('message', 'Registrasi disetujui.');
         $this->closeModal();
     }
@@ -52,6 +72,21 @@ class Index extends Component
             return;
         }
         $reg->update(['status' => 'rejected']);
+
+        // Jika ada user terkait, pastikan tetap non-aktif / tidak terverifikasi
+        try {
+            if (!empty($reg->email)) {
+                $user = User::where('email', $reg->email)->first();
+                if ($user) {
+                    $user->verified = false;
+                    $user->status = 'inactive';
+                    $user->save();
+                }
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+
         session()->flash('message', 'Registrasi ditolak.');
         $this->closeModal();
     }

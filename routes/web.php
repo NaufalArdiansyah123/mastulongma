@@ -92,6 +92,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Chat (optional help id for opening detail directly)
         Route::get('/chat/{help?}', \App\Livewire\Mitra\Chat\Index::class)->name('chat');
 
+        // Notifications (Mitra)
+        Route::get('/notifications', \App\Livewire\Mitra\Notifications\Index::class)->name('notifications.index');
+
         // Reports
         Route::get('/reports/create', \App\Livewire\Mitra\Reports\Create::class)->name('reports.create');
         Route::get('/reports/create/user/{user_id}', \App\Livewire\Mitra\Reports\Create::class)->name('reports.create.user');

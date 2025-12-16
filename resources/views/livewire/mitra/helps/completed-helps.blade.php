@@ -1,118 +1,172 @@
-<!-- Mitra Completed Helps Page (grouped) -->
-<!-- Migrated content from resources/views/livewire/mitra/completed-helps.blade.php -->
-<div class="max-w-md mx-auto min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 px-6 pt-6 pb-24">
-        <div class="flex items-center justify-between mb-6">
-            <a href="{{ route('mitra.dashboard') }}" class="text-white">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            <h1 class="text-xl font-bold text-white">Bantuan Selesai</h1>
-            <div class="w-6"></div>
-        </div>
+<div class="min-h-screen bg-white">
+    <div class="max-w-md mx-auto">
+        <!-- Header - BRImo Style -->
+        <div class="px-5 pt-5 pb-8 relative overflow-hidden" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+            
+            <div class="relative z-10">
+                <div class="flex items-center justify-between text-white mb-6">
+                    <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
 
-        <!-- Search Bar -->
-        <div class="relative">
-            <input type="text" wire:model.debounce.400ms="search" placeholder="Cari judul atau deskripsi..."
-                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-90 text-gray-900 placeholder-gray-500 focus:bg-opacity-100 focus:ring-2 focus:ring-blue-300 outline-none transition">
-            <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none"
-                stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-        </div>
-    </div>
+                    <div class="text-center flex-1">
+                        <h1 class="text-lg font-bold">Riwayat Bantuan</h1>
+                        <p class="text-xs text-white/90 mt-0.5">Bantuan yang telah selesai</p>
+                    </div>
 
-    <!-- List -->
-    <div class="px-6 pb-24 space-y-3 -mt-16 relative z-10">
-        @if($helps->count() > 0)
-            @foreach($helps as $help)
-                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex-shrink-0">
-                            @if($help->photo)
-                                <div class="w-12 h-12 rounded-md overflow-hidden">
-                                    <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}"
-                                        class="w-full h-full object-cover">
-                                </div>
-                            @else
-                                <div
-                                    class="w-12 h-12 rounded-md bg-gradient-to-br from-orange-300 to-orange-400 flex items-center justify-center text-white font-semibold text-sm">
-                                    {{ strtoupper(substr($help->user->name ?? 'U', 0, 1)) }}
-                                </div>
-                            @endif
-                        </div>
+                    <div class="w-9"></div>
+                </div>
 
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-2 mb-1">
-                                <h3 class="font-semibold text-gray-900 text-sm">
-                                    {{ $help->title ?? ($help->description ? Str::limit($help->description, 40) : 'Bantuan') }}
-                                </h3>
-                                <span
-                                    class="text-xs text-gray-500 flex-shrink-0">{{ $help->completed_at ? $help->completed_at->diffForHumans() : $help->created_at->diffForHumans() }}</span>
-                            </div>
-                            <p class="text-xs text-gray-600 mb-2 line-clamp-2">{{ $help->description }}</p>
+                {{-- Stats Cards --}}
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+                        <div class="text-2xl font-bold text-white">{{ $helps->total() ?? 0 }}</div>
+                        <div class="text-xs text-white/80 mt-1">Selesai</div>
+                    </div>
 
-                            <div class="flex items-center gap-3 flex-wrap">
-                                <span class="text-sm font-bold text-green-600">Rp
-                                    {{ number_format($help->amount ?? $help->estimated_price ?? 0, 0, ',', '.') }}</span>
-                                @if($help->city)
-                                    <span class="text-xs text-gray-500 flex items-center gap-0.5">
-                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                                        </svg>
-                                        {{ $help->city->name ?? 'Lokasi' }}
-                                    </span>
-                                @endif
-                            </div>
-                            <div class="mt-2 flex items-center gap-3 flex-wrap">
-                                {{-- Rating summary if exists --}}
-                                @if(optional($help->rating)->rating)
-                                    <div
-                                        class="ml-2 bg-amber-50 px-2 py-1 rounded-md text-amber-800 text-xs flex items-center gap-1">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            <svg class="w-3 h-3 {{ $i <= ($help->rating->rating ?? 0) ? 'text-amber-400' : 'text-gray-200' }}"
-                                                fill="currentColor" viewBox="0 0 20 20">
-                                                <path
-                                                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                        @endfor
-                                        <span class="ml-1 font-medium">{{ $help->rating->rating ?? 0 }}</span>
-                                    </div>
-                                @endif
-                                
-                                {{-- Rating customer button --}}
-                                @php
-                                    $customerRated = \App\Models\Rating::hasRated($help->id, auth()->id(), 'mitra_to_customer');
-                                @endphp
-                                @if($customerRated)
-                                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-md">✓ Customer telah dinilai</span>
-                                @else
-                                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-md">Selesai</span>
-                                @endif
-                            </div>
-                        </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+                        <div class="text-xs text-white/80 mb-1">Total Nilai</div>
+                        <div class="text-sm font-bold text-white">Rp {{ number_format($helps->sum('amount') ?? 0, 0, ',', '.') }}</div>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+                        <div class="text-2xl font-bold text-white">{{ $helps->unique('user_id')->count() ?? 0 }}</div>
+                        <div class="text-xs text-white/80 mt-1">Customer</div>
                     </div>
                 </div>
-            @endforeach
+            </div>
 
-            <div class="mt-6 mb-6">
-                {{ $helps->links('pagination::tailwind') }}
+            <!-- Curved separator -->
+            <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,32 C360,72 1080,0 1440,40 L1440,72 L0,72 Z" fill="#ffffff"></path>
+            </svg>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-t-3xl -mt-6 px-5 pt-6 pb-24">
+
+                {{-- List --}}
+                @if(isset($helps) && $helps->isEmpty())
+                    <div class="text-center py-16">
+                        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Belum Ada Riwayat</h3>
+                        <p class="text-sm text-gray-500 mb-6">Belum ada bantuan yang selesai</p>
+                    </div>
+                @elseif(isset($helps))
+                    <div class="space-y-3">
+                        @foreach($helps as $help)
+                            <div x-data="{ open: false }" class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                                <div class="p-4">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-50">
+                                            @if($help->photo)
+                                                <img src="{{ asset('storage/' . $help->photo) }}" alt="foto" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="w-full h-full flex items-center justify-center">
+                                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="font-semibold text-gray-900 truncate">{{ $help->title ?? 'Permintaan Bantuan' }}</h3>
+                                            <p class="text-xs text-gray-500 truncate">{{ optional($help->city)->name }} • {{ optional($help->updated_at)->format('d M Y') }}</p>
+                                        </div>
+
+                                        <div class="text-right flex-shrink-0">
+                                            <div class="text-sm font-bold" style="color: #0098e7;">Rp {{ number_format($help->amount ?? 0, 0, ',', '.') }}</div>
+                                            <div class="flex flex-col items-end mt-1">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    Selesai
+                                                </span>
+                                                @php
+                                                    $customerRatedCard = \App\Models\Rating::hasRated($help->id, auth()->id(), 'mitra_to_customer');
+                                                @endphp
+                                                @if($customerRatedCard)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-medium mt-2">✓ Dinilai</span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 text-xs font-medium mt-2">Belum dinilai</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button @click="open = !open" class="w-full flex items-center justify-center gap-2 text-sm font-semibold py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition" style="color: #0098e7;">
+                                        <span x-text="open ? 'Sembunyikan Detail' : 'Lihat Detail'"></span>
+                                        <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div x-show="open" x-cloak x-transition class="px-4 pb-4 border-t border-gray-100 mt-3 pt-4">
+                                    <div class="space-y-4">
+                                        @if($help->photo)
+                                            <img src="{{ asset('storage/' . $help->photo) }}" alt="foto bantuan" class="w-full h-48 object-cover rounded-xl">
+                                        @endif
+
+                                        @if($help->description)
+                                            <div>
+                                                <h4 class="text-sm font-semibold text-gray-900 mb-2">Deskripsi</h4>
+                                                <p class="text-sm text-gray-700 leading-relaxed">{{ $help->description }}</p>
+                                            </div>
+                                        @endif
+
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <div class="text-xs text-gray-500 mb-1">Lokasi</div>
+                                                <div class="text-sm text-gray-900">{{ $help->full_address ?? optional($help->city)->name ?? '-' }}</div>
+                                            </div>
+
+                                            @if($help->user)
+                                                <div>
+                                                    <div class="text-xs text-gray-500 mb-1">Customer</div>
+                                                    <div class="text-sm text-gray-900">{{ $help->user->name }}</div>
+                                                    @if($help->user->phone)
+                                                        <a href="tel:{{ $help->user->phone }}" class="text-xs font-semibold" style="color: #0098e7;">{{ $help->user->phone }}</a>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <div class="text-xs text-gray-500">
+                                            Selesai pada: <span class="text-gray-700 font-medium">{{ optional($help->updated_at)->format('d M Y H:i') }}</span>
+                                        </div>
+
+                                        {{-- Rating form for mitra -> customer (shown when not yet rated) --}}
+                                        @if($help->user && !\App\Models\Rating::hasRated($help->id, auth()->id(), 'mitra_to_customer'))
+                                            <div class="pt-3 border-t border-gray-100">
+                                                @livewire('mitra.rate-customer', ['helpId' => $help->id])
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if($helps->hasPages())
+                        <div class="mt-6">
+                            {{ $helps->links() }}
+                        </div>
+                    @endif
+                @else
+                    <div class="text-center py-8 text-gray-600">Data riwayat belum tersedia.</div>
+                @endif
             </div>
-        @else
-            <div class="flex flex-col items-center justify-center py-20 text-center">
-                <div class="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
-                </div>
-                <p class="text-gray-600 font-medium text-base mb-1">Belum ada bantuan yang diambil</p>
-                <p class="text-gray-400 text-sm">Ambil beberapa permintaan bantuan untuk melihat daftar ini.</p>
-            </div>
-        @endif
+        </div>
     </div>
 </div>

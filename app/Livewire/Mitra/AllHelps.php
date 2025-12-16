@@ -3,6 +3,8 @@
 namespace App\Livewire\Mitra;
 
 use App\Models\Help;
+use App\Models\User;
+use App\Notifications\HelpTakenNotification;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -100,6 +102,16 @@ class AllHelps extends Component
         ]);
 
         session()->flash('message', 'Bantuan berhasil diambil. Silakan hubungi pengguna.');
+
+        // Create a notification for the customer so it appears in their notifications page
+        try {
+            $customer = User::find($help->user_id);
+            if ($customer) {
+                $customer->notify(new HelpTakenNotification($helpId, auth()->id(), optional(auth()->user())->name));
+            }
+        } catch (\Throwable $e) {
+            // ignore notification failures
+        }
 
         // Emit event untuk redirect ke detail page
         $this->dispatch('help-taken', helpId: $helpId);

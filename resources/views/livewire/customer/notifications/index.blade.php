@@ -100,8 +100,20 @@
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-start justify-between">
                                         <div>
-                                            <h3 class="text-sm font-semibold text-gray-900">{{ $data['title'] ?? (isset($data['type']) && $data['type']==='help_taken' ? 'Bantuan Diambil' : 'Notifikasi') }}</h3>
-                                            <p class="text-xs text-gray-500 mt-0.5">{{ $notification->created_at->diffForHumans() }}</p>
+                                                @php
+                                                    // Determine title based on notification payload
+                                                    if(isset($data['type']) && $data['type'] === 'chat_message') {
+                                                        $titleText = 'Pesan dari ' . ($data['from_name'] ?? 'Mitra');
+                                                    } elseif(isset($data['type']) && $data['type'] === 'help_taken') {
+                                                        $titleText = $data['title'] ?? ('Bantuan Diambil oleh ' . ($data['mitra_name'] ?? 'mitra'));
+                                                    } else {
+                                                        $titleText = $data['title'] ?? 'Notifikasi';
+                                                    }
+                                                    $bodyText = $data['message'] ?? ($data['body'] ?? 'Notifikasi baru');
+                                                @endphp
+
+                                                <h3 class="text-sm font-semibold text-gray-900">{{ $titleText }}</h3>
+                                                <p class="text-xs text-gray-500 mt-0.5">{{ $notification->created_at->diffForHumans() }}</p>
                                         </div>
                                         @if(isset($data['help_amount']))
                                             <div class="ml-2 text-right">
@@ -110,7 +122,11 @@
                                         @endif
                                     </div>
 
-                                    <p class="text-sm text-gray-700 mt-2">{{ $data['message'] ?? 'Notifikasi baru' }}</p>
+                                    <p class="text-sm text-gray-700 mt-2">{{ $bodyText }}</p>
+
+                                    @if(isset($data['from_name']) || isset($data['mitra_name']))
+                                        <div class="text-xs text-gray-500 mt-2">Dari: {{ $data['from_name'] ?? $data['mitra_name'] ?? '-' }}</div>
+                                    @endif
 
                                     <div class="flex items-center gap-4 mt-3">
                                         @if($isUnread)

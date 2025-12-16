@@ -13,6 +13,7 @@ class RateCustomer extends Component
     public $review = '';
     public $showModal = false;
     public $alreadyRated = false;
+    public $inline = false;
 
     protected $rules = [
         'rating' => 'required|integer|min:1|max:5',
@@ -26,9 +27,10 @@ class RateCustomer extends Component
         'review.max' => 'Review maksimal 500 karakter',
     ];
 
-    public function mount($helpId)
+    public function mount($helpId, $inline = false)
     {
         $this->help = Help::with('customer')->findOrFail($helpId);
+        $this->inline = (bool) $inline;
         
         // Check if mitra already rated this customer
         $this->alreadyRated = Rating::hasRated(
@@ -94,8 +96,11 @@ class RateCustomer extends Component
         
         $this->alreadyRated = true;
         $this->closeModal();
-        
-        // Refresh the component
+
+        // Notify parent Livewire listeners that a rating was submitted
+        // use emit so the parent component with a listener receives it
+        $this->emit('ratingSubmitted', $this->help->id);
+        // also dispatch a browser event for any frontend listeners
         $this->dispatch('rating-submitted');
     }
 

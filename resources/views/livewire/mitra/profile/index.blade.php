@@ -118,7 +118,7 @@
                 </a>
 
                 <!-- Riwayat Bantuan -->
-                <a href="{{ route('mitra.helps.all') }}" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col items-center gap-3 hover:shadow-md hover:border-primary-200 transition">
+                <a href="{{ route('mitra.helps.completed') }}" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col items-center gap-3 hover:shadow-md hover:border-primary-200 transition">
                     <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-green-400 to-green-600">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -15,7 +15,7 @@ class LocationTrackingService
     /**
      * Jarak maksimum untuk menganggap mitra sudah tiba di lokasi (dalam meter)
      */
-    const ARRIVAL_THRESHOLD = 50;
+    const ARRIVAL_THRESHOLD = 20;
 
     /**
      * Hitung jarak antara dua titik koordinat menggunakan formula Haversine
@@ -143,6 +143,16 @@ class LocationTrackingService
         }
 
         $help->save();
+
+        // Notify the customer via database notification when status changed
+        if ($statusChanged && $help->user) {
+            try {
+                $help->user->notify(new \App\Notifications\HelpStatusNotification($help, $oldStatus, $help->status, $help->mitra));
+                Log::info('Sent HelpStatusNotification to customer', ['help_id' => $help->id, 'old_status' => $oldStatus, 'new_status' => $help->status]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to send HelpStatusNotification: ' . $e->getMessage(), ['help_id' => $help->id]);
+            }
+        }
 
         return [
             'success' => true,

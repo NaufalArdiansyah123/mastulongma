@@ -20,9 +20,8 @@ new #[Layout('layouts.guest')] class extends Component {
     }
 }; ?>
 
-<div
-    class="min-h-screen bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 flex items-center justify-center">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-lg">
+<div class="w-full">
+    <div class="bg-white rounded-2xl p-8 w-full shadow-lg max-w-md mx-auto">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">Pilih Peran Anda</h2>
         <p class="text-sm text-gray-600 mb-6">Pilih apakah Anda mendaftar sebagai Customer atau Mitra.</p>
 

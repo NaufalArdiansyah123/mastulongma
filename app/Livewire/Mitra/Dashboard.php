@@ -5,6 +5,7 @@ namespace App\Livewire\Mitra;
 use App\Models\Help;
 use App\Models\UserBalance;
 use App\Services\LocationTrackingService;
+use App\Notifications\HelpTakenNotification;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -60,12 +61,25 @@ class Dashboard extends Component
             $locationService->setInitialLocation($help, $latitude, $longitude);
         }
 
+        // Send notification to customer that their help has been taken
+        try {
+            if ($help->user) {
+                $help->user->notify(new HelpTakenNotification($help, auth()->user()));
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Failed to send HelpTakenNotification', ['error' => $e->getMessage()]);
+        }
+
         session()->flash('message', 'Bantuan berhasil diambil! GPS tracking aktif. Segera menuju lokasi customer.');
         
         // Emit event untuk mulai GPS tracking
         $this->dispatch('start-gps-tracking', helpId: $helpId);
         
         $this->setTab('diproses');
+
+        // Redirect mitra to the help detail page so they can see full info and navigation
+        // Use Livewire helper to redirect to named route
+        return $this->redirectRoute('mitra.helps.detail', ['id' => $helpId]);
     }
 
     public function completeHelp($helpId)
@@ -178,6 +192,17 @@ class Dashboard extends Component
             ->take(6)
             ->get();
 
+        // Unread chat count for mitra (messages sent by customers not yet read)
+        $unreadChatCount = 0;
+        try {
+            $unreadChatCount = \App\Models\Chat::where('mitra_id', $user->id)
+                ->whereNull('read_at')
+                ->where('sender_type', 'customer')
+                ->count();
+        } catch (\Exception $e) {
+            // ignore if Chat model or columns missing
+        }
+
         return view('livewire.mitra.dashboard.index', [
             'helps' => $helps,
             'balance' => $balance,
@@ -188,6 +213,7 @@ class Dashboard extends Component
             'recommendedHelps' => $recommendedHelps,
             'latestHelps' => $latestHelps,
             'nearbyHelps' => $nearbyHelps,
+            'unreadChatCount' => $unreadChatCount,
         ]);
     }
 }

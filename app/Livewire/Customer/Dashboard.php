@@ -127,12 +127,24 @@ class Dashboard extends Component
             $myHelps = collect();
         }
 
+        // Unread chats for customer (messages sent by mitra not yet read)
+        $unreadChatCount = 0;
+        try {
+            $unreadChatCount = \App\Models\Chat::where('customer_id', $user->id)
+                ->whereNull('read_at')
+                ->where('sender_type', 'mitra')
+                ->count();
+        } catch (\Exception $e) {
+            // ignore if Chat model or columns missing
+        }
+
         return view('livewire.customer.dashboard', [
             'stats' => $stats,
             'myHelps' => $myHelps,
             'availableHelps' => $availableHelps,
             'balance' => $balance,
             'activeTab' => $this->activeTab,
+            'unreadChatCount' => $unreadChatCount,
         ]);
     }
 }

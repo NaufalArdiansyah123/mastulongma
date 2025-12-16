@@ -61,11 +61,7 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('customer.notifications.index') }}" class="bg-white/10 backdrop-blur-sm p-2 rounded-lg hover:bg-white/20 transition">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                    </a>
+                    @include('components.notification-icon', ['route' => route('customer.notifications.index'), 'class' => 'bg-white/10 backdrop-blur-sm p-2 rounded-lg hover:bg-white/20 transition'])
                 </div>
             </div>
 
@@ -184,10 +180,15 @@
                         <span class="text-[10px] font-medium text-gray-700 text-center">Profil</span>
                     </a>
                     <a href="{{ route('customer.chat') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">
-                            <svg class="w-5 h-5" style="color: #0098e7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-5 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-1l-4 4z" />
-                            </svg>
+                        <div class="relative">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">
+                                <svg class="w-5 h-5" style="color: #0098e7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-5 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-1l-4 4z" />
+                                </svg>
+                            </div>
+                            @if(!empty($unreadChatCount) && $unreadChatCount > 0)
+                                <span class="absolute -top-1 -right-2 inline-flex items-center justify-center text-[10px] font-semibold bg-red-500 text-white rounded-full px-1.5 py-0.5 shadow">{{ $unreadChatCount > 99 ? '99+' : $unreadChatCount }}</span>
+                            @endif
                         </div>
                         <span class="text-[10px] font-medium text-gray-700 text-center">Chat</span>
                     </a>

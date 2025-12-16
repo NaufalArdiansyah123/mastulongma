@@ -67,35 +67,28 @@ new #[Layout('layouts.guest')] class extends Component {
     }
 }; ?>
 
-<div class="bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 flex flex-col overflow-hidden shadow-2xl"
-    style="height: 100vh; max-height: 100vh;">
-
-    <!-- Header -->
-    <div class="flex-shrink-0 pt-6 pb-4 px-6">
-        <div class="flex items-center justify-between">
-            <button wire:click="previousStep" class="text-white">
+<div class="w-full">
+    <div class="bg-white rounded-2xl p-6 w-full shadow-lg max-w-md mx-auto">
+        <div class="flex items-center justify-between mb-4">
+            <button wire:click="previousStep" class="text-gray-500">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <h1 class="text-xl font-bold text-white">Foto Selfie</h1>
+            <h1 class="text-lg font-bold text-gray-900">Foto Selfie</h1>
             <div class="w-6"></div>
         </div>
 
-        <!-- Progress Indicator -->
-        <div class="mt-4 flex items-center gap-2">
-            <div class="flex-1 h-1 bg-white rounded-full"></div>
-            <div class="flex-1 h-1 bg-white rounded-full"></div>
-            <div class="flex-1 h-1 bg-white rounded-full"></div>
-            <div class="flex-1 h-1 bg-white/30 rounded-full"></div>
+        <div class="flex items-center gap-2 mb-4">
+            <div class="flex-1 h-1 bg-gray-200 rounded-full"></div>
+            <div class="flex-1 h-1 bg-gray-200 rounded-full"></div>
+            <div class="flex-1 h-1 bg-gray-200 rounded-full"></div>
+            <div class="flex-1 h-1 bg-gray-200 rounded-full"></div>
         </div>
-        <p class="text-white/90 text-sm mt-2 text-center">Step 3 of 4</p>
-    </div>
+        <p class="text-sm text-gray-500 mb-4 text-center">Step 3 of 4</p>
 
-    <!-- Card Container -->
-    <div class="flex-1 flex flex-col bg-gray-50 rounded-t-[2.5rem] overflow-y-auto px-6 py-6">
-        <form wire:submit="nextStep" class="flex-1 flex flex-col">
-            <div class="flex-1">
+        <form wire:submit="nextStep" class="">
+            <div>
                 <p class="text-sm text-gray-600 mb-4">Upload foto selfie sambil memegang KTP Anda</p>
 
                 <!-- Upload Area -->

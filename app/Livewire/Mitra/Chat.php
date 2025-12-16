@@ -8,6 +8,8 @@ use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\ChatMessageNotification;
+use Illuminate\Support\Str;
 
 class Chat extends Component
 {
@@ -100,7 +102,7 @@ class Chat extends Component
         // Get help and customer info
         $help = Help::findOrFail($this->selected_help_id);
 
-        ChatModel::create([
+        $chat = ChatModel::create([
             'help_id' => $this->selected_help_id,
             'mitra_id' => Auth::id(),
             'customer_id' => $help->user_id,
@@ -109,7 +111,13 @@ class Chat extends Component
         ]);
 
         $this->message = '';
-        $this->dispatch('message-sent');
+        // Dispatch message-sent with helpId so listeners can link to the conversation
+        $this->dispatch('message-sent', helpId: $this->selected_help_id);
+        // Notify the customer
+        $customer = User::find($help->user_id);
+        if ($customer) {
+            $customer->notify(new ChatMessageNotification($this->selected_help_id, Str::limit($this->message, 150), Auth::id(), optional(Auth::user())->name));
+        }
     }
 
     // Select help for chat

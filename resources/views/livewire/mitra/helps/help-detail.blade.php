@@ -139,8 +139,8 @@
             </div>
         </div>
 
-        {{-- GPS Simulator (Only in non-production) --}}
-        @if(config('app.env') !== 'production' && $help->mitra_id === auth()->id() && !in_array($help->status, ['selesai', 'dibatalkan']))
+        {{-- GPS Simulator (toggle via GPS_SIMULATOR env) --}}
+        @if(config('app.gps_simulator', true) && $help->mitra_id === auth()->id() && !in_array($help->status, ['selesai', 'dibatalkan']))
             <div class="mb-3">
                 <livewire:mitra.gps-simulator :help-id="$help->id" :key="'gps-simulator-'.$help->id" />
             </div>

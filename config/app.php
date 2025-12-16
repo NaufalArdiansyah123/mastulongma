@@ -86,6 +86,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Feature Toggles
+    |--------------------------------------------------------------------------
+    |
+    | Small feature flags controlled via environment variables. Add flags
+    | here so they can be toggled without editing views. Example:
+    |
+    | GPS_SIMULATOR=false
+    |
+    */
+
+    'gps_simulator' => env('GPS_SIMULATOR', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |
