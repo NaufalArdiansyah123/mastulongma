@@ -82,8 +82,12 @@ class Create extends Component
                 $photoPath = $this->photo->store('helps', 'public');
             }
 
+            // Generate unique order id for this help
+            $orderId = $this->generateOrderId();
+
             $help = Help::create([
                 'user_id' => $userId,
+                'order_id' => $orderId,
                 'city_id' => $this->city_id,
                 'title' => $this->title,
                 'amount' => $amount,
@@ -146,6 +150,26 @@ class Create extends Component
     {
         $this->showInsufficientModal = false;
         $this->insufficientMessage = '';
+    }
+
+    /**
+     * Generate a unique order id for a Help record.
+     * Format: HELP-YYYYMMDDHHIISS-<random4>
+     */
+    private function generateOrderId()
+    {
+        // Try a few times to avoid collision
+        for ($i = 0; $i < 5; $i++) {
+            $candidate = 'HELP-' . date('YmdHis') . '-' . random_int(1000, 9999);
+            if (!Help::where('order_id', $candidate)->exists()) {
+                return $candidate;
+            }
+            // small sleep to change timestamp if collision
+            usleep(200);
+        }
+
+        // Fallback - use uniqid
+        return 'HELP-' . uniqid();
     }
 
     public function render()

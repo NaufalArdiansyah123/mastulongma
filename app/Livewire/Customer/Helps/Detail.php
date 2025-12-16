@@ -42,10 +42,22 @@ class Detail extends Component
             abort(403, 'Unauthorized access');
         }
 
+        // Dispatch event untuk update tracking data
+        if ($this->showMapModal && in_array($this->help->status, ['taken', 'partner_on_the_way', 'partner_arrived'])) {
+            $this->dispatch('tracking-data-updated', [
+                'partnerLat' => $this->help->partner_current_lat ?? ($this->help->mitra->latitude ?? ($this->help->latitude ? $this->help->latitude - 0.01 : -6.2088)),
+                'partnerLng' => $this->help->partner_current_lng ?? ($this->help->mitra->longitude ?? ($this->help->longitude ? $this->help->longitude - 0.01 : 106.8456)),
+                'customerLat' => $this->help->latitude ?? -6.2088,
+                'customerLng' => $this->help->longitude ?? 106.8456,
+            ]);
+        }
+
         // Log untuk debug
         Log::info('Customer Help Detail - Data Refreshed', [
             'help_id' => $this->help->id,
             'status' => $this->help->status,
+            'partner_current_lat' => $this->help->partner_current_lat,
+            'partner_current_lng' => $this->help->partner_current_lng,
             'partner_on_the_way' => $this->help->status === 'partner_on_the_way',
             'partner_started_moving_at' => $this->help->partner_started_moving_at,
             'partner_arrived_at' => $this->help->partner_arrived_at
@@ -124,6 +136,9 @@ class Detail extends Component
         }
 
         $this->showMapModal = true;
+        
+        // Dispatch event to frontend to initialize map
+        $this->dispatch('mapModalOpened');
     }
 
     public function closeMapModal()

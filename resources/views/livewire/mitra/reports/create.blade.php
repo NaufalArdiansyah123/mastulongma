@@ -1,46 +1,48 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 pb-32">
-    <div class="max-w-3xl mx-auto">
-        <!-- Header Section -->
-        <div class="mb-8">
-            <a href="{{ route('mitra.dashboard') }}"
-                class="inline-flex items-center text-primary-600 hover:text-primary-700 mb-6 transition-colors group">
-                <div class="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center mr-2 group-hover:bg-primary-100 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+<div class="min-h-screen bg-gray-50">
+    <!-- Header - BRImo style -->
+    <div class="px-5 pt-5 pb-8 relative overflow-hidden" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+        <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+
+        <div class="relative z-10 max-w-md mx-auto">
+            <div class="flex items-center justify-between text-white mb-6">
+                <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
+                </button>
+
+                <div class="text-center flex-1 px-2">
+                    <h1 class="text-lg font-bold">Buat Laporan Aduan</h1>
+                    <p class="text-xs text-white/90 mt-0.5">Laporkan masalah atau kendala yang Anda alami</p>
                 </div>
-                <span class="font-medium">Kembali ke Dashboard</span>
-            </a>
-            
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                    </div>
-                    <div class="flex-1">
-                        <h1 class="text-2xl font-bold text-gray-900 mb-1">Buat Laporan Aduan</h1>
-                        <p class="text-sm text-gray-600">Laporkan masalah atau kendala yang Anda alami. Tim kami akan segera merespons laporan Anda.</p>
-                    </div>
-                </div>
+
+                <div class="w-9"></div>
             </div>
         </div>
 
-        @if (session('message'))
-            <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-xl shadow-sm">
-                <div class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <p class="text-sm font-medium text-green-800">{{ session('message') }}</p>
-                </div>
-            </div>
-        @endif
+        <!-- Curved separator -->
+        <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,32 C360,72 1080,0 1440,40 L1440,72 L0,72 Z" fill="#f9fafb"></path>
+        </svg>
+    </div>
 
-        <!-- Form Card -->
-        <form wire:submit.prevent="submit" class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <!-- Content container -->
+    <div class="bg-gray-50 -mt-6 px-5 pt-6 pb-8 max-w-md mx-auto">
+        <div class="max-w-md mx-auto">
+            @if (session('message'))
+                <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-xl shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <p class="text-sm font-medium text-green-800">{{ session('message') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Form Card -->
+            <form wire:submit.prevent="submit" class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
             <!-- Form Header -->
             <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">

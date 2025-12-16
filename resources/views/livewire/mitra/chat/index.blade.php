@@ -8,7 +8,11 @@
 
             <div class="relative z-10">
                 <div class="flex items-center justify-between text-white mb-3">
-                    <div class="w-8"></div>
+                    <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
                     <div class="text-center flex-1">
                         <h1 class="text-lg font-bold">Chat</h1>
                         <p class="text-xs text-white/90 mt-0.5">Percakapan antara Anda dan customer</p>
@@ -43,7 +47,13 @@
                                     class="w-full px-3 py-3 rounded-xl hover:shadow-md transition text-left {{ $selected_help_id === $conversation->id ? 'bg-primary-50 border border-primary-200' : 'bg-white border border-gray-100' }}">
                                     <div class="flex items-start gap-3">
                                         <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center text-lg">
-                                            {{ strtoupper(substr($conversation->user->name ?? 'U', 0, 1)) }}
+                                            @if(optional($conversation->user)->selfie_photo)
+                                                <img src="{{ asset('storage/' . optional($conversation->user)->selfie_photo) }}" alt="User" class="w-full h-full object-cover">
+                                            @elseif(optional($conversation->user)->photo)
+                                                <img src="{{ asset('storage/' . optional($conversation->user)->photo) }}" alt="User" class="w-full h-full object-cover">
+                                            @else
+                                                {{ strtoupper(substr($conversation->user->name ?? 'U', 0, 1)) }}
+                                            @endif
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-start justify-between gap-2 mb-1">
@@ -78,7 +88,15 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
-                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">{{ strtoupper(substr($selected_help->user->name ?? 'U',0,1)) }}</div>
+                            <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                                @if(optional($selected_help->user)->selfie_photo)
+                                    <img src="{{ asset('storage/' . optional($selected_help->user)->selfie_photo) }}" alt="User" class="w-full h-full object-cover">
+                                @elseif(optional($selected_help->user)->photo)
+                                    <img src="{{ asset('storage/' . optional($selected_help->user)->photo) }}" alt="User" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full bg-blue-600 text-white flex items-center justify-center font-semibold">{{ strtoupper(substr($selected_help->user->name ?? 'U',0,1)) }}</div>
+                                @endif
+                            </div>
                             <div class="flex-1 min-w-0">
                                 <div class="font-semibold text-sm text-gray-900 truncate">{{ $selected_help->user->name ?? 'Customer' }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ Str::limit($selected_help->description, 60) }}</div>

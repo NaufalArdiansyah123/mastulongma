@@ -68,6 +68,10 @@
                         class="block w-full text-center bg-primary-500 text-white px-4 py-2 rounded-lg">Lihat Halaman
                         Bantuan</a>
                 </div>
+                <!-- Inline rating component mount point (for mitra to rate customer inside this modal) -->
+                <div id="help-modal-rate-wrap" class="mt-3 px-0">
+                    @livewire('mitra.rate-customer', ['helpId' => null, 'inline' => true], key('help-modal-rate'))
+                </div>
             </div>
         </div>
     </div>
@@ -93,6 +97,8 @@
                     return v;
                 }
             }
+
+            let _currentHelpId = null;
 
             function fill(help) {
                 if (!help) return;
@@ -144,9 +150,22 @@
                 // Ratings
                 document.getElementById('help-modal-ratings').textContent = 'Ulasan: ' + ((help.ratings && help.ratings.length) ? help.ratings.length : 0);
 
+                // remember current help id for browser event handling
+                _currentHelpId = help.id || null;
+
                 // Detail link
                 if (help.id) {
                     document.getElementById('help-modal-detail-link').href = '/mitra/help/' + help.id;
+                }
+
+                // If a Livewire inline rating component is present, tell it to load this help
+                try {
+                    if (window.Livewire && typeof window.Livewire.emitTo === 'function') {
+                        // component name is 'mitra.rate-customer' and key is 'help-modal-rate'
+                        window.Livewire.emitTo('mitra.rate-customer', 'loadHelp', help.id);
+                    }
+                } catch (e) {
+                    console.warn('Failed to emit loadHelp to mitra.rate-customer', e);
                 }
 
                 show();
@@ -190,6 +209,38 @@
             if (window.Livewire && typeof window.Livewire.on === 'function') {
                 window.Livewire.on('open-help-modal', function (help) {
                     fill(help);
+                });
+            }
+
+            // Update rating count when Livewire dispatches a browser event after a rating is submitted
+            window.addEventListener('helpRatingUpdated', function (e) {
+                try {
+                    const detail = (e && e.detail) ? e.detail : e;
+                    if (!detail) return;
+                    const helpId = detail.helpId || detail.help_id || null;
+                    const count = typeof detail.ratings_count !== 'undefined' ? detail.ratings_count : (detail.ratingsCount || null);
+                    if (_currentHelpId && helpId && String(_currentHelpId) === String(helpId)) {
+                        if (count !== null) {
+                            const el = document.getElementById('help-modal-ratings');
+                            if (el) el.textContent = 'Ulasan: ' + count;
+                        }
+                    }
+                } catch (err) { console.warn('helpRatingUpdated handler error', err); }
+            });
+
+            // Livewire JS fallback (some versions use livewire.on)
+            if (window.livewire && typeof window.livewire.on === 'function') {
+                window.livewire.on('helpRatingUpdated', function (data) {
+                    try {
+                        const helpId = data.helpId || data.help_id || null;
+                        const count = data.ratings_count || data.ratingsCount || null;
+                        if (_currentHelpId && helpId && String(_currentHelpId) === String(helpId)) {
+                            if (count !== null) {
+                                const el = document.getElementById('help-modal-ratings');
+                                if (el) el.textContent = 'Ulasan: ' + count;
+                            }
+                        }
+                    } catch (err) { console.warn(err); }
                 });
             }
 

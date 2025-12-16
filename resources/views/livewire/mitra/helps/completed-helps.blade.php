@@ -146,10 +146,10 @@
                                             Selesai pada: <span class="text-gray-700 font-medium">{{ optional($help->updated_at)->format('d M Y H:i') }}</span>
                                         </div>
 
-                                        {{-- Rating form for mitra -> customer (shown when not yet rated) --}}
+                                        {{-- Rating form for mitra -> customer (shown inline when not yet rated) --}}
                                         @if($help->user && !\App\Models\Rating::hasRated($help->id, auth()->id(), 'mitra_to_customer'))
                                             <div class="pt-3 border-t border-gray-100">
-                                                @livewire('mitra.rate-customer', ['helpId' => $help->id])
+                                                @livewire('mitra.rate-customer', ['helpId' => $help->id, 'inline' => true], key('mitra-rate-' . $help->id))
                                             </div>
                                         @endif
                                     </div>

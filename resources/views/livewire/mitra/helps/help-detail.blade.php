@@ -31,9 +31,9 @@
     <div class="bg-gray-50 -mt-6 px-5 pt-6 pb-20 max-w-md mx-auto">
         {{-- GPS Tracker - Auto tracking untuk status aktif --}}
         @if(in_array($help->status, ['memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived']))
-            <div class="mb-3">
+            {{-- <div class="mb-3">
                 <livewire:mitra.gps-tracker :helpId="$help->id" :key="'gps-tracker-'.$help->id" />
-            </div>
+            </div> --}}
         @endif
 
         @if(session('message'))
@@ -64,6 +64,8 @@
                 </div>
             </div>
         </div>
+
+        {{-- Payment note removed - moved to customer view per request --}}
 
         {{-- Customer Info --}}
         <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">

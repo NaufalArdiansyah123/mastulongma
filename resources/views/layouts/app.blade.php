@@ -15,6 +15,7 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    @stack('styles')
     <style>
         [x-cloak] { display: none !important; }
         
@@ -258,6 +259,7 @@
     </div>
 
     @livewireScripts
+    @stack('scripts')
     {{-- Realtime notifications for customer (invisible) --}}
     @livewire('customer.realtime-notifications')
 
@@ -437,16 +439,16 @@
                 const sLower = String(status).toLowerCase();
                 if (sLower.includes('selesai') || sLower.includes('completed')) {
                     type = 'completed';
-                    title = helpTitle ? `Selesai: ${helpTitle}` : '🎉 Bantuan Selesai!';
+                    title = helpTitle ? `Selesai: ${helpTitle}` : 'Bantuan Selesai!';
                 } else if (sLower.includes('sampai') || sLower.includes('arrived')) {
                     type = 'arrived';
-                    title = helpTitle ? `Tiba: ${helpTitle}` : '📍 Mitra Sudah Sampai!';
+                    title = helpTitle ? `Tiba: ${helpTitle}` : 'Mitra Sudah Sampai!';
                 } else if (sLower.includes('perjalanan') || sLower.includes('on_the_way') || sLower.includes('partner_on_the_way')) {
                     type = 'on_the_way';
-                    title = helpTitle ? `Dalam Perjalanan: ${helpTitle}` : '🚗 Mitra Dalam Perjalanan';
+                    title = helpTitle ? `Dalam Perjalanan: ${helpTitle}` : 'Mitra Dalam Perjalanan';
                 } else if (sLower.includes('diambil') || sLower.includes('taken')) {
                     type = 'taken';
-                    title = helpTitle ? `Diambil: ${helpTitle}` : '✅ Bantuan Diambil!';
+                    title = helpTitle ? `Diambil: ${helpTitle}` : 'Bantuan Diambil!';
                 }
 
                 console.log('help-status-update parsed:', { helpId, helpTitle, mitraName, status, message, type, title });

@@ -12,6 +12,31 @@
             location: '{{ $help->location ?? "Tujuan" }}'
         }
     }"
+    x-init="
+        // Update tracking data setiap kali Livewire refresh
+        Livewire.hook('morph.updated', () => {
+            const oldLat = trackingData.partnerLat;
+            const oldLng = trackingData.partnerLng;
+            
+            trackingData.partnerLat = {{ $help->partner_current_lat ?? ($help->mitra->latitude ?? ($help->latitude ? $help->latitude - 0.01 : -6.2088)) }};
+            trackingData.partnerLng = {{ $help->partner_current_lng ?? ($help->mitra->longitude ?? ($help->longitude ? $help->longitude - 0.01 : 106.8456)) }};
+            trackingData.customerLat = {{ $help->latitude ?? -6.2088 }};
+            trackingData.customerLng = {{ $help->longitude ?? 106.8456 }};
+            
+            // Log perubahan lokasi
+            if (oldLat !== trackingData.partnerLat || oldLng !== trackingData.partnerLng) {
+                console.log('📍 Lokasi mitra diperbarui:', {
+                    old: { lat: oldLat, lng: oldLng },
+                    new: { lat: trackingData.partnerLat, lng: trackingData.partnerLng }
+                });
+            }
+            
+            // Trigger update ke peta jika modal terbuka
+            if (window.updateMapFromAlpine) {
+                window.updateMapFromAlpine();
+            }
+        });
+    "
     @show-status-notification.window="
         notificationMessage = $event.detail.message;
         showNotification = true;
@@ -505,11 +530,11 @@
                 </div>
             </div>
 
-            {{-- <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
                 <p class="text-xs text-gray-700 leading-relaxed">
-                    Kamu bisa meminta tindakan tambahan pada unit AC saat sesi layanan berlangsung. Pastikan hanya transaksi di aplikasi agar pesananmu terlindungi asuransi.
+                    Kamu dapat meminta tindakan tambahan selama sesi layanan berlangsung (mis. tambahan bahan atau tindakan kecil). Pastikan semua pembayaran dilakukan melalui aplikasi agar pesananmu tercatat dan terlindungi. Jika ada masalah kualitas, ajukan keluhan atau klaim garansi dalam waktu 1x24 jam setelah layanan selesai.
                 </p>
-            </div> --}}
+            </div>
         </div>
 
         {{-- Cancel Button --}}
@@ -521,12 +546,16 @@
             </div>
         @endif
 
-        {{-- Help Section --}}
-        <div class="bg-white mt-2 px-4 py-4 mb-2">
-            <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-700">Butuh bantuan atau ada keluhan atas Rekan Jasa?</span>
-                <a href="{{ route('customer.help-support') }}" class="text-blue-500 text-sm font-semibold whitespace-nowrap ml-2">
-                    Hubungi Kami
+        {{-- Floating Help Card (mobile) - fixed above bottom nav --}}
+        <div id="floating-help-card" class="md:hidden fixed left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-50" style="bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-3 flex items-center justify-between gap-3">
+                <div class="flex-1 text-sm text-gray-700">Butuh bantuan atau ada keluhan atas Rekan Jasa?</div>
+                <a href="{{ route('customer.help-support') }}" class="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg font-semibold hover:bg-blue-100 transition">
+                    {{-- <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 22l-4.35-4.35"/>
+                    </svg> --}}
+                    <span class="text-sm">Hubungi Kami</span>
                 </a>
             </div>
         </div>
@@ -579,7 +608,7 @@
                 </div>
 
                 {{-- Map Container --}}
-                <div class="flex-1 relative">
+                <div class="flex-1 relative" wire:ignore>
                     <div id="tracking-map" class="w-full h-full"></div>
                     
                     {{-- Loading Overlay --}}
@@ -629,48 +658,127 @@
             </div>
         </div>
     @endif
+</div>
 
-    {{-- Leaflet Maps Script (Free, No API Key Required) --}}
-    @if($showMapModal)
+{{-- Leaflet Maps Script - Load once, pushed to head --}}
+@push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+@endpush
+
+@push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     
     <script>
-        let map;
-        let partnerMarker;
-        let customerMarker;
-        let routingControl;
-        let trackingInterval;
-        let routePolyline;
-
-        // Initialize map when modal opens
-        setTimeout(() => {
-            initializeMap();
-        }, 100);
-
-        function initializeMap() {
-            // Get tracking data from Alpine
-            const trackingData = Alpine.$data(document.querySelector('[x-data]')).trackingData;
+        (function() {
+            console.log('🚀 Map script loaded');
             
-            const partnerLat = trackingData.partnerLat;
-            const partnerLng = trackingData.partnerLng;
-            const customerLat = trackingData.customerLat;
-            const customerLng = trackingData.customerLng;
+            let map;
+            let partnerMarker;
+            let customerMarker;
+            let routingControl;
+            let routePolyline;
+            let initAttempts = 0;
+            const maxAttempts = 50;
+            let mapInitialized = false; // Flag untuk track map status
 
-            console.log('Tracking data:', { partnerLat, partnerLng, customerLat, customerLng });
+            function showError(message) {
+                console.error('❌ Error:', message);
+                const loading = document.getElementById('map-loading');
+                if (loading) {
+                    loading.innerHTML = `
+                        <div class="text-center p-4">
+                            <svg class="w-12 h-12 text-red-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <p class="text-sm text-red-600 mb-2">${message}</p>
+                            <button onclick="location.reload()" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600">Muat Ulang Halaman</button>
+                        </div>
+                    `;
+                }
+            }
+
+            // Wait for both Leaflet and Alpine to be ready
+            function waitAndInit() {
+                // Jika map sudah ada, skip init (cegah reinit saat Livewire polling)
+                if (map) {
+                    console.log('✅ Map already initialized, skipping...');
+                    return;
+                }
+                
+                initAttempts++;
+                
+                const hasLeaflet = typeof L !== 'undefined';
+                const hasAlpine = typeof Alpine !== 'undefined';
+                const hasContainer = document.getElementById('tracking-map') !== null;
+                
+                console.log(`⏳ Attempt ${initAttempts}/${maxAttempts}:`, { 
+                    Leaflet: hasLeaflet, 
+                    Alpine: hasAlpine,
+                    Container: hasContainer,
+                    mapExists: !!map
+                });
+                
+                if (hasLeaflet && hasAlpine && hasContainer) {
+                    console.log('✅ All dependencies ready! Initializing map...');
+                    setTimeout(() => {
+                        try {
+                            initializeMap();
+                        } catch (err) {
+                            console.error('❌ Init error:', err);
+                            showError('Error: ' + err.message);
+                        }
+                    }, 100);
+                } else if (initAttempts >= maxAttempts) {
+                    console.error('❌ Timeout waiting for dependencies');
+                    showError('Timeout: Gagal memuat library peta');
+                } else {
+                    setTimeout(waitAndInit, 100);
+                }
+            }
+
+            function initializeMap() {
+                // Cegah double init
+                if (map) {
+                    console.log('⚠️ Map already exists, skipping initialization');
+                    return;
+                }
+                
+                console.log('🗺️ Starting map initialization...');
+                
+                // Get tracking data from Alpine
+                let trackingData;
+                try {
+                    const alpineEl = document.querySelector('[x-data]');
+                    if (!alpineEl) {
+                        throw new Error('Alpine element tidak ditemukan');
+                    }
+                    trackingData = Alpine.$data(alpineEl).trackingData;
+                    if (!trackingData) {
+                        throw new Error('Tracking data tidak tersedia');
+                    }
+                } catch (err) {
+                    console.error('❌ Error getting Alpine data:', err);
+                    showError('Error mengakses data tracking');
+                    return;
+                }
+            
+            const partnerLat = parseFloat(trackingData.partnerLat);
+            const partnerLng = parseFloat(trackingData.partnerLng);
+            const customerLat = parseFloat(trackingData.customerLat);
+            const customerLng = parseFloat(trackingData.customerLng);
+
+            console.log('📍 Koordinat:', { 
+                partner: { lat: partnerLat, lng: partnerLng },
+                customer: { lat: customerLat, lng: customerLng }
+            });
 
             // Validate coordinates
-            if (!partnerLat || !partnerLng || !customerLat || !customerLng) {
-                document.getElementById('map-loading').innerHTML = `
-                    <div class="text-center">
-                        <svg class="w-12 h-12 text-red-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <p class="text-sm text-red-600">Data lokasi tidak tersedia</p>
-                    </div>
-                `;
+            if (!partnerLat || !partnerLng || !customerLat || !customerLng || 
+                isNaN(partnerLat) || isNaN(partnerLng) || isNaN(customerLat) || isNaN(customerLng)) {
+                console.error('❌ Koordinat tidak valid');
+                showError('Data lokasi tidak valid atau tidak tersedia');
                 return;
             }
 
@@ -678,16 +786,32 @@
             const centerLat = (partnerLat + customerLat) / 2;
             const centerLng = (partnerLng + customerLng) / 2;
 
-            map = L.map('tracking-map', {
-                zoomControl: true,
-                attributionControl: true
-            }).setView([centerLat, centerLng], 14);
+            console.log('🎯 Center peta:', { lat: centerLat, lng: centerLng });
+
+            try {
+                map = L.map('tracking-map', {
+                    zoomControl: true,
+                    attributionControl: true
+                }).setView([centerLat, centerLng], 14);
+                console.log('✓ Map object created');
+            } catch (err) {
+                console.error('❌ Error creating map:', err);
+                showError('Gagal membuat peta');
+                return;
+            }
 
             // Add OpenStreetMap tiles
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
+            try {
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                console.log('✓ Tiles loaded');
+            } catch (err) {
+                console.error('❌ Error loading tiles:', err);
+                showError('Gagal memuat tiles peta');
+                return;
+            }
 
             // Custom icon for partner (blue pulse)
             const partnerIcon = L.divIcon({
@@ -725,121 +849,168 @@
             });
 
             // Create markers
-            partnerMarker = L.marker([partnerLat, partnerLng], { 
-                icon: partnerIcon,
-                title: trackingData.partnerName
-            }).addTo(map);
+            try {
+                partnerMarker = L.marker([partnerLat, partnerLng], { 
+                    icon: partnerIcon,
+                    title: trackingData.partnerName
+                }).addTo(map);
+                console.log('✓ Partner marker created');
 
-            customerMarker = L.marker([customerLat, customerLng], { 
-                icon: customerIcon,
-                title: 'Lokasi Anda'
-            }).addTo(map);
+                customerMarker = L.marker([customerLat, customerLng], { 
+                    icon: customerIcon,
+                    title: 'Lokasi Anda'
+                }).addTo(map);
+                console.log('✓ Customer marker created');
 
-            // Add popups
-            partnerMarker.bindPopup(`
-                <div class="p-2">
-                    <strong>${trackingData.partnerName}</strong><br>
-                    <small>Sedang menuju ke lokasi Anda</small>
-                </div>
-            `);
+                // Add popups
+                partnerMarker.bindPopup(`
+                    <div class="p-2">
+                        <strong>${trackingData.partnerName}</strong><br>
+                        <small>Sedang menuju ke lokasi Anda</small>
+                    </div>
+                `);
 
-            customerMarker.bindPopup(`
-                <div class="p-2">
-                    <strong>Lokasi Anda</strong><br>
-                    <small>${trackingData.location}</small>
-                </div>
-            `);
+                customerMarker.bindPopup(`
+                    <div class="p-2">
+                        <strong>Lokasi Anda</strong><br>
+                        <small>${trackingData.location}</small>
+                    </div>
+                `);
+            } catch (err) {
+                console.error('❌ Error creating markers:', err);
+                showError('Gagal membuat marker');
+                return;
+            }
 
             // Calculate and display route
-            calculateRoute(partnerLat, partnerLng, customerLat, customerLng);
+            try {
+                calculateRoute(partnerLat, partnerLng, customerLat, customerLng);
+                console.log('✓ Route calculation started');
+            } catch (err) {
+                console.error('⚠️ Warning: Route calculation failed:', err);
+                // Continue anyway, map will still work without route
+            }
 
             // Fit bounds to show both markers
-            const bounds = L.latLngBounds([
-                [partnerLat, partnerLng],
-                [customerLat, customerLng]
-            ]);
-            map.fitBounds(bounds, { padding: [50, 50] });
+            try {
+                const bounds = L.latLngBounds([
+                    [partnerLat, partnerLng],
+                    [customerLat, customerLng]
+                ]);
+                map.fitBounds(bounds, { padding: [50, 50] });
+                console.log('✓ Map bounds set');
+            } catch (err) {
+                console.error('❌ Error setting bounds:', err);
+            }
 
-            // Hide loading overlay
-            document.getElementById('map-loading').style.display = 'none';
+            // Hide loading overlay dan set flag
+            const loadingEl = document.getElementById('map-loading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+                console.log('✓ Loading overlay hidden');
+            }
+            
+            mapInitialized = true;
 
-            // Start tracking updates every 5 seconds
-            trackingInterval = setInterval(() => {
-                updatePartnerLocation();
-            }, 5000);
+            // Force map to refresh tiles after short delay
+            setTimeout(() => {
+                if (map) {
+                    map.invalidateSize();
+                    console.log('🔄 Map size recalculated');
+                }
+            }, 100);
+
+            // Update akan otomatis dari Livewire polling + Alpine hook
+            console.log('✅ Map initialization complete! Auto-update enabled via Livewire polling (5s).');
         }
 
-        function calculateRoute(fromLat, fromLng, toLat, toLng) {
+            function calculateRoute(fromLat, fromLng, toLat, toLng) {
             // Remove old routing control if exists
             if (routingControl) {
-                map.removeControl(routingControl);
+                try { map.removeControl(routingControl); } catch(e){}
+                routingControl = null;
             }
             
             // Remove old polyline if exists
             if (routePolyline) {
-                map.removeLayer(routePolyline);
+                try { map.removeLayer(routePolyline); } catch(e){}
+                routePolyline = null;
             }
 
-            // Create routing control (using OSRM - free routing service)
-            routingControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(fromLat, fromLng),
-                    L.latLng(toLat, toLng)
-                ],
-                routeWhileDragging: false,
-                addWaypoints: false,
-                draggableWaypoints: false,
-                fitSelectedRoutes: false,
-                showAlternatives: false,
-                lineOptions: {
-                    styles: [{
-                        color: '#2563eb',
-                        opacity: 0.8,
-                        weight: 5
-                    }]
-                },
-                createMarker: function() { return null; }, // Don't create default markers
-                router: L.Routing.osrmv1({
-                    serviceUrl: 'https://router.project-osrm.org/route/v1'
-                })
-            }).addTo(map);
+            // If Leaflet Routing Machine is available, use it. Otherwise fallback to straight-line.
+            if (window.L && L.Routing && typeof L.Routing.control === 'function') {
+                try {
+                    routingControl = L.Routing.control({
+                        waypoints: [
+                            L.latLng(fromLat, fromLng),
+                            L.latLng(toLat, toLng)
+                        ],
+                        routeWhileDragging: false,
+                        addWaypoints: false,
+                        draggableWaypoints: false,
+                        fitSelectedRoutes: false,
+                        showAlternatives: false,
+                        lineOptions: {
+                            styles: [{
+                                color: '#2563eb',
+                                opacity: 0.8,
+                                weight: 5
+                            }]
+                        },
+                        createMarker: function() { return null; }, // Don't create default markers
+                        router: L.Routing.osrmv1({
+                            serviceUrl: 'https://router.project-osrm.org/route/v1'
+                        })
+                    }).addTo(map);
 
-            // Hide the routing instructions panel
-            const routingContainer = document.querySelector('.leaflet-routing-container');
-            if (routingContainer) {
-                routingContainer.style.display = 'none';
-            }
+                    // Hide the routing instructions panel
+                    const routingContainer = document.querySelector('.leaflet-routing-container');
+                    if (routingContainer) routingContainer.style.display = 'none';
 
-            // Listen for route found event
-            routingControl.on('routesfound', function(e) {
-                const routes = e.routes;
-                const route = routes[0];
-                
-                // Get distance and time
-                const distanceKm = (route.summary.totalDistance / 1000).toFixed(1);
-                const timeMinutes = Math.ceil(route.summary.totalTime / 60);
-                
-                // Calculate ETA
-                const hours = Math.floor(timeMinutes / 60);
-                const minutes = timeMinutes % 60;
-                let etaText = '';
-                
-                if (hours > 0) {
-                    etaText = `${hours} jam ${minutes} menit`;
-                } else {
-                    etaText = `${minutes} menit`;
+                    // Listen for route found event
+                    routingControl.on('routesfound', function(e) {
+                        const routes = e.routes;
+                        const route = routes[0];
+                        
+                        // Get distance and time
+                        const distanceKm = (route.summary.totalDistance / 1000).toFixed(1);
+                        const timeMinutes = Math.ceil(route.summary.totalTime / 60);
+                        
+                        // Calculate ETA
+                        const hours = Math.floor(timeMinutes / 60);
+                        const minutes = timeMinutes % 60;
+                        let etaText = '';
+                        
+                        if (hours > 0) {
+                            etaText = `${hours} jam ${minutes} menit`;
+                        } else {
+                            etaText = `${minutes} menit`;
+                        }
+
+                        // Update UI
+                        document.getElementById('distance-text').textContent = distanceKm + ' km';
+                        document.getElementById('eta-time').textContent = etaText;
+                    });
+
+                    // Fallback: routing error
+                    routingControl.on('routingerror', function(err) {
+                        console.warn('Routing error, falling back to straight-line:', err);
+                        fallbackStraightLine();
+                    });
+                } catch (err) {
+                    console.error('Routing control failed, fallback:', err);
+                    fallbackStraightLine();
                 }
+            } else {
+                // Routing library not available — fallback
+                console.warn('Leaflet Routing Machine not available, using straight-line fallback');
+                fallbackStraightLine();
+            }
 
-                // Update UI
-                document.getElementById('distance-text').textContent = distanceKm + ' km';
-                document.getElementById('eta-time').textContent = etaText;
-            });
-
-            // Fallback: calculate straight-line distance if routing fails
-            routingControl.on('routingerror', function() {
+            function fallbackStraightLine() {
                 const distance = calculateDistance(fromLat, fromLng, toLat, toLng);
                 const distanceKm = distance.toFixed(1);
-                
+
                 // Draw straight line as fallback
                 routePolyline = L.polyline([
                     [fromLat, fromLng],
@@ -853,13 +1024,15 @@
 
                 // Estimate time (assuming 40 km/h average speed)
                 const estimatedMinutes = Math.ceil((distance / 40) * 60);
-                
-                document.getElementById('distance-text').textContent = distanceKm + ' km';
-                document.getElementById('eta-time').textContent = estimatedMinutes + ' menit (estimasi)';
-            });
-        }
 
-        function calculateDistance(lat1, lng1, lat2, lng2) {
+                const distanceEl = document.getElementById('distance-text');
+                const etaEl = document.getElementById('eta-time');
+                if (distanceEl) distanceEl.textContent = distanceKm + ' km';
+                    if (etaEl) etaEl.textContent = estimatedMinutes + ' menit (estimasi)';
+                }
+            }
+
+            function calculateDistance(lat1, lng1, lat2, lng2) {
             // Haversine formula for distance calculation
             const R = 6371; // Earth radius in km
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -867,34 +1040,66 @@
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                      Math.sin(dLng/2) * Math.sin(dLng/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
 
-        function updatePartnerLocation() {
-            // Fetch updated location via Livewire
-            @this.call('loadHelp').then(() => {
-                // Get updated tracking data from Alpine
-                const trackingData = Alpine.$data(document.querySelector('[x-data]')).trackingData;
-                
-                const newLat = trackingData.partnerLat;
-                const newLng = trackingData.partnerLng;
-                const customerLat = trackingData.customerLat;
-                const customerLng = trackingData.customerLng;
-
-                if (newLat && newLng && partnerMarker) {
-                    // Animate marker movement
-                    animateMarker(partnerMarker, [newLat, newLng]);
-
-                    // Recalculate route
-                    setTimeout(() => {
-                        calculateRoute(newLat, newLng, customerLat, customerLng);
-                    }, 1000);
+            // Fungsi untuk update peta dari Livewire event
+            window.updateMapFromTracking = function(data) {
+                if (!map || !partnerMarker) {
+                    console.log('⚠️ Map or marker not ready yet');
+                    return;
                 }
-            });
-        }
+                
+                const newLat = parseFloat(data.partnerLat);
+                const newLng = parseFloat(data.partnerLng);
+                const customerLat = parseFloat(data.customerLat);
+                const customerLng = parseFloat(data.customerLng);
 
-        function animateMarker(marker, newLatLng) {
+                console.log('📍 Updating map from Livewire:', { 
+                    partner: { lat: newLat, lng: newLng },
+                    customer: { lat: customerLat, lng: customerLng }
+                });
+
+                if (newLat && newLng && !isNaN(newLat) && !isNaN(newLng) && partnerMarker) {
+                    const currentLatLng = partnerMarker.getLatLng();
+                    
+                    // Hanya update jika posisi berubah
+                    if (Math.abs(currentLatLng.lat - newLat) > 0.0001 || Math.abs(currentLatLng.lng - newLng) > 0.0001) {
+                        console.log('🚶 Partner bergerak dari', currentLatLng, 'ke', {lat: newLat, lng: newLng});
+                        
+                        // Animate marker movement
+                        animateMarker(partnerMarker, [newLat, newLng]);
+
+                        // Recalculate route setelah marker bergerak
+                        setTimeout(() => {
+                            if (map && partnerMarker) {
+                                calculateRoute(newLat, newLng, customerLat, customerLng);
+                            }
+                        }, 1000);
+                    } else {
+                        console.log('📍 Partner masih di posisi yang sama');
+                    }
+                }
+            };
+            
+            // Backward compatibility
+            window.updateMapFromAlpine = function() {
+                try {
+                    const trackingData = Alpine.$data(document.querySelector('[x-data]')).trackingData;
+                    window.updateMapFromTracking(trackingData);
+                } catch (err) {
+                    console.error('Error in updateMapFromAlpine:', err);
+                }
+            };
+
+            function updatePartnerLocation() {
+                // Livewire polling akan trigger x-init hook yang memanggil updateMapFromAlpine
+                // Fungsi ini tetap ada untuk kompatibilitas
+                window.updateMapFromAlpine();
+            }
+
+            function animateMarker(marker, newLatLng) {
             const startLatLng = marker.getLatLng();
             const endLatLng = L.latLng(newLatLng);
             
@@ -909,39 +1114,65 @@
                 const lng = startLatLng.lng + (deltaLng * step);
                 marker.setLatLng([lat, lng]);
 
-                if (step >= numSteps) {
-                    clearInterval(moveMarker);
+                    if (step >= numSteps) {
+                        clearInterval(moveMarker);
+                    }
+                }, 20);
+            }
+
+            // Cleanup ketika modal ditutup
+            window.addEventListener('beforeunload', () => {
+                if (map) {
+                    try { map.remove(); } catch(e) {}
                 }
-            }, 20);
-        }
+            });
 
-        // Cleanup when modal closes
-        window.addEventListener('beforeunload', () => {
-            if (trackingInterval) {
-                clearInterval(trackingInterval);
-            }
-        });
+            // Initialize map when modal opens (listen to Livewire)
+            document.addEventListener('livewire:init', () => {
+                Livewire.on('mapModalOpened', () => {
+                    console.log('📢 Map modal opened');
+                    initAttempts = 0; // Reset counter
+                    setTimeout(waitAndInit, 100);
+                });
+                
+                // Listen untuk tracking data updates dari Livewire
+                Livewire.on('tracking-data-updated', (event) => {
+                    console.log('📡 Tracking data updated event received:', event);
+                    if (map && mapInitialized) {
+                        window.updateMapFromTracking(event);
+                    }
+                });
+            });
 
-        // Update Alpine data when Livewire refreshes
-        document.addEventListener('livewire:updated', () => {
-            // Update tracking data in Alpine
-            const alpineComponent = Alpine.$data(document.querySelector('[x-data]'));
-            if (alpineComponent && alpineComponent.trackingData) {
-                alpineComponent.trackingData.partnerLat = {{ $help->partner_current_lat ?? ($help->mitra->latitude ?? ($help->latitude ? $help->latitude - 0.01 : -6.2088)) }};
-                alpineComponent.trackingData.partnerLng = {{ $help->partner_current_lng ?? ($help->mitra->longitude ?? ($help->longitude ? $help->longitude - 0.01 : 106.8456)) }};
-                alpineComponent.trackingData.customerLat = {{ $help->latitude ?? -6.2088 }};
-                alpineComponent.trackingData.customerLng = {{ $help->longitude ?? 106.8456 }};
-            }
-
-            // Listen for modal close
-            if (!{{ $showMapModal ? 'true' : 'false' }}) {
-                if (trackingInterval) {
-                    clearInterval(trackingInterval);
+            // Also check on Livewire update - only init if modal exists and map doesn't
+            Livewire.hook('morph.updated', ({ el, component }) => {
+                const modalElement = document.querySelector('[wire\\:click="closeMapModal"]');
+                
+                // Jika modal ada dan map belum di-init
+                if (modalElement && !map) {
+                    console.log('📢 Modal detected in DOM, initializing...');
+                    initAttempts = 0; // Reset counter
+                    setTimeout(waitAndInit, 100);
                 }
-            }
-        });
+                
+                // Jika modal tidak ada tapi map masih ada, cleanup
+                if (!modalElement && map) {
+                    console.log('🧹 Modal closed, cleaning up map...');
+                    try {
+                        map.remove();
+                        map = null;
+                        partnerMarker = null;
+                        customerMarker = null;
+                        routingControl = null;
+                        routePolyline = null;
+                        mapInitialized = false;
+                    } catch (e) {
+                        console.error('Error cleaning up map:', e);
+                    }
+                }
+            });
+        })();
     </script>
-    @endif
 
     {{-- Toast notification for copy --}}
     <script>
@@ -959,17 +1190,17 @@
             });
         });
     </script>
+@endpush
 
-    {{-- Flash Messages --}}
-    @if(session()->has('success'))
-        <div class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down">
-            {{ session('success') }}
-        </div>
-    @endif
+{{-- Flash Messages --}}
+@if(session()->has('success'))
+    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down">
+        {{ session('success') }}
+    </div>
+@endif
 
-    @if(session()->has('error'))
-        <div class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down">
-            {{ session('error') }}
-        </div>
-    @endif
-</div>
+@if(session()->has('error'))
+    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down">
+        {{ session('error') }}
+    </div>
+@endif

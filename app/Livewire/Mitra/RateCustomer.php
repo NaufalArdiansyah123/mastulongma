@@ -27,17 +27,37 @@ class RateCustomer extends Component
         'review.max' => 'Review maksimal 500 karakter',
     ];
 
-    public function mount($helpId, $inline = false)
+    public function mount($helpId = null, $inline = false)
     {
-        $this->help = Help::with('customer')->findOrFail($helpId);
         $this->inline = (bool) $inline;
-        
-        // Check if mitra already rated this customer
-        $this->alreadyRated = Rating::hasRated(
-            $this->help->id,
-            auth()->id(),
-            'mitra_to_customer'
-        );
+        if ($helpId) {
+            $this->help = Help::with('customer')->find($helpId);
+        }
+
+        if ($this->help) {
+            // Check if mitra already rated this customer
+            $this->alreadyRated = Rating::hasRated(
+                $this->help->id,
+                auth()->id(),
+                'mitra_to_customer'
+            );
+        }
+    }
+
+    /**
+     * Load help dynamically (used when the component is mounted in a shared modal)
+     */
+    public function loadHelp($helpId)
+    {
+        $this->help = Help::with('customer')->find($helpId);
+        $this->alreadyRated = false;
+        if ($this->help) {
+            $this->alreadyRated = Rating::hasRated(
+                $this->help->id,
+                auth()->id(),
+                'mitra_to_customer'
+            );
+        }
     }
 
     public function setRating($value)
@@ -100,8 +120,18 @@ class RateCustomer extends Component
         // Notify parent Livewire listeners that a rating was submitted
         // use emit so the parent component with a listener receives it
         $this->emit('ratingSubmitted', $this->help->id);
-        // also dispatch a browser event for any frontend listeners
-        $this->dispatch('rating-submitted');
+
+        // also dispatch a browser event for any frontend listeners with updated ratings count
+        try {
+            $help = Help::with('ratings')->find($this->help->id);
+            $ratingsCount = $help && $help->ratings ? $help->ratings->count() : 0;
+            $this->dispatchBrowserEvent('helpRatingUpdated', [
+                'helpId' => $this->help->id,
+                'ratings_count' => $ratingsCount,
+            ]);
+        } catch (\Exception $e) {
+            // fail silently if dispatching the browser event isn't possible
+        }
     }
 
     public function render()
