@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.superadmin')
 
 @section('content')
     <div class="bg-white shadow-sm border-b border-gray-200">
@@ -6,11 +6,11 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">Proses Withdraw</h1>
-                    <p class="text-sm text-gray-600 mt-1">Detail permintaan tarik saldo dan aksi approve/reject oleh admin.
+                    <p class="text-sm text-gray-600 mt-1">Detail permintaan tarik saldo dan aksi approve/reject oleh SuperAdmin.
                     </p>
                 </div>
                 <div>
-                    <a href="{{ route('admin.withdraws.index') }}"
+                    <a href="{{ route('superadmin.withdraws.index') }}"
                         class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
                         &larr; Kembali
                     </a>
@@ -67,7 +67,29 @@
             </div>
 
             @if($withdraw->status === 'pending')
-                    <div class="text-sm text-gray-500">Permintaan ini sedang menunggu persetujuan SuperAdmin.</div>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <form action="{{ route('superadmin.withdraws.approve', $withdraw) }}" method="POST"
+                        class="flex-1 bg-white p-4 border border-gray-100 rounded">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700">Nomor Referensi Transfer (opsional)</label>
+                            <input type="text" name="transfer_reference" class="mt-1 block w-full rounded border-gray-300" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700">Catatan (opsional)</label>
+                            <input type="text" name="note" class="mt-1 block w-full rounded border-gray-300" />
+                        </div>
+                        <div class="flex items-center justify-end">
+                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Approve &amp; Potong
+                                Saldo</button>
+                        </div>
+                    </form>
+
+                    <div class="w-full md:w-56 bg-white p-4 border border-red-100 rounded">
+                        <p class="text-sm text-gray-700 mb-4">Jika ingin menolak permintaan ini, klik tombol di bawah.</p>
+                        <button id="open-reject-modal" class="w-full px-4 py-2 bg-red-600 text-white rounded">Tolak</button>
+                    </div>
+                </div>
             @else
                 <div class="text-sm text-gray-500">Status: <strong>{{ ucfirst($withdraw->status) }}</strong></div>
                 <div class="mt-2">Diproses pada:
@@ -78,7 +100,6 @@
         </div>
     </div>
 
-    @if(auth()->user() && auth()->user()->isSuperAdmin())
     <!-- Reject Confirmation Modal -->
     <div id="rejectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
         <div id="rejectModalOverlay" class="absolute inset-0 bg-black bg-opacity-50"></div>
@@ -114,12 +135,8 @@
             var closeBtn = document.getElementById('rejectModalClose');
             var cancelBtn = document.getElementById('rejectModalCancel');
 
-            function showModal() {
-                modal.classList.remove('hidden');
-            }
-            function hideModal() {
-                modal.classList.add('hidden');
-            }
+            function showModal() { modal.classList.remove('hidden'); }
+            function hideModal() { modal.classList.add('hidden'); }
 
             if (openBtn) openBtn.addEventListener('click', showModal);
             if (overlay) overlay.addEventListener('click', hideModal);
@@ -127,5 +144,4 @@
             if (cancelBtn) cancelBtn.addEventListener('click', hideModal);
         })();
     </script>
-    @endif
 @endsection

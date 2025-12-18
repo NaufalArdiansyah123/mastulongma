@@ -167,13 +167,18 @@
 
                                 <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
 
+                                @if($help->scheduled_at)
+                                    <div class="text-xs text-gray-500 mb-2">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+                                @endif
+
                                 <div class="flex items-center justify-between gap-3">
                                     <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
                                     <div class="flex items-center gap-2">
-                                        @if(is_null($help->mitra_id))
-                                            <button type="button" onclick="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount }})" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-xs hover:bg-gray-200 transition">Lihat</button>
-                                            <button type="button" onclick="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount }})" class="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 transition">Ambil</button>
-                                        @else
+                                            @php $schedLabel = $help->scheduled_at ? \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') : '' ; @endphp
+                                            @if(is_null($help->mitra_id))
+                                                <button type="button" onclick="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount }}, '{{ addslashes($schedLabel) }}')" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-xs hover:bg-gray-200 transition">Lihat</button>
+                                                <button type="button" onclick="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount }}, '{{ addslashes($schedLabel) }}')" class="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 transition">Ambil</button>
+                                            @else
                                             <span class="px-3 py-1.5 bg-gray-50 text-gray-400 rounded-md text-xs">Diambil</span>
                                         @endif
                                     </div>
@@ -227,11 +232,16 @@
                     <p id="previewTitle" class="text-base font-bold text-gray-900">-</p>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-2">
                     <p class="text-xs text-gray-600 font-semibold mb-1">Nominal untuk Mitra</p>
                     <div id="previewAmount" class="inline-block bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm">
                         💰 Rp 0
                     </div>
+                </div>
+
+                <div class="mb-4">
+                    <p class="text-xs text-gray-600 font-semibold mb-1">Jadwal Permintaan</p>
+                    <div id="previewScheduled" class="text-sm text-gray-700">-</div>
                 </div>
 
                 <!-- Notice -->
@@ -260,10 +270,23 @@
     <script>
         let currentHelpId = null;
 
-        function showHelpPreview(helpId, title, amount) {
+        function showHelpPreview(helpId, title, amount, scheduled) {
             currentHelpId = helpId;
             document.getElementById('previewTitle').textContent = title;
             document.getElementById('previewAmount').textContent = '💰 Rp ' + amount.toLocaleString('id-ID');
+            const schedEl = document.getElementById('previewScheduled');
+            if (schedEl) {
+                if (scheduled && scheduled.length) {
+                    schedEl.textContent = scheduled;
+                } else {
+                    // fallback: fetch latest help data
+                    fetch('/helps/' + helpId + '/json', { credentials: 'same-origin' })
+                        .then(r => r.ok ? r.json() : Promise.reject(r))
+                        .then(data => {
+                            schedEl.textContent = data.scheduled_at ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(data.scheduled_at)) : '-';
+                        }).catch(() => { schedEl.textContent = '-'; });
+                }
+            }
             document.getElementById('helpPreviewModal').classList.remove('hidden');
         }
 

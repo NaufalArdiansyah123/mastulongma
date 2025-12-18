@@ -36,6 +36,12 @@ class AllHelps extends Component
 
         $query = Help::query();
 
+        // Default behavior: show helps from the same city as the authenticated mitra
+        // if the mitra has a city set. This narrows the list to relevant cards.
+        if ($user && !empty($user->city_id)) {
+            $query->where('city_id', $user->city_id);
+        }
+
         // Filter berdasarkan status
         if ($this->filterStatus === 'menunggu_mitra') {
             $query->where('status', 'menunggu_mitra')->whereNull('mitra_id');

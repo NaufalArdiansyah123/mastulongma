@@ -265,7 +265,8 @@
                 </div>
 
                 @forelse($recommendedHelps as $help)
-                    <button type="button" onclick="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount }})"
+                    @php $schedLabel = $help->scheduled_at ? \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') : '' ; @endphp
+                    <button type="button" onclick="showHelpPreview({{ $help->id }}, '{{ addslashes($help->title) }}', {{ $help->amount }}, '{{ addslashes($schedLabel) }}')"
                         class="block w-full text-left bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all">
                         <div class="flex items-start gap-3">
                             <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
@@ -278,12 +279,15 @@
                                 @endif
                             </div>
 
-                            <div class="flex-1 min-w-0">
+                                <div class="flex-1 min-w-0">
                                 <div class="flex items-start justify-between gap-2 mb-1">
                                     <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
                                     <span class="text-xs font-bold whitespace-nowrap" style="color: #0098e7;">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
                                 </div>
                                 <p class="text-xs text-gray-600 line-clamp-1 mb-1.5">{{ Str::limit($help->description, 60) }}</p>
+                                @if($help->scheduled_at)
+                                    <div class="text-xs text-gray-500 mb-1">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+                                @endif
                                 <div class="flex items-center gap-3">
                                     <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
                                     <span class="text-xs text-gray-400">{{ $help->created_at->diffForHumans() }}</span>
@@ -462,6 +466,11 @@
                     </div>
                 </div>
 
+                <div class="mb-4">
+                    <p class="text-xs text-gray-600 font-semibold mb-1">Jadwal Permintaan</p>
+                    <div id="previewScheduled" class="text-sm text-gray-700">-</div>
+                </div>
+
                 <!-- Notice -->
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <p class="text-xs font-semibold text-blue-800 mb-1">🔒 Informasi Terbatas</p>
@@ -488,10 +497,23 @@
     <script>
         let currentHelpId = null;
 
-        function showHelpPreview(helpId, title, amount) {
+        function showHelpPreview(helpId, title, amount, scheduled) {
             currentHelpId = helpId;
             document.getElementById('previewTitle').textContent = title;
             document.getElementById('previewAmount').textContent = '💰 Rp ' + amount.toLocaleString('id-ID');
+            const schedEl = document.getElementById('previewScheduled');
+            if (schedEl) {
+                if (scheduled && scheduled.length) {
+                    schedEl.textContent = scheduled;
+                } else {
+                    // fallback: fetch latest help data
+                    fetch('/helps/' + helpId + '/json', { credentials: 'same-origin' })
+                        .then(r => r.ok ? r.json() : Promise.reject(r))
+                        .then(data => {
+                            schedEl.textContent = data.scheduled_at ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(data.scheduled_at)) : '-';
+                        }).catch(() => { schedEl.textContent = '-'; });
+                }
+            }
             document.getElementById('helpPreviewModal').classList.remove('hidden');
         }
 

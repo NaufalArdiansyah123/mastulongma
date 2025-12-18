@@ -139,6 +139,9 @@
                                     </div>
 
                                     <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
+                                    @if($help->scheduled_at)
+                                        <div class="text-xs text-gray-500 mb-2">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+                                    @endif
 
                                     <div class="flex items-center gap-3">
                                         <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
@@ -194,6 +197,9 @@
                                     </div>
 
                                     <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
+                                    @if($help->scheduled_at)
+                                        <div class="text-xs text-gray-500 mb-2">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+                                    @endif
 
                                     <div class="flex items-center gap-3">
                                         <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
@@ -264,6 +270,9 @@
                                     </div>
 
                                     <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
+                                    @if($help->scheduled_at)
+                                        <div class="text-xs text-gray-500 mb-2">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+                                    @endif
 
                                     <div class="flex items-center gap-3">
                                         <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
@@ -328,6 +337,9 @@
                                     </div>
 
                                     <p class="text-xs text-gray-600 line-clamp-1 mb-2">{{ Str::limit($help->description, 100) }}</p>
+                                    @if($help->scheduled_at)
+                                        <div class="text-xs text-gray-500 mb-2">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+                                    @endif
 
                                     {{-- Mitra Info --}}
                                     @if($help->mitra)

@@ -74,6 +74,67 @@ class Detail extends Component
         $this->showCancelConfirm = true;
     }
 
+    public function acceptPartnerCancellation()
+    {
+        if ($this->help->status !== 'partner_cancel_requested') {
+            session()->flash('error', 'Tidak ada permintaan pembatalan dari mitra.');
+            return;
+        }
+
+        // Capture mitra reference before unassigning
+        $assignedMitra = $this->help->mitra;
+
+        // Make help available again for other mitra
+        $this->help->update([
+            'status' => 'menunggu_mitra',
+            'mitra_id' => null,
+            'partner_cancel_requested_at' => null,
+            'partner_cancel_reason' => null,
+            'partner_cancel_prev_status' => null,
+        ]);
+
+        // Notify mitra (if exists)
+        try {
+            if ($assignedMitra) {
+                $assignedMitra->notify(new \App\Notifications\HelpStatusNotification($this->help, 'partner_cancel_requested', 'cancel_accepted', $assignedMitra));
+            }
+        } catch (\Exception $e) {
+            // ignore notification failures
+        }
+
+        $this->loadHelp();
+        session()->flash('success', 'Permintaan pembatalan diterima. Bantuan kembali tersedia dan menunggu mitra.');
+    }
+
+    public function rejectPartnerCancellation()
+    {
+        if ($this->help->status !== 'partner_cancel_requested') {
+            session()->flash('error', 'Tidak ada permintaan pembatalan dari mitra.');
+            return;
+        }
+
+        $prev = $this->help->partner_cancel_prev_status ?: 'taken';
+
+        $this->help->update([
+            'status' => $prev,
+            'partner_cancel_prev_status' => null,
+            'partner_cancel_requested_at' => null,
+            'partner_cancel_reason' => null,
+        ]);
+
+        // Notify mitra that cancellation was rejected
+        try {
+            if ($this->help->mitra) {
+                $this->help->mitra->notify(new \App\Notifications\HelpStatusNotification($this->help, 'partner_cancel_requested', 'cancel_rejected', $this->help->mitra));
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+
+        $this->loadHelp();
+        session()->flash('success', 'Permintaan pembatalan ditolak. Silakan lanjutkan pekerjaan.');
+    }
+
     public function cancelHelp()
     {
         try {

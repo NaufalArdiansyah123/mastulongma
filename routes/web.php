@@ -66,6 +66,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Help & Support
         Route::view('/help-support', 'customer.help-support')->name('help-support');
 
+        // Lightweight endpoint to fetch current tracking coordinates (used by client-side polling)
+        Route::get('/helps/{id}/tracking', function ($id) {
+            $help = \App\Models\Help::find($id);
+            if (! $help) {
+                return response()->json(['error' => 'Not found'], 404);
+            }
+
+            return response()->json([
+                'partnerLat' => $help->partner_current_lat,
+                'partnerLng' => $help->partner_current_lng,
+                'customerLat' => $help->latitude,
+                'customerLng' => $help->longitude,
+                'partnerName' => $help->mitra?->name ?? null,
+                'updated_at' => $help->updated_at?->toDateTimeString(),
+            ]);
+        })->name('customer.helps.tracking');
+
+        // Lightweight JSON endpoint to fetch help details (used by JS fallback in preview modals)
+        Route::get('/helps/{id}/json', function ($id) {
+            $help = \App\Models\Help::with(['city','mitra','user'])->find($id);
+            if (! $help) return response()->json(['error' => 'Not found'], 404);
+
+            return response()->json([
+                'id' => $help->id,
+                'scheduled_at' => $help->scheduled_at?->toDateTimeString(),
+                'title' => $help->title,
+                'amount' => $help->amount,
+            ]);
+        })->name('helps.json');
+
         // Reports
         Route::get('/reports/create', \App\Livewire\Customer\Reports\Create::class)->name('reports.create');
         Route::get('/reports/create/user/{user_id}', \App\Livewire\Customer\Reports\Create::class)->name('reports.create.user');
@@ -185,6 +215,14 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->na
     Route::get('/settings/banners', \App\Livewire\SuperAdmin\Banners::class)->name('settings.banners');
     // Transactions / Logs (topup, withdraw, mutasi)
     Route::view('/settings/transactions', 'superadmin.transactions')->name('settings.transactions');
+    // Withdraw management (moved to SuperAdmin for approvals)
+    Route::get('/withdraws', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'index'])->name('withdraws.index');
+    Route::get('/withdraws/{withdraw}/modal', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'modal'])->name('withdraws.modal');
+    Route::get('/withdraws/{withdraw}', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'show'])->name('withdraws.show');
+    Route::post('/withdraws/{withdraw}/approve', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'approve'])->name('withdraws.approve');
+    Route::post('/withdraws/{withdraw}/reject', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'reject'])->name('withdraws.reject');
+    
+    
 });
 
 // Admin routes - require admin role only (for moderasi)
@@ -199,8 +237,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Modal endpoint to load withdraw details into a modal (AJAX)
     Route::get('/withdraws/{withdraw}/modal', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'modal'])->name('withdraws.modal');
     Route::get('/withdraws/{withdraw}', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'show'])->name('withdraws.show');
-    Route::post('/withdraws/{withdraw}/approve', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'approve'])->name('withdraws.approve');
-    Route::post('/withdraws/{withdraw}/reject', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'reject'])->name('withdraws.reject');
+    
 
     // Users management (Admin area)
     Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');

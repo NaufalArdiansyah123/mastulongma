@@ -44,6 +44,8 @@
 
                 <div id="help-modal-location" class="text-xs text-gray-500">-</div>
 
+                <div class="text-xs text-gray-500 mt-2">📅 <span id="help-modal-scheduled">-</span></div>
+
                 <div class="grid grid-cols-2 gap-3 mt-2">
                     <div class="text-xs text-gray-600">
                         <div class="font-semibold text-gray-800">Status</div>
@@ -142,6 +144,20 @@
 
                 // Location
                 document.getElementById('help-modal-location').textContent = help.location ? ('Lokasi: ' + help.location) : '';
+
+                // Scheduled date/time (if provided)
+                try {
+                    const schedEl = document.getElementById('help-modal-scheduled');
+                    if (schedEl) {
+                        if (help.scheduled_at) {
+                            const d = new Date(help.scheduled_at);
+                            const formatted = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);
+                            schedEl.textContent = formatted;
+                        } else {
+                            schedEl.textContent = '-';
+                        }
+                    }
+                } catch (e) { console.warn('failed to set scheduled datetime', e); }
 
                 // Status & mitra
                 document.getElementById('help-modal-status').textContent = help.status || '-';

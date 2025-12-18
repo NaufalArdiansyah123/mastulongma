@@ -546,7 +546,7 @@
         // Toggle blur on bottom nav and any elements with `.blur-on-modal` when a modal is present in DOM.
         function checkConfirmModalAndToggleBlur() {
             try {
-                var modal = document.querySelector('[data-confirm-modal], [data-transaction-modal]');
+                var modal = document.querySelector('[data-confirm-modal], [data-transaction-modal], [data-tracking-modal]');
                 var nav = document.querySelector('#bottom-nav');
                 var extras = document.querySelectorAll('.blur-on-modal');
 

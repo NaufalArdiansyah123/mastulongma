@@ -15,6 +15,8 @@ class HelpDetail extends Component
     public $currentStatus;
     public $rating = 0;
     public $review = '';
+    public $showPartnerCancelModal = false;
+    public $partnerCancelReason = '';
 
     public function mount($id)
     {
@@ -46,6 +48,48 @@ class HelpDetail extends Component
         $this->help->refresh();
 
         session()->flash('message', 'Status berhasil diperbarui!');
+    }
+
+    public function openPartnerCancelModal()
+    {
+        $this->partnerCancelReason = '';
+        $this->showPartnerCancelModal = true;
+    }
+
+    public function requestPartnerCancel()
+    {
+        // Only allow partner assigned mitra to request cancel and only for certain statuses
+        if ($this->help->mitra_id !== auth()->id()) {
+            session()->flash('error', 'Anda tidak memiliki izin untuk membatalkan bantuan ini.');
+            return;
+        }
+
+        if (!in_array($this->help->status, ['memperoleh_mitra', 'taken', 'partner_on_the_way', 'partner_arrived'])) {
+            session()->flash('error', 'Pembatalan tidak dapat diminta pada status ini.');
+            return;
+        }
+
+        $oldStatus = $this->help->status;
+
+        $this->help->update([
+            'partner_cancel_prev_status' => $oldStatus,
+            'status' => 'partner_cancel_requested',
+            'partner_cancel_requested_at' => now(),
+            'partner_cancel_reason' => $this->partnerCancelReason ?: null,
+        ]);
+
+        // Notify customer
+        try {
+            $this->help->user->notify(new \App\Notifications\HelpStatusNotification($this->help, $oldStatus, 'partner_cancel_requested', $this->help->mitra));
+        } catch (\Exception $e) {
+            // silent fail for notification
+        }
+
+        $this->showPartnerCancelModal = false;
+        $this->help->refresh();
+        $this->currentStatus = $this->help->status;
+
+        session()->flash('message', 'Permintaan pembatalan telah dikirim ke customer. Menunggu konfirmasi.');
     }
 
     public function markPartnerStarted()

@@ -104,9 +104,12 @@ class Dashboard extends Component
         $balance = $userBalance ? $userBalance->balance : 0;
 
         // Statistik bantuan
-        $availableHelpsCount = Help::where('status', 'menunggu_mitra')
-            ->whereNull('mitra_id')
-            ->count();
+        $availableHelpsQuery = Help::where('status', 'menunggu_mitra')
+            ->whereNull('mitra_id');
+        if ($user && !empty($user->city_id)) {
+            $availableHelpsQuery->where('city_id', $user->city_id);
+        }
+        $availableHelpsCount = $availableHelpsQuery->count();
 
         $inProgressCount = Help::where('mitra_id', $user->id)
             ->where('status', 'memperoleh_mitra')
@@ -118,18 +121,27 @@ class Dashboard extends Component
 
         // Data berdasarkan tab
         if ($this->activeTab === 'tersedia') {
-            $helps = Help::where('status', 'menunggu_mitra')
+            $helpsQuery = Help::where('status', 'menunggu_mitra')
                 ->whereNull('mitra_id')
-                ->with(['user', 'city'])
-                ->latest()
-                ->paginate(10);
+                ->with(['user', 'city']);
+
+            if ($user && !empty($user->city_id)) {
+                $helpsQuery->where('city_id', $user->city_id);
+            }
+
+            $helps = $helpsQuery->latest()->paginate(10);
         } elseif ($this->activeTab === 'semua') {
             // Tampilkan SEMUA bantuan dari semua customer (status menunggu_mitra yang belum diambil)
-            $helps = Help::where('status', 'menunggu_mitra')
+            $helpsQuery = Help::where('status', 'menunggu_mitra')
                 ->whereNull('mitra_id')
-                ->with(['user', 'city'])
-                ->latest()
-                ->paginate(10);
+                ->with(['user', 'city']);
+
+            if ($user && !empty($user->city_id)) {
+                // For the dashboard, prefer showing helps in the same city by default
+                $helpsQuery->where('city_id', $user->city_id);
+            }
+
+            $helps = $helpsQuery->latest()->paginate(10);
         } elseif ($this->activeTab === 'diproses') {
             $helps = Help::where('mitra_id', $user->id)
                 ->where('status', 'memperoleh_mitra')
@@ -155,6 +167,9 @@ class Dashboard extends Component
         $recommendedQuery = Help::where('status', 'menunggu_mitra')
             ->whereNull('mitra_id')
             ->with($relations);
+        if ($user && !empty($user->city_id)) {
+            $recommendedQuery->where('city_id', $user->city_id);
+        }
 
         // Determine safe ordering depending on which columns exist
         if (Schema::hasColumn('helps', 'priority')) {
@@ -172,10 +187,13 @@ class Dashboard extends Component
         $recommendedHelps = $recommendedQuery->take(6)->get();
 
         // Terbaru: order by created_at desc
-        $latestHelps = Help::where('status', 'menunggu_mitra')
+        $latestQuery = Help::where('status', 'menunggu_mitra')
             ->whereNull('mitra_id')
-            ->with($relations)
-            ->orderByDesc('created_at')
+            ->with($relations);
+        if ($user && !empty($user->city_id)) {
+            $latestQuery->where('city_id', $user->city_id);
+        }
+        $latestHelps = $latestQuery->orderByDesc('created_at')
             ->take(6)
             ->get();
 

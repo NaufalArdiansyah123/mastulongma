@@ -62,33 +62,9 @@
                         <div class="mt-1">{{ $withdraw->description ?? '-' }}</div>
                     </div>
 
-                    @if($withdraw->status === 'pending')
-                        <form action="{{ route('admin.withdraws.approve', $withdraw) }}" method="POST"
-                            class="bg-white p-4 border border-gray-100 rounded">
-                            @csrf
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm text-gray-700">Catatan (opsional)</label>
-                                    <input type="text" name="note" class="mt-1 block w-full rounded border-gray-300" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm text-gray-700">Referensi Transfer (opsional)</label>
-                                    <input type="text" name="transfer_reference"
-                                        class="mt-1 block w-full rounded border-gray-300" />
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center justify-end">
-                                <button type="submit" class="px-5 py-2 bg-green-600 text-white rounded-lg shadow">Approve
-                                    &amp; Potong Saldo</button>
-                            </div>
-                        </form>
-                    @else
-                        <div class="text-sm text-gray-500">Status: <strong>{{ ucfirst($withdraw->status) }}</strong></div>
-                        <div class="mt-2">Diproses pada:
-                            {{ $withdraw->processed_at ? $withdraw->processed_at->format('Y-m-d H:i') : '-' }}
-                        </div>
-                        <div class="mt-2">Referensi: {{ $withdraw->external_id ?? '-' }}</div>
-                    @endif
+                    <div class="text-sm text-gray-500">Status: <strong>{{ ucfirst($withdraw->status) }}</strong></div>
+                    <div class="mt-2">Diproses pada: {{ $withdraw->processed_at ? $withdraw->processed_at->format('Y-m-d H:i') : '-' }}</div>
+                    <div class="mt-2">Referensi: {{ $withdraw->external_id ?? '-' }}</div>
                 </div>
 
                 @if($withdraw->status === 'pending')
@@ -96,26 +72,9 @@
                         <div class="bg-white p-4 border rounded mb-4">
                             <div class="text-sm text-gray-500">Aksi</div>
                             <div class="mt-3">
-                                <p class="text-sm text-gray-700">Jika ingin menolak permintaan ini, klik tombol di bawah.
+                                <p class="text-sm text-gray-700">Permintaan ini sedang menunggu persetujuan SuperAdmin.
                                 </p>
-                                <button id="open-reject-local"
-                                    class="mt-3 w-full px-4 py-2 bg-red-600 text-white rounded">Tolak</button>
                             </div>
-                        </div>
-
-                        <!-- Hidden inline reject form that will appear in the detail modal when admin clicks 'Tolak' -->
-                        <div id="reject-form-local" class="hidden bg-gray-50 p-4 border rounded">
-                            <form action="{{ route('admin.withdraws.reject', $withdraw) }}" method="POST">
-                                @csrf
-                                <label class="block text-sm text-gray-700">Catatan Penolakan (opsional)</label>
-                                <input type="text" name="note" class="mt-2 block w-full rounded border-gray-300" />
-                                <div class="mt-4 flex items-center justify-between">
-                                    <button type="button" id="reject-cancel-local"
-                                        class="px-3 py-2 bg-gray-100 rounded">Batal</button>
-                                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Konfirmasi
-                                        Tolak</button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 @endif

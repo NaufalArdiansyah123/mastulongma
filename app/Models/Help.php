@@ -40,6 +40,9 @@ class Help extends Model
         'partner_current_lat',
         'partner_current_lng',
         'partner_started_moving_at',
+        'partner_cancel_requested_at',
+        'partner_cancel_reason',
+        'partner_cancel_prev_status',
     ];
 
     protected $casts = [
@@ -63,6 +66,7 @@ class Help extends Model
         'partner_current_lat' => 'decimal:8',
         'partner_current_lng' => 'decimal:8',
         'partner_started_moving_at' => 'datetime',
+        'partner_cancel_requested_at' => 'datetime',
     ];
 
     public function user()

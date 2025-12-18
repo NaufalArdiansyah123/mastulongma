@@ -81,6 +81,9 @@
                                         <div class="flex-1 min-w-0">
                                             <h3 class="font-semibold text-gray-900 truncate">{{ $help->title ?? 'Permintaan Bantuan' }}</h3>
                                             <p class="text-xs text-gray-500 truncate">{{ optional($help->city)->name }} • {{ optional($help->updated_at)->format('d M Y') }}</p>
+                                            @if($help->scheduled_at)
+                                                <div class="text-xs text-gray-500 mt-1">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+                                            @endif
                                         </div>
 
                                         <div class="text-right flex-shrink-0">

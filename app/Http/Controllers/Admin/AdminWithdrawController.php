@@ -74,12 +74,22 @@ class AdminWithdrawController extends Controller
             'failed' => (clone $countsQuery)->where('status', WithdrawRequest::STATUS_FAILED)->count(),
         ];
 
+        $routeName = request()->route() ? request()->route()->getName() : null;
+        if ($routeName && strpos($routeName, 'superadmin.') === 0) {
+            return view('superadmin.withdraws.index', ['items' => $items, 'banks' => $banks, 'counts' => $counts]);
+        }
+
         return view('admin.withdraws.index', ['items' => $items, 'banks' => $banks, 'counts' => $counts]);
     }
 
     public function show(WithdrawRequest $withdraw)
     {
         $withdraw->load('user');
+        $routeName = request()->route() ? request()->route()->getName() : null;
+        if ($routeName && strpos($routeName, 'superadmin.') === 0) {
+            return view('superadmin.withdraws.show', ['withdraw' => $withdraw]);
+        }
+
         return view('admin.withdraws.show', ['withdraw' => $withdraw]);
     }
 
@@ -87,6 +97,11 @@ class AdminWithdrawController extends Controller
     public function modal(WithdrawRequest $withdraw)
     {
         $withdraw->load('user');
+        $routeName = request()->route() ? request()->route()->getName() : null;
+        if ($routeName && strpos($routeName, 'superadmin.') === 0) {
+            return view('superadmin.withdraws._modal', ['withdraw' => $withdraw]);
+        }
+
         return view('admin.withdraws._modal', ['withdraw' => $withdraw]);
     }
 
@@ -128,7 +143,7 @@ class AdminWithdrawController extends Controller
                 Log::warning('Failed to send withdraw success notification: ' . $e->getMessage());
             }
 
-            return redirect()->route('admin.withdraws.index')->with('status', 'Withdraw berhasil diproses dan saldo telah dipotong.');
+            return redirect()->route('superadmin.withdraws.index')->with('status', 'Withdraw berhasil diproses dan saldo telah dipotong.');
         } catch (\Throwable $e) {
             Log::error('AdminWithdrawController: approve error', ['error' => $e->getMessage(), 'withdraw_id' => $withdraw->id]);
             return back()->withErrors(['general' => 'Terjadi kesalahan saat memproses withdraw.']);
@@ -156,6 +171,6 @@ class AdminWithdrawController extends Controller
             Log::warning('Failed to send withdraw failed notification: ' . $e->getMessage());
         }
 
-        return redirect()->route('admin.withdraws.index')->with('status', 'Withdraw dibatalkan.');
+        return redirect()->route('superadmin.withdraws.index')->with('status', 'Withdraw dibatalkan.');
     }
 }

@@ -67,15 +67,34 @@
 
         {{-- Payment note removed - moved to customer view per request --}}
 
+        {{-- Schedule --}}
+        <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+            <h3 class="font-semibold text-sm text-gray-900 mb-2 flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Jadwal Permintaan
+            </h3>
+            <p class="text-sm text-gray-700">
+                {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->translatedFormat('l, d F Y') }}
+                (Jam {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->format('H:i') }})
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Jadwal tertera dalam WIB</p>
+        </div>
+
         {{-- Customer Info --}}
         <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="font-semibold text-sm text-gray-900">Informasi Customer</h3>
             </div>
             <div class="flex items-center gap-3 mb-3">
-                <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
-                    {{ strtoupper(substr($help->user->name ?? 'C', 0, 1)) }}
-                </div>
+                @if($help->user->selfie_photo)
+                    <img src="{{ asset('storage/' . $help->user->selfie_photo) }}" alt="{{ $help->user->name }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-100">
+                @else
+                    <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                        {{ strtoupper(substr($help->user->name ?? 'C', 0, 1)) }}
+                    </div>
+                @endif
                 <div class="flex-1">
                     <h4 class="font-semibold text-sm text-gray-900">{{ $help->user->name }}</h4>
                     @if($help->user->phone)
@@ -194,6 +213,43 @@
                 </div>
             </div>
         @endif
+
+        @if(in_array($help->status, ['memperoleh_mitra','taken','partner_on_the_way','partner_arrived']) && $help->mitra_id === auth()->id())
+            <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+                <button wire:click="openPartnerCancelModal"
+                    class="w-full py-3 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700 transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Batalkan Bantuan
+                </button>
+                <p class="text-xs text-gray-500 text-center mt-2">Ajukan pembatalan ke customer. Menunggu konfirmasi customer.</p>
+            </div>
+        @endif
+
+        {{-- Informasi setelah mitra mengirim permintaan pembatalan --}}
+        @if($help->status === 'partner_cancel_requested' && $help->mitra_id === auth()->id())
+            <div class="bg-yellow-50 mt-2 px-4 py-4 rounded-xl border border-yellow-100 mb-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-sm text-gray-900">Permintaan pembatalan terkirim</h4>
+                        <p class="text-xs text-gray-700 mt-1">Anda telah mengajukan pembatalan pesanan ini. Saat ini menunggu konfirmasi dari customer. Halaman ini menampilkan informasi singkat agar tidak terlihat kosong.</p>
+                        @if($help->partner_cancel_reason)
+                            <p class="text-xs text-gray-600 mt-2 italic">Alasan: "{{ $help->partner_cancel_reason }}"</p>
+                        @endif
+                        @if($help->partner_cancel_requested_at)
+                            <p class="text-xs text-gray-500 mt-2">Diajukan: {{ \Carbon\Carbon::parse($help->partner_cancel_requested_at)->translatedFormat('d F Y, H:i') }}</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
 
         {{-- Status Timeline --}}
         @if($help->partner_started_at || $help->partner_arrived_at || $help->service_started_at || $help->service_completed_at || $help->completed_at)
@@ -367,4 +423,24 @@
             @endif
         @endif
     </div>
-</div>
+                {{-- Partner Cancel Modal --}}
+                @if($showPartnerCancelModal)
+                    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+                            <h3 class="font-semibold text-lg">Ajukan Pembatalan Bantuan</h3>
+                            <p class="text-sm text-gray-600 mt-2">Tulis alasan singkat kenapa Anda ingin membatalkan bantuan ini. Customer akan menerima permintaan pembatalan dan bisa menerima atau menolak.</p>
+
+                            <div class="mt-3">
+                                <label class="block text-sm font-medium text-gray-700">Alasan (opsional)</label>
+                                <textarea wire:model.defer="partnerCancelReason" rows="4" class="w-full mt-1 p-2 border rounded-md text-sm" placeholder="Contoh: kendaraan rusak, alat tidak tersedia..."></textarea>
+                            </div>
+
+                            <div class="mt-4 flex items-center justify-end gap-2">
+                                <button wire:click.prevent="$set('showPartnerCancelModal', false)" class="px-4 py-2 bg-gray-100 rounded-md">Batal</button>
+                                <button wire:click="requestPartnerCancel" class="px-4 py-2 bg-red-600 text-white rounded-md">Kirim Permintaan</button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+        </div>

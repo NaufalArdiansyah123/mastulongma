@@ -234,6 +234,29 @@
                     @enderror
                 </div>
 
+                <!-- Jadwal Permintaan (Tanggal & Jam) -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                        <span class="flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 000 2h8a1 1 0 100-2H6zM4 6a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                            </svg>
+                            Jadwalkan Bantuan (Opsional)
+                        </span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <input type="date" wire:model="scheduled_date" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition bg-white">
+                            @error('scheduled_date') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <input type="text" wire:model="scheduled_time" placeholder="Contoh: 9:30 atau 09:30 (format 24-jam)" inputmode="numeric" pattern="^([0-1]?\d|2[0-3]):[0-5]\d$" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition bg-white">
+                                @error('scheduled_time') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1.5">Jika ingin bantuan di lain hari atau jam tertentu, masukkan tanggal dan jam di sini.</p>
+                </div>
+
                 <!-- Tandai Lokasi di Peta -->
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1.5">
@@ -526,6 +549,13 @@
                             </div>
                         </div>
                     </div>
+
+                    @if($confirmScheduled)
+                        <div class="mb-4">
+                            <div class="text-xs text-gray-600">Jadwal Permintaan</div>
+                            <div class="text-sm font-semibold">{{ $confirmScheduled }}</div>
+                        </div>
+                    @endif
 
                     <!-- Info Box -->
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5">

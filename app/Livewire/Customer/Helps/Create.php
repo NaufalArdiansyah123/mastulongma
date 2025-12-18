@@ -10,6 +10,7 @@ use App\Models\AppSetting;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Carbon\Carbon;
 
 class Create extends Component
 {
@@ -24,6 +25,9 @@ class Create extends Component
     public $full_address = '';
     public $latitude = null;
     public $longitude = null;
+    // Scheduling
+    public $scheduled_date = null; // YYYY-MM-DD
+    public $scheduled_time = null; // HH:MM
     public $photo;
     public $showInsufficientModal = false;
     public $insufficientMessage = '';
@@ -32,6 +36,7 @@ class Create extends Component
     public $confirmAdminFee = 0;
     public $confirmTotal = 0;
     public $currentBalance = 0;
+    public $confirmScheduled = null;
 
     protected $rules = [
         'title' => 'required|string|max:255',
@@ -44,6 +49,8 @@ class Create extends Component
         'latitude' => 'nullable|numeric|between:-90,90',
         'longitude' => 'nullable|numeric|between:-180,180',
         'photo' => 'nullable|image|max:2048',
+        'scheduled_date' => 'nullable|date',
+        'scheduled_time' => ['nullable','regex:/^(?:[0-1]?\d|2[0-3]):[0-5]\d$/'],
     ];
 
     protected $messages = [
@@ -51,6 +58,8 @@ class Create extends Component
         'amount.numeric' => 'Nominal harus berupa angka',
         'amount.min' => 'Nominal tidak boleh kurang dari nilai minimal yang ditetapkan',
         'amount.max' => 'Nominal maksimal Rp 100.000.000',
+        'scheduled_date.date' => 'Format tanggal tidak valid',
+        'scheduled_time.regex' => 'Format waktu tidak valid. Gunakan format 24-jam HH:MM, contoh: 9:30 atau 09:30',
     ];
 
     public function save()
@@ -75,6 +84,16 @@ class Create extends Component
             return;
         }
 
+        // Final server-side check: scheduled_at not in the past
+        if ($this->scheduled_date) {
+            $time = $this->scheduled_time ?: '00:00';
+            $scheduledAtCheck = Carbon::parse($this->scheduled_date . ' ' . $time);
+            if ($scheduledAtCheck->lt(Carbon::now())) {
+                $this->addError('scheduled_date', 'Jadwal tidak boleh berada di masa lalu');
+                return;
+            }
+        }
+
         // Proceed to create help and deduct balance atomically
         DB::transaction(function () use ($userId, $amount, $adminFee, $total) {
             $photoPath = null;
@@ -84,6 +103,13 @@ class Create extends Component
 
             // Generate unique order id for this help
             $orderId = $this->generateOrderId();
+
+            // Combine scheduled_date and scheduled_time into scheduled_at if provided
+            $scheduledAt = null;
+            if ($this->scheduled_date) {
+                $time = $this->scheduled_time ?: '00:00';
+                $scheduledAt = date('Y-m-d H:i:s', strtotime($this->scheduled_date . ' ' . $time));
+            }
 
             $help = Help::create([
                 'user_id' => $userId,
@@ -97,6 +123,7 @@ class Create extends Component
                 'equipment_provided' => $this->equipment_provided,
                 'location' => $this->location,
                 'full_address' => $this->full_address,
+                'scheduled_at' => $scheduledAt,
                 'latitude' => $this->latitude,
                 'longitude' => $this->longitude,
                 'photo' => $photoPath,
@@ -125,6 +152,16 @@ class Create extends Component
         $amount = (float) $this->amount;
         $total = $amount + $adminFee;
 
+        // Validate scheduled datetime is not in the past
+        if ($this->scheduled_date) {
+            $time = $this->scheduled_time ?: '00:00';
+            $scheduledAt = Carbon::parse($this->scheduled_date . ' ' . $time);
+            if ($scheduledAt->lt(Carbon::now())) {
+                $this->addError('scheduled_date', 'Jadwal tidak boleh berada di masa lalu');
+                return;
+            }
+        }
+
         $userId = auth()->id();
         $userBalance = UserBalance::firstOrCreate(['user_id' => $userId], ['balance' => 0]);
 
@@ -137,6 +174,13 @@ class Create extends Component
         $this->confirmAmount = $amount;
         $this->confirmAdminFee = $adminFee;
         $this->confirmTotal = $total;
+        // Prepare scheduled display
+        if ($this->scheduled_date) {
+            $time = $this->scheduled_time ?: '00:00';
+            $this->confirmScheduled = date('d M Y H:i', strtotime($this->scheduled_date . ' ' . $time));
+        } else {
+            $this->confirmScheduled = null;
+        }
         $this->currentBalance = $userBalance->balance ?? 0;
         $this->showConfirmModal = true;
     }

@@ -35,6 +35,9 @@ class HelpStatusNotification extends Notification
         $message = match (strtolower($this->newStatus)) {
             'partner_on_the_way' => "$mitraName sedang menuju lokasi Anda",
             'partner_arrived' => "$mitraName telah tiba di lokasi Anda",
+            'partner_cancel_requested' => "$mitraName meminta pembatalan bantuan. Cek detail pesanan.",
+            'cancel_accepted' => "Customer menerima pembatalan. Bantuan dibuka kembali untuk mitra lain.",
+            'cancel_rejected' => "Customer menolak pembatalan. Silakan lanjutkan pekerjaan.",
             default => "Status bantuan diperbarui: {$this->newStatus}"
         };
 

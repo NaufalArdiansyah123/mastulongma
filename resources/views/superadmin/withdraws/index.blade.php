@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.superadmin')
 
 @section('content')
 
@@ -34,22 +34,19 @@
                     </div>
 
                     <div class="col-span-1">
-                        <form method="GET" action="{{ route('admin.withdraws.index') }}" class="flex items-center gap-2">
+                        <form method="GET" action="{{ route('superadmin.withdraws.index') }}" class="flex items-center gap-2">
                             <select name="status" class="form-select block w-full rounded border-gray-300 p-2 text-sm">
                                 <option value="">All status</option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
-                                </option>
-                                <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>
-                                    Processing</option>
-                                <option value="success" {{ request('status') == 'success' ? 'selected' : '' }}>Success
-                                </option>
+                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                                <option value="success" {{ request('status') == 'success' ? 'selected' : '' }}>Success</option>
                                 <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
                             </select>
                         </form>
                     </div>
                 </div>
 
-                <form method="GET" action="{{ route('admin.withdraws.index') }}"
+                <form method="GET" action="{{ route('superadmin.withdraws.index') }}"
                     class="mt-4 grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
                     <div class="md:col-span-2">
                         <label class="text-xs text-gray-600">User (ID or name)</label>
@@ -77,7 +74,7 @@
                     </div>
                     <div class="md:col-span-1 flex gap-2">
                         <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded">Apply</button>
-                        <a href="{{ route('admin.withdraws.index') }}"
+                        <a href="{{ route('superadmin.withdraws.index') }}"
                             class="px-4 py-2 bg-gray-100 text-gray-700 rounded">Reset</a>
                     </div>
                 </form>
@@ -102,7 +99,7 @@
                                 <td class="px-6 py-3 text-sm text-gray-700">{{ $item->id }}</td>
                                 <td class="px-6 py-3 text-sm text-gray-700">
                                     @if($item->user)
-                                        <a href="{{ route('admin.users.show', $item->user) }}"
+                                        <a href="{{ route('superadmin.users', $item->user) }}"
                                             class="text-primary-600 hover:underline">{{ $item->user->name }}</a>
                                         <div class="text-[11px] text-gray-400">ID: {{ $item->user_id }}</div>
                                     @else
@@ -125,13 +122,9 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-3 text-right text-sm">
-                                    @if(auth()->user() && auth()->user()->isSuperAdmin())
-                                        <button data-id="{{ $item->id }}"
-                                            class="open-withdraw-modal inline-flex items-center px-3 py-1.5 bg-primary-500 text-white rounded-full hover:bg-primary-600">Lihat
-                                            / Proses</button>
-                                    @else
-                                        <a href="{{ route('admin.withdraws.show', $item) }}" class="inline-flex items-center px-3 py-1.5 bg-primary-500 text-white rounded-full hover:bg-primary-600">Lihat</a>
-                                    @endif
+                                    <button data-id="{{ $item->id }}"
+                                        class="open-withdraw-modal inline-flex items-center px-3 py-1.5 bg-primary-500 text-white rounded-full hover:bg-primary-600">Lihat
+                                        / Proses</button>
                                 </td>
                             </tr>
                         @endforeach
@@ -147,20 +140,19 @@
         </div>
     </div>
     <!-- Modal container -->
-    <div id="admin-withdraw-modal-container"></div>
+    <div id="superadmin-withdraw-modal-container"></div>
 
     <script>
         (function () {
             function openModal(id) {
-                var container = document.getElementById('admin-withdraw-modal-container');
+                var container = document.getElementById('superadmin-withdraw-modal-container');
                 // Fetch modal HTML
-                fetch('/admin/withdraws/' + id + '/modal')
+                fetch('/superadmin/withdraws/' + id + '/modal')
                     .then(function (res) { return res.text(); })
                     .then(function (html) {
                         container.innerHTML = html;
                         // Ensure modal scripts/behavior are initialized after injection
-                        initAdminWithdrawModal(container);
-                        // Optionally scroll to top so modal is visible
+                        initSuperadminWithdrawModal(container);
                         window.scrollTo(0, 0);
                     })
                     .catch(function (err) { console.error('Failed to load modal:', err); });
@@ -174,44 +166,17 @@
             });
         })();
 
-        // Initialize modal behavior for injected admin withdraw modal
-        function initAdminWithdrawModal(container) {
-            // Find the injected modal node
-            var modal = container.querySelector('#admin-withdraw-modal');
+        function initSuperadminWithdrawModal(container) {
+            var modal = container.querySelector('#superadmin-withdraw-modal');
             if (!modal) return;
-
-            var overlay = modal.querySelector('#admin-withdraw-modal-overlay');
-            var closeBtn = modal.querySelector('#close-admin-withdraw-modal');
-
+            var overlay = modal.querySelector('#superadmin-withdraw-modal-overlay');
+            var closeBtn = modal.querySelector('#close-superadmin-withdraw-modal');
             function removeModal() { container.innerHTML = ''; }
             if (closeBtn) closeBtn.addEventListener('click', removeModal);
             if (overlay) overlay.addEventListener('click', removeModal);
-
-            // Inline reject form (toggle visibility inside the injected modal)
-            // support both the old and new ID names for the reject trigger
-            var openReject = modal.querySelector('#open-reject-modal-local, #open-reject-local');
-            var rejectForm = modal.querySelector('#reject-form-local');
-            var rejectCancel = modal.querySelector('#reject-cancel-local');
-
-            // lock body scroll while modal is open and restore on close
             document.body.style.overflow = 'hidden';
-            function restoreBodyScroll() { document.body.style.overflow = ''; }
-            // ensure restore when modal removed
             var originalRemove = removeModal;
-            removeModal = function () { restoreBodyScroll(); originalRemove(); };
-
-            function showReject() {
-                if (rejectForm) {
-                    rejectForm.classList.remove('hidden');
-                    // focus first input when shown
-                    var input = rejectForm.querySelector('input[name="note"]');
-                    if (input) input.focus();
-                }
-            }
-            function hideReject() { if (rejectForm) rejectForm.classList.add('hidden'); }
-
-            if (openReject) openReject.addEventListener('click', showReject);
-            if (rejectCancel) rejectCancel.addEventListener('click', hideReject);
+            removeModal = function () { document.body.style.overflow = ''; originalRemove(); };
         }
     </script>
 @endsection

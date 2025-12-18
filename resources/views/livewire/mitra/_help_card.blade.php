@@ -27,6 +27,9 @@
                 <div class="text-xs text-gray-500 truncate">{{ $help->city->name ?? ($help->location ?? '-') }}</div>
                 <div class="text-xs text-gray-400">{{ $help->created_at->diffForHumans() }}</div>
             </div>
+            @if($help->scheduled_at)
+                <div class="mt-2 text-xs text-gray-500">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+            @endif
         </div>
     </div>
 </div>

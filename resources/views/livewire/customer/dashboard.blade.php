@@ -282,6 +282,9 @@
                                         <span class="text-xs font-bold whitespace-nowrap" style="color: #0098e7;">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
                                     </div>
                                     <p class="text-xs text-gray-600 line-clamp-1 mb-1.5">{{ $help->description }}</p>
+                                    @if($help->scheduled_at)
+                                        <div class="text-xs text-gray-500 mb-1">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
+                                    @endif
                                     <div class="flex items-center gap-3">
                                         <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
                                         <span class="text-xs text-gray-400">{{ $help->created_at->diffForHumans() }}</span>
@@ -394,6 +397,13 @@
                                 <div>
                                     <p class="text-xs font-semibold text-gray-500 mb-1">Kota</p>
                                     <p class="text-sm text-gray-700">{{ data_get($selectedHelpData, 'city_name') }}</p>
+                                </div>
+                            @endif
+
+                            @if(data_get($selectedHelpData, 'scheduled_at'))
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 mb-1">Jadwal Permintaan</p>
+                                    <p class="text-sm text-gray-700">{{ \Carbon\Carbon::parse(data_get($selectedHelpData, 'scheduled_at'))->translatedFormat('d M Y, H:i') }}</p>
                                 </div>
                             @endif
 

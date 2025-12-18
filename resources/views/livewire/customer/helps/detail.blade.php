@@ -66,6 +66,23 @@
                 </div>
             </div>
         </div>
+
+        {{-- Live tracking summary (updates continuously, visible without opening modal) --}}
+        <div id="live-tracking-summary" wire:ignore class="bg-white mt-2 px-4 py-2 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-600">Estimasi Tiba</p>
+                    <p id="summary-eta" class="text-sm font-semibold text-blue-700">Menghitung...</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-gray-600">Jarak</p>
+                <p id="summary-distance" class="text-sm font-semibold text-blue-700">-</p>
+            </div>
+        </div>
     </div>
 
     {{-- Header - match other customer pages (gradient BRImo style) --}}
@@ -86,15 +103,15 @@
                     <p class="text-xs text-white/90 mt-0.5">Detail permintaan bantuan Anda</p>
                 </div>
 
-                <div class="w-9">
+                {{-- <div class="w-9">
                     <button class="p-2 hover:bg-white/20 rounded-lg transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01" />
                         </svg>
                     </button>
-                </div>
+                </div> --}}
             </div>
-        </div>
+        </div>        
 
             <!-- Curved separator (SVG) to create non-flat divider into content -->
             <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
@@ -137,9 +154,13 @@
             @if($help->mitra)
                 <div class="mt-4 p-3 bg-white rounded-xl flex items-center justify-between shadow-sm border border-gray-100">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-                            {{ strtoupper(substr($help->mitra->name ?? 'M', 0, 1)) }}
-                        </div>
+                        @if($help->mitra->selfie_photo)
+                            <img src="{{ asset('storage/' . $help->mitra->selfie_photo) }}" alt="{{ $help->mitra->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-blue-100">
+                        @else
+                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                                {{ strtoupper(substr($help->mitra->name ?? 'M', 0, 1)) }}
+                            </div>
+                        @endif
                         <div>
                             <h3 class="font-semibold text-sm text-gray-900">{{ $help->mitra->name ?? 'Mitra' }}</h3>
                             <div class="flex items-center gap-1 mt-0.5">
@@ -266,8 +287,9 @@
                     <h3 class="font-bold text-sm text-gray-900 mb-1">Jadwal Pesanan</h3>
                     <p class="text-sm text-gray-700">
                         {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->translatedFormat('l, d F Y') }} 
-                        (Jam {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->format('H:i') }} - 
-                        {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->addHour()->format('H:i') }} WIB)*
+                        (Jam {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->format('H:i') }}
+                        {{-- {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->addHour()->format('H:i') }}  --}}
+                        WIB)
                     </p>
                     <p class="text-xs text-gray-500 mt-1">*Jadwal tertera dalam WIB</p>
                 </div>
@@ -346,7 +368,7 @@
                                             @endphp
                                             <p class="text-xs text-blue-600 flex items-center gap-1">Jarak: {{ $distance > 1000 ? number_format($distance/1000, 1) . ' km' : $distance . ' m' }}</p>
                                         @elseif($status['key'] === 'accepted')
-                                            <p class="text-xs text-blue-600">GPS tracking aktif</p>
+                                            {{-- <p class="text-xs text-blue-600">GPS tracking aktif</p> --}}
                                         @elseif($status['key'] === 'arrived')
                                             <p class="text-xs text-green-600">Rekan jasa sudah sampai</p>
                                         @elseif($status['key'] === 'in_progress')
@@ -546,6 +568,31 @@
             </div>
         @endif
 
+        {{-- Partner requested cancellation - customer confirm/reject --}}
+        @if($help->status === 'partner_cancel_requested')
+            <div class="bg-yellow-50 mt-2 px-4 py-4 rounded-xl border border-yellow-100">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-sm text-gray-900">Mitra meminta pembatalan</h4>
+                        <p class="text-xs text-gray-700 mt-1">Mitra mengajukan pembatalan untuk pesanan ini. Terima pembatalan untuk membuat pesanan kembali tersedia, atau tolak untuk meminta mitra melanjutkan.</p>
+                        @if($help->partner_cancel_reason)
+                            <p class="text-xs text-gray-600 mt-2 italic">Alasan mitra: "{{ $help->partner_cancel_reason }}"</p>
+                        @endif
+
+                        <div class="mt-3 flex gap-2">
+                            <button wire:click="acceptPartnerCancellation" class="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">Terima Pembatalan</button>
+                            <button wire:click="rejectPartnerCancellation" class="flex-1 py-2.5 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">Tolak Pembatalan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         {{-- Floating Help Card (mobile) - fixed above bottom nav --}}
         <div id="floating-help-card" class="md:hidden fixed left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-50" style="bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);">
             <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-3 flex items-center justify-between gap-3">
@@ -563,67 +610,67 @@
 
     {{-- Real-time Tracking Map Modal --}}
     @if($showMapModal)
-        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center" wire:click="closeMapModal">
-            <div class="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl sm:mx-4 h-[90vh] sm:h-[600px] flex flex-col" wire:click.stop>
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" wire:click="closeMapModal" data-tracking-modal>
+            <div class="bg-white rounded-2xl w-full max-w-md mx-auto flex flex-col shadow-2xl" style="max-height: 85vh;" wire:click.stop>
                 {{-- Header --}}
-                <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-3xl sm:rounded-t-2xl">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-2xl shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                            <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-white font-bold text-base">Tracking Real-time</h3>
+                            <h3 class="text-white font-bold text-sm">Tracking Real-time</h3>
                             <p class="text-white/80 text-xs" x-text="'Lokasi ' + trackingData.partnerName"></p>
                         </div>
                     </div>
-                    <button wire:click="closeMapModal" class="text-white hover:bg-white/20 p-2 rounded-lg transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button wire:click="closeMapModal" class="text-white hover:bg-white/20 p-1.5 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
 
                 {{-- ETA Info Bar --}}
-                <div class="px-5 py-3 bg-blue-50 border-b border-blue-100">
+                <div wire:ignore class="px-4 py-2.5 bg-blue-50 border-b border-blue-100 shrink-0">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center animate-pulse">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center animate-pulse">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                 </svg>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-600">Estimasi Tiba</p>
-                                <p class="text-sm font-bold text-blue-700" id="eta-time">Menghitung...</p>
+                                <p class="text-xs font-bold text-blue-700" id="eta-time">Menghitung...</p>
                             </div>
                         </div>
                         <div class="text-right">
                             <p class="text-xs text-gray-600">Jarak</p>
-                            <p class="text-sm font-bold text-blue-700" id="distance-text">-</p>
+                            <p class="text-xs font-bold text-blue-700" id="distance-text">0.0 km</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Map Container --}}
-                <div class="flex-1 relative" wire:ignore>
+                <div class="relative shrink-0" style="height: 400px;" wire:ignore>
                     <div id="tracking-map" class="w-full h-full"></div>
                     
                     {{-- Loading Overlay --}}
                     <div id="map-loading" class="absolute inset-0 bg-white/90 flex items-center justify-center">
                         <div class="text-center">
-                            <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                            <p class="text-sm text-gray-600">Memuat peta...</p>
+                            <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                            <p class="text-xs text-gray-600">Memuat peta...</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Footer Info --}}
-                <div class="px-5 py-3 border-t border-gray-200 bg-gray-50">
+                <div class="px-4 py-2.5 border-t border-gray-200 bg-gray-50 rounded-b-2xl shrink-0">
                     <div class="flex items-center gap-2 text-xs text-gray-600">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                         </svg>
                         <span>Lokasi diperbarui setiap 5 detik</span>
@@ -1171,6 +1218,147 @@
                     }
                 }
             });
+        })();
+    </script>
+
+    <script>
+        // Expose current help id so polling can start immediately
+        window.currentHelpId = '{{ $help->id }}';
+
+        // Client-side polling runs continuously and updates Alpine + map
+        (function() {
+            let pollingInterval = null;
+            const POLL_MS = 4000; // poll every 4 seconds
+
+            function startPolling(helpId) {
+                if (!helpId) return;
+                if (pollingInterval) return; // already running
+                console.log('🔁 Starting tracking polling for help', helpId);
+                // immediate fetch
+                fetchAndUpdate(helpId);
+                pollingInterval = setInterval(() => fetchAndUpdate(helpId), POLL_MS);
+            }
+
+            function stopPolling() {
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                    console.log('⏹️ Stopped tracking polling');
+                }
+            }
+
+            async function fetchAndUpdate(helpId) {
+                try {
+                    const resp = await fetch(`/customer/helps/${helpId}/tracking`, {
+                        credentials: 'same-origin',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!resp.ok) {
+                        console.warn('Tracking endpoint returned', resp.status);
+                        return;
+                    }
+                    const data = await resp.json();
+
+                    // Update Alpine's trackingData so UI and any bindings reflect latest coords
+                    try {
+                        if (window.Alpine) {
+                            const alpineEl = document.querySelector('[x-data]');
+                            if (alpineEl) {
+                                const alpine = Alpine.$data(alpineEl);
+                                if (alpine && alpine.trackingData) {
+                                    alpine.trackingData.partnerLat = data.partnerLat ?? alpine.trackingData.partnerLat;
+                                    alpine.trackingData.partnerLng = data.partnerLng ?? alpine.trackingData.partnerLng;
+                                    alpine.trackingData.customerLat = data.customerLat ?? alpine.trackingData.customerLat;
+                                    alpine.trackingData.customerLng = data.customerLng ?? alpine.trackingData.customerLng;
+                                    alpine.trackingData.partnerName = data.partnerName ?? alpine.trackingData.partnerName;
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('Failed updating Alpine data', err);
+                    }
+
+                    // Call existing global function used by map code to update markers & route
+                    if (window.updateMapFromTracking && data) {
+                        window.updateMapFromTracking({
+                            partnerLat: data.partnerLat,
+                            partnerLng: data.partnerLng,
+                            customerLat: data.customerLat,
+                            customerLng: data.customerLng
+                        });
+                    }
+
+                    // Calculate simple straight-line distance + ETA fallback and update summary + modal placeholders
+                    try {
+                        const pLat = parseFloat(data.partnerLat);
+                        const pLng = parseFloat(data.partnerLng);
+                        const cLat = parseFloat(data.customerLat);
+                        const cLng = parseFloat(data.customerLng);
+
+                        if (!isNaN(pLat) && !isNaN(pLng) && !isNaN(cLat) && !isNaN(cLng)) {
+                            // Haversine formula (km)
+                            function haversine(lat1, lon1, lat2, lon2) {
+                                const R = 6371; // km
+                                const dLat = (lat2 - lat1) * Math.PI / 180;
+                                const dLon = (lon2 - lon1) * Math.PI / 180;
+                                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                                return R * c;
+                            }
+
+                            const distKm = haversine(pLat, pLng, cLat, cLng);
+                            const distText = distKm >= 1 ? distKm.toFixed(1) + ' km' : Math.round(distKm * 1000) + ' m';
+
+                            // Estimate time assuming avg speed 30 km/h in city
+                            const estMinutes = Math.max(1, Math.ceil((distKm / 30) * 60));
+                            const hours = Math.floor(estMinutes / 60);
+                            const minutes = estMinutes % 60;
+                            const etaText = hours > 0 ? `${hours} jam ${minutes} menit` : `${minutes} menit`;
+
+                            // Update always-visible summary
+                            const summaryD = document.getElementById('summary-distance');
+                            const summaryE = document.getElementById('summary-eta');
+                            if (summaryD) summaryD.textContent = distText;
+                            if (summaryE) summaryE.textContent = etaText;
+
+                            // Also update modal placeholders if present
+                            const modalD = document.getElementById('distance-text');
+                            const modalE = document.getElementById('eta-time');
+                            if (modalD) modalD.textContent = distText;
+                            if (modalE) modalE.textContent = etaText;
+                        }
+                    } catch (err) {
+                        console.warn('Failed calculating distance/ETA fallback', err);
+                    }
+
+                } catch (err) {
+                    console.error('Error fetching tracking data:', err);
+                }
+            }
+
+            // Start polling immediately for the current help id (so modal doesn't need open/close)
+            try {
+                const initialId = window.currentHelpId || null;
+                if (initialId) startPolling(initialId);
+            } catch (e) {
+                console.error('Error starting initial polling:', e);
+            }
+
+            // Hook into Livewire modal events to ensure polling persists or can be stopped if desired
+            document.addEventListener('livewire:init', () => {
+                Livewire.on('mapModalOpened', (helpId) => {
+                    const idToUse = helpId || window.currentHelpId;
+                    startPolling(idToUse);
+                });
+
+                // stop polling when modal closed (optional) - we will keep polling in background, so don't stop here
+                Livewire.on('mapModalClosed', () => {
+                    // intentionally left blank to allow continuous background polling
+                });
+            });
+
+            // Stop polling on page unload
+            window.addEventListener('beforeunload', stopPolling);
         })();
     </script>
 

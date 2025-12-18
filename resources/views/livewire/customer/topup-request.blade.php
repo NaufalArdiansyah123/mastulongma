@@ -191,9 +191,15 @@
                         </div>
                         <div class="border-t border-white/20 pt-3 mt-3">
                             <div class="flex justify-between items-center">
-                                <span class="font-semibold">Total Bayar</span>
-                                <span class="font-bold text-2xl">Rp {{ number_format($totalPayment, 0, ',', '.') }}</span>
+                                <span class="font-semibold">Total Bayar </span>
+                                <span class="font-bold text-2xl">Rp {{ number_format($uniqueTotal ?: $totalPayment, 0, ',', '.') }}</span>
                             </div>
+                            @if($uniqueCode)
+                                <p class="text-xs mt-2 opacity-90">
+                                    {{-- Kode unik: <span class="font-mono font-bold">{{ $uniqueCode }}
+                                        </span>  --}}
+                                        Mohon transfer tepat sesuai nominal di atas (tidak boleh lebih dan tidak boleh kurang).</p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -233,7 +239,7 @@
                             </svg>
                             <div class="text-xs text-amber-900 space-y-1">
                                 <p class="font-bold mb-1">Informasi Penting:</p>
-                                <p>• Transfer sesuai nominal total</p>
+                                <p>• Transfer sesuai nominal total (termasuk kode unik)</p>
                                 <p>• Saldo masuk setelah verifikasi admin</p>
                                 <p>• Maksimal 1x24 jam untuk approval</p>
                             </div>
@@ -261,7 +267,11 @@
                 <!-- Total yang harus dibayar -->
                 <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-4 mb-5 text-center">
                     <p class="text-xs opacity-90 mb-1">Total Pembayaran</p>
-                    <p class="text-3xl font-bold">Rp {{ number_format($totalPayment, 0, ',', '.') }}</p>
+                    <p class="text-3xl font-bold">Rp {{ number_format($uniqueTotal ?: $totalPayment, 0, ',', '.') }}</p>
+                    @if($uniqueCode)
+                        {{-- <p class="text-sm mt-2">Kode unik: <span class="font-mono font-bold">{{ $uniqueCode }}</span></p> --}}
+                        <p class="text-xs mt-1">Pastikan transfer tepat Rp {{ number_format($uniqueTotal ?: $totalPayment, 0, ',', '.') }} — tidak boleh lebih dan tidak boleh kurang.</p>
+                    @endif
                 </div>
 
                 <form wire:submit.prevent="submitRequest" class="space-y-5">
@@ -320,7 +330,7 @@
                     <!-- Transfer Bank -->
                     <div>
                         <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-                            <span class="text-lg">🏦</span> TRANSFER BANK
+                            <span class="text-lg"></span> TRANSFER BANK
                         </h3>
                         <div class="space-y-2">
                             @foreach($availableBanks as $bank)
@@ -347,7 +357,7 @@
                                         <button type="button" 
                                             onclick="navigator.clipboard.writeText('{{ $bank['account_number'] }}'); alert('Nomor rekening disalin!')"
                                             class="w-full mt-3 px-3 py-2 text-xs font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                            📋 Salin Nomor Rekening
+                                            Salin Nomor Rekening
                                         </button>
                                     @endif
                                 </div>
@@ -360,7 +370,7 @@
                     <!-- Upload Bukti Transfer -->
                     <div>
                         <label class="block text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-                            <span class="text-lg">📤</span> Upload Bukti Transfer *
+                            <span class="text-lg"></span> Upload Bukti Transfer *
                         </label>
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition relative">
                             <input type="file" wire:model="proofOfPayment" accept="image/*" class="hidden" id="proofUpload">

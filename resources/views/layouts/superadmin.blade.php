@@ -79,6 +79,14 @@
                     Financial Report
                 </a>
 
+                <a href="{{ route('superadmin.withdraws.index') }}"
+                    class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('superadmin.withdraws*') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c.79 0 1.5.3 2.04.78L20 14v6a1 1 0 01-1 1h-6l-5.22-5.22A4 4 0 1112 8z" />
+                    </svg>
+                    Manajemen Withdraw
+                </a>
+
                 <a href="{{ route('superadmin.activity.logs') }}"
                     class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('superadmin.activity.logs*') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
