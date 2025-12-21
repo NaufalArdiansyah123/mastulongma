@@ -106,9 +106,15 @@
                                 </div>
 
                                 <div class="flex items-center gap-2 mb-2">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(34, 197, 94, 0.08); color:#22c55e; border:1px solid rgba(34,197,94,0.12);">
-                                        Diproses
-                                    </span>
+                                    @if($help->status === 'partner_cancel_requested')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(250,204,21,0.08); color:#c27803; border:1px solid rgba(245,158,11,0.12);">
+                                            Permintaan Pembatalan — Menunggu Konfirmasi
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(34, 197, 94, 0.08); color:#22c55e; border:1px solid rgba(34,197,94,0.12);">
+                                            Diproses
+                                        </span>
+                                    @endif
                                     <span class="text-xs text-gray-400">{{ optional($help->taken_at)->diffForHumans() ?? optional($help->created_at)->diffForHumans() }}</span>
                                 </div>
 

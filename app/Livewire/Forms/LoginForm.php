@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
+use App\Models\Registration;
 
 class LoginForm extends Form
 {
@@ -60,6 +61,19 @@ class LoginForm extends Form
 
         // Allow admin and super_admin to login regardless of registration pending flag
         $isPrivileged = in_array($user->role, ['admin', 'super_admin']);
+
+        // If user's registration was rejected, redirect to a page showing rejection reason
+        try {
+            $reg = Registration::where('email', $user->email)->latest()->first();
+            if ($reg && ($reg->status === 'rejected')) {
+                Auth::logout();
+                // redirect to rejected page showing reason
+                redirect()->route('auth.rejected', ['registration' => $reg->id])->send();
+                return;
+            }
+        } catch (\Throwable $e) {
+            // ignore lookup errors
+        }
 
         // Only block non-privileged users who are pending or inactive
         if (!$isPrivileged && ($user->status === 'pending' || $user->status === 'inactive')) {

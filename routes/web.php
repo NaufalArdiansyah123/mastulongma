@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 // Landing/Welcome page (for guest)
 Route::view('/welcome', 'welcome')->name('welcome');
 
+// Rejected registration page (public)
+Route::get('/rejected/{registration}', [\App\Http\Controllers\Auth\RejectedController::class, 'show'])->name('auth.rejected');
+
 // Public routes - Home page with helps listing
 Route::view('/', 'home')->name('home');
 
@@ -208,6 +211,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->na
     // Transaction Logs (detailed)
     Route::get('/transactions/logs', \App\Livewire\SuperAdmin\TransactionsLog::class)->name('transactions.log');
     // Moderasi Bantuan page removed for SuperAdmin
+    Route::get('/helps/approved', \App\Livewire\SuperAdmin\HelpsApproved::class)->name('helps.approved');
     // Verifikasi KTP page removed for SuperAdmin
     // Help settings (minimum nominal and admin fee)
     Route::get('/settings/help', \App\Livewire\SuperAdmin\Settings\HelpSettings::class)->name('settings.help');
@@ -229,6 +233,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->na
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/helps', \App\Livewire\Admin\Helps\Index::class)->name('helps');
+    Route::get('/helps/approved', \App\Livewire\Admin\Helps\Approved::class)->name('helps.approved');
     // Restore original verifications Livewire component
     Route::get('/verifications', \App\Livewire\Admin\Verifications\Index::class)->name('verifications');
 

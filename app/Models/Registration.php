@@ -34,6 +34,7 @@ class Registration extends Model
         'selfie_photo_path',
         'email',
         'password',
+        'rejection_reason',
         'status',
     ];
 

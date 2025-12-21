@@ -6,10 +6,15 @@ use App\Models\Help;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 #[Layout('layouts.mitra')]
 class HelpDetail extends Component
 {
+    protected $listeners = [
+        'closePartnerCancelStatusModal' => 'closePartnerCancelStatusModal',
+    ];
+
     public $helpId;
     public $help;
     public $currentStatus;
@@ -17,18 +22,85 @@ class HelpDetail extends Component
     public $review = '';
     public $showPartnerCancelModal = false;
     public $partnerCancelReason = '';
+    // UI for showing the live status modal after partner cancel request
+    public $showPartnerCancelStatusModal = false;
+    public $partnerCancelStatus = null; // 'pending' | 'accepted' | 'rejected'
 
     public function mount($id)
     {
         $this->helpId = $id;
         $this->help = Help::with(['user', 'city', 'rating'])->findOrFail($id);
-        
-        // Verify this help belongs to the authenticated mitra
+
+        // Verify this help belongs to the authenticated mitra.
+        // If not assigned anymore, allow access only when there is a recent
+        // notification that confirms the customer's acceptance of the
+        // partner-cancellation request (so the mitra can see the confirmation modal after refresh).
         if ($this->help->mitra_id !== auth()->id()) {
-            abort(403, 'Anda tidak memiliki akses ke bantuan ini.');
+            $allowed = false;
+
+            // Look up recent notifications for this mitra related to this help
+            $recent = DB::table('notifications')
+                ->where('notifiable_id', auth()->id())
+                ->orderByDesc('created_at')
+                ->limit(50)
+                ->get();
+
+            foreach ($recent as $n) {
+                $data = json_decode($n->data, true);
+                if (!is_array($data)) continue;
+                if (isset($data['type']) && $data['type'] === 'help_status'
+                    && isset($data['help_id']) && $data['help_id'] == $id
+                    && isset($data['new_status']) && $data['new_status'] === 'cancel_accepted') {
+                    $allowed = true;
+                    break;
+                }
+            }
+
+            if (!$allowed) {
+                abort(403, 'Anda tidak memiliki akses ke bantuan ini.');
+            }
+
+            // If allowed because of a recent cancel_accepted notification,
+            // show the partner-cancel accepted modal on mount.
+            $this->showPartnerCancelStatusModal = true;
+            $this->partnerCancelStatus = 'accepted';
         }
 
         $this->currentStatus = $this->help->status;
+
+        // Tidak perlu session flash lagi, gunakan flag di database
+    }
+
+    public function loadHelp()
+    {
+        // Reload help data dari database untuk mendeteksi perubahan
+        $oldStatus = $this->help->status;
+        $oldFlag = $this->help->partner_cancel_prev_status;
+        
+        $this->help->refresh();
+        $this->help->load(['user', 'city', 'rating']);
+        
+        $newStatus = $this->help->status;
+        $newFlag = $this->help->partner_cancel_prev_status;
+        
+        // Detect status change untuk trigger notifikasi
+        if ($oldStatus !== $newStatus || $oldFlag !== $newFlag) {
+            if ($newFlag === 'cancel_accepted') {
+                $this->dispatch('show-status-notification', message: 'Customer menerima pembatalan!');
+            }
+
+            if ($newFlag === 'cancel_rejected') {
+                $this->dispatch('show-status-notification', message: 'Pembatalan ditolak customer!');
+            }
+        }
+        
+        $this->currentStatus = $newStatus;
+    }
+
+    public function copyOrderId()
+    {
+        $this->dispatch('show-status-notification', message: 'ID Pesanan disalin ke clipboard');
+        $this->js('navigator.clipboard.writeText("' . $this->help->order_id . '")');
     }
 
     public function updateStatus($status, $timestampField = null)
@@ -47,6 +119,9 @@ class HelpDetail extends Component
         $this->currentStatus = $status;
         $this->help->refresh();
 
+        // Dispatch notifikasi ke Alpine.js
+        $this->dispatch('show-status-notification', message: 'Status berhasil diperbarui!');
+        
         session()->flash('message', 'Status berhasil diperbarui!');
     }
 
@@ -89,17 +164,79 @@ class HelpDetail extends Component
         $this->help->refresh();
         $this->currentStatus = $this->help->status;
 
+        // Show status modal to indicate request sent and await customer confirmation
+        $this->showPartnerCancelStatusModal = true;
+        $this->partnerCancelStatus = 'pending';
+
         session()->flash('message', 'Permintaan pembatalan telah dikirim ke customer. Menunggu konfirmasi.');
+    }
+
+    public function closePartnerCancelStatusModal()
+    {
+        $this->showPartnerCancelStatusModal = false;
+        $this->partnerCancelStatus = null;
+    }
+
+    public function acknowledgeAcceptedCancellation()
+    {
+        // Clear flag setelah mitra acknowledge modal
+        if ($this->help->partner_cancel_prev_status === 'cancel_accepted') {
+            $this->help->update([
+                'partner_cancel_prev_status' => null,
+            ]);
+        }
+        
+        // Mark session untuk tidak tampilkan lagi
+        session()->put('cancel_accepted_modal_shown_' . $this->helpId, true);
+        
+        $this->help->refresh();
+    }
+
+    public function acknowledgeRejectedCancellation()
+    {
+        // Clear flag setelah mitra acknowledge modal
+        if ($this->help->partner_cancel_prev_status === 'cancel_rejected') {
+            $this->help->update([
+                'partner_cancel_prev_status' => null,
+            ]);
+        }
+        
+        // Mark session untuk tidak tampilkan lagi
+        session()->put('cancel_rejected_modal_shown_' . $this->helpId, true);
+        
+        $this->help->refresh();
     }
 
     public function markPartnerStarted()
     {
-        $this->updateStatus('sedang_diproses', 'partner_started_at');
+        $this->help->update([
+            'status' => 'partner_on_the_way',
+            'partner_started_at' => now(),
+        ]);
+
+        $this->currentStatus = 'partner_on_the_way';
+        $this->help->refresh();
+
+        // Dispatch notifikasi ke Alpine.js
+        $this->dispatch('show-status-notification', message: 'Perjalanan dimulai!');
+
+        session()->flash('message', 'Perjalanan dimulai! Jangan lupa update lokasi Anda.');
     }
 
     public function markPartnerArrived()
     {
-        $this->updateStatus('sedang_diproses', 'partner_arrived_at');
+        $this->help->update([
+            'status' => 'partner_arrived',
+            'partner_arrived_at' => now(),
+        ]);
+
+        $this->currentStatus = 'partner_arrived';
+        $this->help->refresh();
+
+        // Dispatch notifikasi ke Alpine.js
+        $this->dispatch('show-status-notification', message: 'Anda sudah tiba di lokasi!');
+
+        session()->flash('message', 'Anda sudah tiba di lokasi! Silakan mulai pekerjaan.');
     }
 
     public function markServiceStarted()
@@ -123,6 +260,9 @@ class HelpDetail extends Component
         $this->currentStatus = 'in_progress';
         $this->help->refresh();
 
+        // Dispatch notifikasi ke Alpine.js
+        $this->dispatch('show-status-notification', message: 'Pekerjaan telah dimulai!');
+
         session()->flash('message', 'Pekerjaan telah dimulai!');
     }
 
@@ -139,6 +279,9 @@ class HelpDetail extends Component
 
         $this->currentStatus = 'waiting_customer_confirmation';
         $this->help->refresh();
+
+        // Dispatch notifikasi ke Alpine.js
+        $this->dispatch('show-status-notification', message: 'Menunggu konfirmasi dari customer!');
 
         session()->flash('message', 'Menunggu konfirmasi dari customer!');
     }

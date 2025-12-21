@@ -83,14 +83,15 @@ class Detail extends Component
 
         // Capture mitra reference before unassigning
         $assignedMitra = $this->help->mitra;
+        $assignedMitraId = $this->help->mitra_id;
 
         // Make help available again for other mitra
+        // Set partner_cancel_prev_status sebagai flag bahwa pembatalan diterima
         $this->help->update([
-            'status' => 'menunggu_mitra',
+            'status' => 'menunggu_mitra', // Ubah ke menunggu_mitra agar bisa diambil mitra lain
             'mitra_id' => null,
-            'partner_cancel_requested_at' => null,
-            'partner_cancel_reason' => null,
-            'partner_cancel_prev_status' => null,
+            'partner_cancel_prev_status' => 'cancel_accepted', // Flag untuk modal
+            // Jangan hapus partner_cancel_requested_at dan reason untuk history
         ]);
 
         // Notify mitra (if exists)
@@ -103,7 +104,7 @@ class Detail extends Component
         }
 
         $this->loadHelp();
-        session()->flash('success', 'Permintaan pembatalan diterima. Bantuan kembali tersedia dan menunggu mitra.');
+        session()->flash('success', 'Permintaan pembatalan diterima. Pesanan kembali menunggu Rekan Jasa lain.');
     }
 
     public function rejectPartnerCancellation()
@@ -115,11 +116,11 @@ class Detail extends Component
 
         $prev = $this->help->partner_cancel_prev_status ?: 'taken';
 
+        // Set partner_cancel_prev_status sebagai flag bahwa pembatalan ditolak
         $this->help->update([
             'status' => $prev,
-            'partner_cancel_prev_status' => null,
-            'partner_cancel_requested_at' => null,
-            'partner_cancel_reason' => null,
+            'partner_cancel_prev_status' => 'cancel_rejected', // Flag untuk modal
+            // Simpan timestamp untuk tracking
         ]);
 
         // Notify mitra that cancellation was rejected

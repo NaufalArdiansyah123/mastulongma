@@ -26,6 +26,7 @@ class ProcessingHelps extends Component
             'partner_arrived',
             'in_progress',
             'sedang_diproses',
+            'partner_cancel_requested',
             'diproses_mitra',
             'waiting_customer_confirmation'
         ];

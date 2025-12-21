@@ -29,7 +29,9 @@ class Index extends Component
         'partner_arrived',
         'in_progress',
         'sedang_diproses',
-        'waiting_customer_confirmation'
+        'waiting_customer_confirmation',
+        // show partner-cancel requests in "Diproses" tab for customer awareness
+        'partner_cancel_requested',
     ];
     public $selectedHelpData = null;
     // Rating flow

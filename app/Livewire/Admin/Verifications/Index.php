@@ -16,6 +16,9 @@ class Index extends Component
     public $perPage = 10;
     public $showModal = false;
     public $selected = null;
+    public $showRejectModal = false;
+    public $rejectReason = '';
+    public $rejectingId = null;
 
     public function viewKtp($id)
     {
@@ -31,6 +34,21 @@ class Index extends Component
     {
         $this->selected = null;
         $this->showModal = false;
+    }
+
+    public function openRejectModal($id)
+    {
+        $this->rejectingId = $id;
+        $reg = Registration::find($id);
+        $this->rejectReason = $reg?->rejection_reason ?? '';
+        $this->showRejectModal = true;
+    }
+
+    public function cancelReject()
+    {
+        $this->rejectingId = null;
+        $this->rejectReason = '';
+        $this->showRejectModal = false;
     }
 
     public function approveKtp($id)
@@ -66,6 +84,7 @@ class Index extends Component
 
     public function rejectKtp($id)
     {
+        // Backwards-compatible simple reject (no reason)
         $reg = Registration::find($id);
         if (!$reg) {
             session()->flash('message', 'Registrasi tidak ditemukan');
@@ -73,7 +92,6 @@ class Index extends Component
         }
         $reg->update(['status' => 'rejected']);
 
-        // Jika ada user terkait, pastikan tetap non-aktif / tidak terverifikasi
         try {
             if (!empty($reg->email)) {
                 $user = User::where('email', $reg->email)->first();
@@ -88,6 +106,48 @@ class Index extends Component
         }
 
         session()->flash('message', 'Registrasi ditolak.');
+        $this->closeModal();
+    }
+
+    public function confirmReject()
+    {
+        $this->validate([
+            'rejectReason' => 'nullable|string|max:500',
+        ]);
+
+        if (!$this->rejectingId) {
+            session()->flash('message', 'Registrasi tidak ditemukan');
+            $this->cancelReject();
+            return;
+        }
+
+        $reg = Registration::find($this->rejectingId);
+        if (!$reg) {
+            session()->flash('message', 'Registrasi tidak ditemukan');
+            $this->cancelReject();
+            return;
+        }
+
+        $reg->update([
+            'status' => 'rejected',
+            'rejection_reason' => $this->rejectReason,
+        ]);
+
+        try {
+            if (!empty($reg->email)) {
+                $user = User::where('email', $reg->email)->first();
+                if ($user) {
+                    $user->verified = false;
+                    $user->status = 'inactive';
+                    $user->save();
+                }
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+
+        session()->flash('message', 'Registrasi ditolak. Alasan disimpan.');
+        $this->cancelReject();
         $this->closeModal();
     }
 

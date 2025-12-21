@@ -568,44 +568,17 @@
             </div>
         @endif
 
-        {{-- Partner requested cancellation - customer confirm/reject --}}
-        @if($help->status === 'partner_cancel_requested')
-            <div class="bg-yellow-50 mt-2 px-4 py-4 rounded-xl border border-yellow-100">
-                <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
-                        </svg>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="font-semibold text-sm text-gray-900">Mitra meminta pembatalan</h4>
-                        <p class="text-xs text-gray-700 mt-1">Mitra mengajukan pembatalan untuk pesanan ini. Terima pembatalan untuk membuat pesanan kembali tersedia, atau tolak untuk meminta mitra melanjutkan.</p>
-                        @if($help->partner_cancel_reason)
-                            <p class="text-xs text-gray-600 mt-2 italic">Alasan mitra: "{{ $help->partner_cancel_reason }}"</p>
-                        @endif
-
-                        <div class="mt-3 flex gap-2">
-                            <button wire:click="acceptPartnerCancellation" class="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">Terima Pembatalan</button>
-                            <button wire:click="rejectPartnerCancellation" class="flex-1 py-2.5 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">Tolak Pembatalan</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
+        {{-- Partner requested cancellation - DIGANTI DENGAN MODAL --}}
 
         {{-- Floating Help Card (mobile) - fixed above bottom nav --}}
-        <div id="floating-help-card" class="md:hidden fixed left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-50" style="bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);">
+        {{-- <div id="floating-help-card" class="md:hidden fixed left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-50" style="bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);">
             <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-3 flex items-center justify-between gap-3">
                 <div class="flex-1 text-sm text-gray-700">Butuh bantuan atau ada keluhan atas Rekan Jasa?</div>
                 <a href="{{ route('customer.help-support') }}" class="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg font-semibold hover:bg-blue-100 transition">
-                    {{-- <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 22l-4.35-4.35"/>
-                    </svg> --}}
                     <span class="text-sm">Hubungi Kami</span>
                 </a>
             </div>
-        </div>
+        </div> --}}
     </div>
 
     {{-- Real-time Tracking Map Modal --}}
@@ -682,8 +655,8 @@
 
     {{-- Cancel Confirmation Modal --}}
     @if($showCancelConfirm)
-        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4" wire:click="closeModal">
-            <div class="bg-white rounded-2xl max-w-sm w-full p-6" wire:click.stop>
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4" wire:click="closeModal" data-confirm-modal>
+            <div class="bg-white rounded-2xl max-w-sm w-full p-6" wire:click.stop style="transform: translateY(-120px);">
                 <div class="text-center">
                     <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -704,6 +677,151 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    {{-- Modal: Mitra Request Pembatalan - Bottom Sheet --}}
+    @if($help->status === 'partner_cancel_requested')
+    <div class="modal-overlay fixed inset-0 z-[9999] flex items-end justify-center animate-fade-in" 
+         style="background: rgba(0,0,0,0.7);">
+        <div class="bg-white rounded-t-3xl w-full max-w-md shadow-2xl animate-slide-up relative" 
+             @click.stop
+             style="padding-bottom: env(safe-area-inset-bottom,24px);">
+            
+            {{-- Header --}}
+            <div class="sticky top-0 bg-gradient-to-r from-orange-500 to-red-500 px-5 py-4 rounded-t-3xl">
+                <div class="text-center text-white">
+                    <div class="flex items-center justify-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <h3 class="text-lg font-bold">Permintaan Pembatalan</h3>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Content --}}
+            <div class="p-5 pb-6">
+                {{-- Warning Icon --}}
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center relative">
+                        <svg class="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <div class="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="text-center font-bold text-lg text-gray-900 mb-2">Mitra Mengajukan Pembatalan</h4>
+                <p class="text-sm text-gray-700 text-center mb-5">
+                    Rekan Jasa mengajukan pembatalan untuk pesanan ini. Silakan pilih tindakan yang Anda inginkan.
+                </p>
+
+                {{-- Mitra Info --}}
+                @if($help->mitra)
+                    <div class="bg-gray-50 rounded-xl p-4 mb-5">
+                        <div class="flex items-center gap-3 mb-3">
+                            @if($help->mitra->selfie_photo)
+                                <img src="{{ asset('storage/' . $help->mitra->selfie_photo) }}" alt="{{ $help->mitra->name }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-100">
+                            @else
+                                <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                                    {{ strtoupper(substr($help->mitra->name ?? 'M', 0, 1)) }}
+                                </div>
+                            @endif
+                            <div class="flex-1">
+                                <p class="font-semibold text-sm text-gray-900">{{ $help->mitra->name ?? 'Rekan Jasa' }}</p>
+                                <p class="text-xs text-gray-500">Mengajukan pembatalan</p>
+                            </div>
+                        </div>
+
+                        @if($help->partner_cancel_reason)
+                            <div class="border-t border-gray-200 pt-3">
+                                <p class="text-xs font-semibold text-gray-500 mb-1">Alasan Pembatalan:</p>
+                                <p class="text-sm text-gray-900 italic">"{{ $help->partner_cancel_reason }}"</p>
+                            </div>
+                        @endif
+
+                        @if($help->partner_cancel_requested_at)
+                            <div class="flex items-center gap-2 text-xs text-gray-600 mt-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Diajukan: {{ \Carbon\Carbon::parse($help->partner_cancel_requested_at)->translatedFormat('d F Y, H:i') }} WIB
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                {{-- Info Box --}}
+                <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-5">
+                    <div class="flex gap-2">
+                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold text-blue-900 mb-1">Pilihan Anda:</p>
+                            <ul class="text-xs text-blue-800 space-y-1">
+                                <li><strong>• Terima:</strong> Pesanan dibatalkan, dana dikembalikan penuh</li>
+                                <li><strong>• Tolak:</strong> Rekan Jasa harus melanjutkan pekerjaan</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Action Buttons --}}
+                <div class="space-y-2">
+                    <button wire:click="acceptPartnerCancellation" 
+                            wire:loading.attr="disabled"
+                            class="w-full px-5 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span wire:loading.remove wire:target="acceptPartnerCancellation">Terima Pembatalan</span>
+                        <span wire:loading wire:target="acceptPartnerCancellation">Memproses...</span>
+                    </button>
+                    <button wire:click="rejectPartnerCancellation"
+                            wire:loading.attr="disabled"
+                            class="w-full px-5 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        <span wire:loading.remove wire:target="rejectPartnerCancellation">Tolak Pembatalan</span>
+                        <span wire:loading wire:target="rejectPartnerCancellation">Memproses...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Styles --}}
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slide-up {
+            from { 
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
     @endif
 </div>
 

@@ -158,18 +158,18 @@
         </div>
 
         @if($showModal && $selected)
-            <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" wire:click="closeModal">
-                <div class="bg-white rounded-2xl w-full max-w-5xl shadow-2xl max-h-[90vh] overflow-y-auto" wire:click.stop>
+            <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" wire:click="closeModal">
+                <div class="bg-white rounded-lg w-full max-w-4xl shadow-xl max-h-[85vh] overflow-y-auto ring-1 ring-black/5" wire:click.stop>
                     <!-- Modal Header -->
-                    <div class="sticky top-0 bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-5 rounded-t-2xl">
-                        <div class="flex items-start justify-between">
+                    <div class="sticky top-0 bg-emerald-600 px-6 py-4 rounded-t-lg">
+                        <div class="flex items-center justify-between">
                             <div class="flex items-center gap-4">
-                                <div class="h-14 w-14 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                                <div class="h-14 w-14 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-xl shadow">
                                     {{ strtoupper(substr($selected->full_name ?? ($selected->name ?? '-'),0,1)) }}
                                 </div>
                                 <div>
-                                    <h3 class="text-xl font-bold text-white">{{ $selected->full_name ?? ($selected->name ?? '-') }}</h3>
-                                    <div class="text-sm text-primary-100 mt-0.5">ID: #{{ $selected->id }} • {{ ucfirst($selected->role ?? 'customer') }}</div>
+                                    <h3 class="text-lg font-semibold text-white">{{ $selected->full_name ?? ($selected->name ?? '-') }}</h3>
+                                    <div class="text-xs text-white/90 mt-0.5">ID: #{{ $selected->id }} • {{ ucfirst($selected->role ?? 'customer') }}</div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
@@ -195,8 +195,8 @@
                                         Pending
                                     </span>
                                 @endif
-                                <button type="button" wire:click="closeModal" class="text-white hover:bg-white/20 rounded-lg p-2 transition" aria-label="Tutup">
-                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <button type="button" wire:click="closeModal" class="text-white hover:bg-white/10 rounded-md p-2 transition" aria-label="Tutup">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
@@ -209,7 +209,7 @@
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                             <!-- Info Pribadi Section -->
                             <div class="lg:col-span-2 space-y-4">
-                                <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                <div class="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
                                     <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center">
                                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
@@ -252,7 +252,7 @@
                                     </div>
                                 </div>
 
-                                <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                <div class="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
                                     <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center">
                                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
@@ -295,7 +295,7 @@
                                     </div>
                                 </div>
 
-                                <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                <div class="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
                                     <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center">
                                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
@@ -326,7 +326,7 @@
 
                             <!-- Dokumen Section -->
                             <div class="space-y-4">
-                                <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                <div class="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
                                     <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center">
                                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
@@ -338,7 +338,7 @@
                                     <div class="mb-4">
                                         <div class="text-xs font-semibold text-gray-600 mb-2">Foto Selfie</div>
                                         @if(!empty($selected->selfie_url))
-                                            <a href="{{ $selected->selfie_url }}" target="_blank" rel="noopener noreferrer" class="block rounded-xl overflow-hidden border-2 border-gray-300 hover:border-primary-500 transition shadow-sm hover:shadow-lg group">
+                                            <a href="{{ $selected->selfie_url }}" target="_blank" rel="noopener noreferrer" class="block rounded-md overflow-hidden border border-gray-200 hover:border-primary-500 transition shadow-sm group">
                                                 <img src="{{ $selected->selfie_url }}" alt="Selfie" class="w-full h-56 object-cover group-hover:scale-105 transition duration-300" />
                                             </a>
                                             <div class="mt-2 flex gap-2">
@@ -357,7 +357,7 @@
                                                 </a>
                                             </div>
                                         @else
-                                            <div class="w-full h-56 bg-gray-100 rounded-xl flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-300">
+                                            <div class="w-full h-56 bg-gray-50 rounded-md flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200">
                                                 <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                 </svg>
@@ -370,8 +370,8 @@
                                     <div>
                                         <div class="text-xs font-semibold text-gray-600 mb-2">Foto KTP</div>
                                         @if(!empty($selected->ktp_url))
-                                            <a href="{{ $selected->ktp_url }}" target="_blank" rel="noopener noreferrer" class="block rounded-xl overflow-hidden border-2 border-gray-300 hover:border-emerald-500 transition shadow-sm hover:shadow-lg group bg-white">
-                                                <img src="{{ $selected->ktp_url }}" alt="KTP" class="w-full h-56 object-contain group-hover:scale-105 transition duration-300" />
+                                            <a href="{{ $selected->ktp_url }}" target="_blank" rel="noopener noreferrer" class="block rounded-md overflow-hidden border border-gray-200 hover:border-emerald-500 transition shadow-sm group bg-white">
+                                                <img src="{{ $selected->ktp_url }}" alt="KTP" class="w-full h-56 object-contain group-hover:scale-105 transition duration-300 bg-white" />
                                             </a>
                                             <div class="mt-2 flex gap-2">
                                                 <a href="{{ $selected->ktp_url }}" target="_blank" class="text-sm font-medium text-emerald-700 hover:text-emerald-900 flex items-center gap-2 px-2 py-1 rounded">
@@ -389,7 +389,7 @@
                                                 </a>
                                             </div>
                                         @else
-                                            <div class="w-full h-56 bg-gray-100 rounded-xl flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-300">
+                                            <div class="w-full h-56 bg-gray-50 rounded-md flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200">
                                                 <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                 </svg>
@@ -401,28 +401,62 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div class="border-t border-gray-200 pt-5">
-                            <div class="flex items-center justify-between flex-wrap gap-4">
-                                <div class="text-xs text-gray-500">
-                                    <span class="font-semibold">Catatan:</span> Pastikan dokumen terlihat jelas dan sesuai dengan data yang tertera.
+                        @if($showRejectModal)
+                            <div class="bg-white border border-red-100 rounded-lg p-4 mb-4 shadow-sm">
+                                <div class="flex gap-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-12 h-12 rounded-md bg-red-50 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-start justify-between">
+                                            <div>
+                                                <h4 class="text-sm font-semibold text-gray-800">Alasan Penolakan</h4>
+                                                <p class="text-xs text-gray-500 mt-1">Berikan alasan singkat agar user mengerti kenapa dokumen ditolak. (Opsional)</p>
+                                            </div>
+                                            <div class="text-xs text-gray-500">{{ strlen($rejectReason ?? '') }}/500</div>
+                                        </div>
+
+                                        <div class="mt-3">
+                                            <textarea wire:model.defer="rejectReason" maxlength="500" rows="4" placeholder="Contoh: Foto blur / informasi di KTP tidak sesuai" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 text-sm"></textarea>
+                                            @error('rejectReason')
+                                                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                            @enderror
+                                            <div class="mt-3 flex justify-end gap-2">
+                                                <button type="button" wire:click="cancelReject" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md">Batal</button>
+                                                <button type="button" wire:click="confirmReject" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md">Konfirmasi Tolak</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="mt-4"></div>
+                        @endif
+                        <div class="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4">
+                            <div class="flex items-center justify-between gap-4">
+                                <div class="text-xs text-gray-500"> 
+                                    <span class="font-semibold">Catatan:</span> Pastikan dokumen terlihat jelas dan sesuai dengan data.
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <button type="button" wire:click="closeModal" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition">
+                                    <button type="button" wire:click="closeModal" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md transition">
                                         Tutup
                                     </button>
                                     @if(($selected->status ?? '') !== 'approved')
-                                        <button type="button" wire:click="rejectKtp({{ $selected->id }})" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition flex items-center gap-2">
+                                        <button type="button" wire:click="openRejectModal({{ $selected->id }})" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md shadow-sm transition flex items-center gap-2">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                             </svg>
-                                            Tolak Verifikasi
+                                            Tolak
                                         </button>
-                                        <button type="button" wire:click="approveKtp({{ $selected->id }})" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition flex items-center gap-2">
+                                        <button type="button" wire:click="approveKtp({{ $selected->id }})" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow transition flex items-center gap-2">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                             </svg>
-                                            Verifikasi Sekarang
+                                            Verifikasi
                                         </button>
                                     @endif
                                 </div>
@@ -431,6 +465,7 @@
                     </div>
                 </div>
             </div>
+                
         @endif
     </div>
 </div>
