@@ -1,4 +1,4 @@
-# Mastulongmas - Platform Bantuan Sosial<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# sayabantu - Platform Bantuan Sosial<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 Platform bantuan sosial berbasis web dengan tampilan mobile-first (seperti aplikasi mobile) menggunakan Laravel 12, Livewire 3, dan Tailwind CSS.<p align="center">
 
@@ -144,12 +144,12 @@ Aplikasi akan berjalan di: `http://localhost:8000`
 
 ### Super Admin
 
--   Email: `superadmin@mastulongmas.com`
+-   Email: `superadmin@sayabantu.com`
 -   Password: `password`
 
 ### Admin Jakarta
 
--   Email: `admin.jakarta@mastulongmas.com`
+-   Email: `admin.jakarta@sayabantu.com`
 -   Password: `password`
 
 ### Kustomer (Pengguna yang Butuh Bantuan)

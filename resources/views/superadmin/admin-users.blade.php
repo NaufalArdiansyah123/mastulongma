@@ -1,13 +1,17 @@
-@php
-    $title = 'Manajemen User';
-    $breadcrumb = 'Super Admin / Manajemen User';
-@endphp
-
 <div>
     <div class="bg-white shadow-sm border-b border-gray-200 mb-6">
         <div class="px-8 py-4">
             <div class="flex items-center justify-between">
-                <p class="text-sm text-gray-600">Kelola semua pengguna dalam sistem</p>
+                <p class="text-sm text-gray-600">Kelola admin dalam sistem</p>
+                <button wire:click="openCreateModal"
+                    class="px-6 py-3 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700 transition shadow-md hover:shadow-lg">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Tambah Admin</span>
+                    </div>
+                </button>
             </div>
             <div class="pb-2">
                 <div wire:loading class="text-sm text-primary-700">Memproses... Mohon tunggu.</div>
@@ -25,29 +29,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    Cari User
+                    Cari Admin
                 </label>
                 <input type="text" wire:model.debounce.500ms="search" placeholder="Cari nama, email, atau HP..."
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                    <svg class="w-5 h-5 inline mr-2 text-primary-600" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    Filter Role
-                </label>
-                <select wire:model.debounce.500ms="roleFilter"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="">Semua Role</option>
-                    <option value="customer">Customer</option>
-                    <option value="mitra">Mitra</option>
-                    <option value="admin">Admin</option>
-                    <option value="super_admin">Super Admin</option>
-                </select>
             </div>
 
             <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
@@ -67,6 +52,11 @@
                     <option value="100">100 Data</option>
                 </select>
             </div>
+
+            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+                <div class="text-sm font-semibold text-gray-700 mb-3">Total Admin</div>
+                <div class="text-3xl font-bold text-primary-600">{{ $users->total() }}</div>
+            </div>
         </div>
 
         <!-- Table Card -->
@@ -75,20 +65,17 @@
                 <table class="w-full">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">ID
-                            </th>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">ID</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Nama & Email</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">No.
                                 HP</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Role</th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Verified</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Status</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Kota</th>
+                                Kota Dikelola</th>
                             <th class="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Terdaftar</th>
                             <th class="px-6 py-5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -119,26 +106,6 @@
                                     <div class="text-sm text-gray-900">{{ $user->phone ?? '-' }}</div>
                                 </td>
                                 <td class="px-6 py-5 whitespace-nowrap">
-                                    @php
-                                        $roleColors = [
-                                            'super_admin' => 'bg-purple-100 text-purple-800',
-                                            'admin' => 'bg-blue-100 text-blue-800',
-                                            'mitra' => 'bg-green-100 text-green-800',
-                                            'customer' => 'bg-gray-100 text-gray-800',
-                                        ];
-                                        $roleLabels = [
-                                            'super_admin' => 'Super Admin',
-                                            'admin' => 'Admin',
-                                            'mitra' => 'Mitra',
-                                            'customer' => 'Customer',
-                                        ];
-                                    @endphp
-                                    <span
-                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">
-                                        {{ $roleLabels[$user->role] ?? ucfirst($user->role) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
                                     <span
                                         class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $user->verified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700' }}">
                                         {{ $user->verified ? 'Terverifikasi' : 'Belum' }}
@@ -151,7 +118,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-5 text-sm text-gray-700">
-                                    @if($user->role === 'admin' && $user->managedCities && $user->managedCities->count() > 0)
+                                    @if($user->managedCities && $user->managedCities->count() > 0)
                                         <div class="flex flex-wrap gap-1">
                                             @foreach($user->managedCities as $managedCity)
                                                 <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -202,15 +169,15 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-6 py-12 text-center">
+                                <td colspan="8" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center justify-center">
                                         <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                         </svg>
-                                        <p class="text-gray-500 text-lg font-medium">Tidak ada data user</p>
-                                        <p class="text-gray-400 text-sm mt-1">Coba ubah filter atau tambah user baru</p>
+                                        <p class="text-gray-500 text-lg font-medium">Tidak ada data admin</p>
+                                        <p class="text-gray-400 text-sm mt-1">Coba ubah filter atau tambah admin baru</p>
                                     </div>
                                 </td>
                             </tr>
@@ -227,9 +194,8 @@
             @endif
         </div>
     </div>
-    <!-- Modals -->
 
-    {{-- View User Modal --}}
+    {{-- View Admin Modal --}}
     @if($showViewModal && $selectedUser)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
             <div class="bg-white rounded-xl shadow-lg w-full max-w-4xl overflow-hidden">
@@ -244,7 +210,6 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                            <br>
                         <button type="button" wire:click.prevent="closeModal"
                             class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
                     </div>
@@ -289,16 +254,7 @@
                         <div class="space-y-4">
                             <div>
                                 <div class="text-xs text-gray-500">Role</div>
-                                @php
-                                    $roleLabels = [
-                                        'super_admin' => 'Super Admin',
-                                        'admin' => 'Admin',
-                                        'mitra' => 'Mitra',
-                                        'customer' => 'Customer',
-                                    ];
-                                @endphp
-                                <div class="font-medium text-gray-900">
-                                    {{ $roleLabels[$selectedUser->role] ?? ucfirst($selectedUser->role) }}</div>
+                                <div class="font-medium text-gray-900">Admin</div>
                             </div>
 
                             <div>
@@ -318,7 +274,7 @@
                                 <div class="font-medium text-gray-900">{{ $selectedUser->city_name ?? '-' }}</div>
                             </div>
 
-                            @if($selectedUser->role === 'admin' && $selectedUser->managedCities && $selectedUser->managedCities->count() > 0)
+                            @if($selectedUser->managedCities && $selectedUser->managedCities->count() > 0)
                             <div>
                                 <div class="text-xs text-gray-500 mb-2">Kota yang Dikelola</div>
                                 <div class="flex flex-wrap gap-2">
@@ -388,19 +344,17 @@
         </div>
     @endif
 
-    
-
-    {{-- Create / Edit Modal (polished) --}}
+    {{-- Create / Edit Admin Modal (polished) --}}
     @if($showCreateModal || $showEditModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden">
                 <!-- Modal header -->
                 <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-700">
                     <div>
-                        <h3 class="text-xl font-bold text-white">{{ $showEditModal ? 'Edit User' : 'Tambah User Baru' }}
+                        <h3 class="text-xl font-bold text-white">{{ $showEditModal ? 'Edit Admin' : 'Tambah Admin Baru' }}
                         </h3>
                         <p class="text-sm text-white/90">
-                            {{ $showEditModal ? 'Perbarui informasi pengguna dengan hati-hati' : 'Lengkapi formulir untuk menambah pengguna baru' }}
+                            {{ $showEditModal ? 'Perbarui informasi admin dengan hati-hati' : 'Lengkapi formulir untuk menambah admin baru' }}
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -459,17 +413,6 @@
                                             class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
                                         @error('password') <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
                                         @enderror
-                                    </div>
-
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-700">Role</label>
-                                        <select wire:model.defer="role"
-                                            class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                                            <option value="customer">Customer</option>
-                                            <option value="mitra">Mitra</option>
-                                            <option value="admin">Admin</option>
-                                            <option value="super_admin">Super Admin</option>
-                                        </select>
                                     </div>
 
                                     <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -546,7 +489,6 @@
                                         </div>
 
                                         <!-- Multiple Cities for Admin -->
-                                        @if($role === 'admin')
                                         <div class="md:col-span-2">
                                             <label class="text-xs font-medium text-gray-700 mb-2 block">
                                                 <svg class="w-4 h-4 inline mr-1 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -557,7 +499,7 @@
                                             </label>
                                             <div class="mt-2 p-4 bg-gray-50 border border-gray-200 rounded-xl max-h-64 overflow-y-auto">
                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    @forelse($cities as $c)
+                                                    @forelse($availableCities as $c)
                                                         <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition-all cursor-pointer">
                                                             <input 
                                                                 type="checkbox" 
@@ -572,7 +514,7 @@
                                                         </label>
                                                     @empty
                                                         <div class="col-span-2 text-center text-sm text-gray-500 py-4">
-                                                            Belum ada kota tersedia
+                                                            Belum ada kota tersedia atau semua kota sudah dikelola oleh admin lain
                                                         </div>
                                                     @endforelse
                                                 </div>
@@ -587,7 +529,6 @@
                                                 <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        @endif
 
                                         <div class="md:col-span-2">
                                             <label class="text-xs font-medium text-gray-700">Alamat Lengkap</label>
@@ -612,7 +553,7 @@
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
                                     </path>
                                 </svg>
-                                <span>{{ $showEditModal ? 'Perbarui User' : 'Simpan User' }}</span>
+                                <span>{{ $showEditModal ? 'Perbarui Admin' : 'Simpan Admin' }}</span>
                             </button>
                         </div>
                     </form>
@@ -626,7 +567,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div class="bg-white rounded-xl shadow-lg w-11/12 max-w-md p-6">
                 <h3 class="text-lg font-semibold mb-2">Konfirmasi Hapus</h3>
-                <p class="text-sm text-gray-600 mb-4">Anda yakin ingin menghapus user ini? Aksi ini tidak dapat dibatalkan.
+                <p class="text-sm text-gray-600 mb-4">Anda yakin ingin menghapus admin ini? Aksi ini tidak dapat dibatalkan.
                 </p>
                 <div class="text-right">
                     <button type="button" wire:click.prevent="closeModal"

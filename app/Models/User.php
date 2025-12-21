@@ -76,6 +76,13 @@ class User extends Authenticatable
         return $this->belongsTo(City::class);
     }
 
+    // Cities managed by this admin (many-to-many)
+    public function managedCities()
+    {
+        return $this->belongsToMany(City::class, 'admin_city', 'user_id', 'city_id')
+                    ->withTimestamps();
+    }
+
     public function helps()
     {
         return $this->hasMany(Help::class);

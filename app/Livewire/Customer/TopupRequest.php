@@ -91,26 +91,28 @@ class TopupRequest extends Component
 
     protected function loadPaymentSettings()
     {
-        // Load dari AppSetting atau hardcoded
-        $settings = config('app.topup_settings', [
-            'payment_methods' => [
-                'qris' => [
-                    'enabled' => true,
-                    'image' => 'payment/qris-sample.png',
-                    'name' => 'QRIS - Semua E-Wallet',
-                ],
-                'banks' => [
-                    ['code' => 'bca', 'name' => 'BCA', 'account_number' => '1234567890', 'account_name' => 'PT Mastulongmas', 'enabled' => true],
-                    ['code' => 'mandiri', 'name' => 'Mandiri', 'account_number' => '0987654321', 'account_name' => 'PT Mastulongmas', 'enabled' => true],
-                    ['code' => 'bni', 'name' => 'BNI', 'account_number' => '5555666677', 'account_name' => 'PT Mastulongmas', 'enabled' => true],
-                    ['code' => 'bri', 'name' => 'BRI', 'account_number' => '8888999900', 'account_name' => 'PT Mastulongmas', 'enabled' => true],
-                ],
-            ],
-        ]);
+        // Prefer settings stored in AppSetting under 'topup_payment_methods'
+        $raw = AppSetting::get('topup_payment_methods', '{}');
+        $methods = json_decode((string) $raw, true) ?: [];
 
-        $this->qrisEnabled = $settings['payment_methods']['qris']['enabled'] ?? false;
-        $this->availableBanks = collect($settings['payment_methods']['banks'] ?? [])
+        // QRIS settings (optional)
+        $this->qrisEnabled = $methods['qris']['enabled'] ?? true;
+
+        // Banks: ensure fallback defaults if none configured
+        $defaultBanks = [
+            ['code' => 'bca', 'name' => 'BCA', 'account_number' => '1234567890', 'account_name' => 'PT sayabantu', 'enabled' => true],
+            ['code' => 'mandiri', 'name' => 'Mandiri', 'account_number' => '0987654321', 'account_name' => 'PT sayabantu', 'enabled' => true],
+            ['code' => 'bni', 'name' => 'BNI', 'account_number' => '5555666677', 'account_name' => 'PT sayabantu', 'enabled' => true],
+            ['code' => 'bri', 'name' => 'BRI', 'account_number' => '8888999900', 'account_name' => 'PT sayabantu', 'enabled' => true],
+        ];
+
+        $banks = $methods['banks'] ?? $defaultBanks;
+
+        // Normalize banks to include a `value` used as paymentMethod identifier (e.g. bank_bca)
+        $this->availableBanks = collect($banks)
             ->filter(fn($bank) => $bank['enabled'] ?? false)
+            ->map(fn($bank) => array_merge($bank, ['value' => 'bank_' . ($bank['code'] ?? '')]))
+            ->values()
             ->toArray();
     }
 
@@ -222,7 +224,7 @@ class TopupRequest extends Component
     {
         // Validate step 3
         $this->validate([
-            'paymentMethod' => 'required|in:qris,bank_bca,bank_mandiri,bank_bni,bank_bri',
+            'paymentMethod' => 'required',
             'proofOfPayment' => 'required|image|max:2048|mimes:jpg,jpeg,png',
         ], [
             'paymentMethod.required' => 'Silakan pilih metode pembayaran',
@@ -230,6 +232,17 @@ class TopupRequest extends Component
             'proofOfPayment.image' => 'File harus berupa gambar',
             'proofOfPayment.max' => 'Ukuran file maksimal 2MB',
         ]);
+
+        // Verify selected payment method exists
+        $allowed = array_merge(
+            $this->qrisEnabled ? ['qris'] : [],
+            array_map(fn($b) => $b['value'], $this->availableBanks)
+        );
+
+        if (!in_array($this->paymentMethod, $allowed)) {
+            session()->flash('error', 'Metode pembayaran tidak valid');
+            return;
+        }
 
         try {
             // Upload proof of payment
@@ -348,15 +361,19 @@ class TopupRequest extends Component
 
     protected function getPaymentMethodName()
     {
-        $methods = [
-            'qris' => 'QRIS',
-            'bank_bca' => 'Transfer Bank BCA',
-            'bank_mandiri' => 'Transfer Bank Mandiri',
-            'bank_bni' => 'Transfer Bank BNI',
-            'bank_bri' => 'Transfer Bank BRI',
-        ];
+        if ($this->paymentMethod === 'qris') {
+            return 'QRIS';
+        }
 
-        return $methods[$this->paymentMethod] ?? 'Transfer Bank';
+        if (str_starts_with($this->paymentMethod, 'bank_')) {
+            $code = substr($this->paymentMethod, 5);
+            $bank = collect($this->availableBanks)->first(fn($b) => ($b['code'] ?? '') === $code);
+            if ($bank) {
+                return 'Transfer Bank ' . ($bank['name'] ?? strtoupper($code));
+            }
+        }
+
+        return 'Transfer Bank';
     }
 
     protected function notifyAdmins($transaction)

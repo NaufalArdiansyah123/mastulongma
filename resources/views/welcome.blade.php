@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mastulongmas - Platform Bantuan Sosial</title>
+    <title>sayabantu - Platform Bantuan Sosial</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -37,7 +37,7 @@
                 <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-                <span class="text-xl font-bold text-gray-800">Mastulongmas</span>
+                <span class="text-xl font-bold text-gray-800">sayabantu</span>
             </div>
             <a href="{{ route('login') }}" class="text-sm font-semibold text-purple-600 hover:text-purple-700">
                 Masuk
@@ -57,7 +57,7 @@
                 </div>
 
                 <!-- Headline -->
-                <h1 class="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-4 leading-tight">
                     Berbagi <span class="text-transparent bg-clip-text gradient-bg">Kebaikan</span><br/>
                     Saling Membantu
                 </h1>
@@ -121,7 +121,7 @@
         <!-- Footer -->
         <footer class="px-6 py-6 text-center">
             <p class="text-xs text-gray-500">
-                © {{ date('Y') }} Mastulongmas. Platform Bantuan Sosial Indonesia.
+                © {{ date('Y') }} sayabantu. Platform Bantuan Sosial Indonesia.
             </p>
             @if (Route::has('password.request'))
                 <a href="{{ route('password.request') }}"

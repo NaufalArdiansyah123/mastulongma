@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Admin Panel' }} - MastuLongmas</title>
+    <title>{{ $title ?? 'Admin Panel' }} - sayabantu</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -15,7 +15,7 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-white shadow-lg fixed h-full overflow-y-auto">
             <div class="p-6 border-b border-gray-200">
-                <h1 class="text-2xl font-bold text-primary-600">MastuLongmas</h1>
+                <h1 class="text-2xl font-bold text-primary-600">sayabantu</h1>
                 <p class="text-xs text-gray-500 mt-1">Admin Panel</p>
             </div>
 

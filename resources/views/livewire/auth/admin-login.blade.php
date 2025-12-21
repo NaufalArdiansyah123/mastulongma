@@ -3,7 +3,7 @@
     <div
         class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 items-center justify-center p-12">
         <div class="max-w-md text-white">
-            <h1 class="text-5xl font-bold mb-6">MastuLongmas</h1>
+            <h1 class="text-5xl font-bold mb-6">sayabantu</h1>
             <p class="text-xl mb-8 text-primary-100">Admin Panel</p>
             <div class="space-y-4">
                 <div class="flex items-start space-x-3">
@@ -42,7 +42,7 @@
         <div class="w-full max-w-md">
             <!-- Logo for Mobile -->
             <div class="lg:hidden text-center mb-8">
-                <h1 class="text-3xl font-bold text-primary-600">MastuLongmas</h1>
+                <h1 class="text-3xl font-bold text-primary-600">sayabantu</h1>
                 <p class="text-gray-600 mt-2">Admin Panel</p>
             </div>
 
@@ -156,7 +156,7 @@
             </div>
 
             <!-- Footer -->
-            <p class="text-center text-sm text-gray-500 mt-8">&copy; {{ date('Y') }} MastuLongmas. All rights reserved.
+            <p class="text-center text-sm text-gray-500 mt-8">&copy; {{ date('Y') }} sayabantu. All rights reserved.
             </p>
         </div>
     </div>

@@ -22,6 +22,8 @@ class HelpSettings extends Component
     public $tier2_fee;
     public $tier3_percentage;
     public $tier3_max;
+    // Payment methods for top-up (banks + qris)
+    public $payment_banks = [];
 
     protected function rules()
     {
@@ -34,6 +36,12 @@ class HelpSettings extends Component
             'tier2_fee' => 'required|numeric|min:0',
             'tier3_percentage' => 'required|numeric|min:0|max:100',
             'tier3_max' => 'required|numeric|min:0',
+            'payment_banks' => 'array',
+            'payment_banks.*.code' => 'required|string|max:20',
+            'payment_banks.*.name' => 'required|string|max:100',
+            'payment_banks.*.account_number' => 'nullable|string|max:100',
+            'payment_banks.*.account_name' => 'nullable|string|max:200',
+            'payment_banks.*.enabled' => 'boolean',
         ];
     }
 
@@ -49,6 +57,15 @@ class HelpSettings extends Component
         $this->tier2_fee = (int) AppSetting::get('topup_tier2_fee', 7500);
         $this->tier3_percentage = (float) AppSetting::get('topup_tier3_percentage', 3);
         $this->tier3_max = (int) AppSetting::get('topup_tier3_max', 15000);
+
+        // Load payment banks config (stored as JSON)
+        $paymentMethods = json_decode((string) AppSetting::get('topup_payment_methods', '{}'), true) ?: [];
+        $this->payment_banks = $paymentMethods['banks'] ?? [
+            ['code' => 'bca', 'name' => 'BCA', 'account_number' => '1234567890', 'account_name' => 'PT sayabantu', 'enabled' => true],
+            ['code' => 'mandiri', 'name' => 'Mandiri', 'account_number' => '0987654321', 'account_name' => 'PT sayabantu', 'enabled' => true],
+            ['code' => 'bni', 'name' => 'BNI', 'account_number' => '5555666677', 'account_name' => 'PT sayabantu', 'enabled' => true],
+            ['code' => 'bri', 'name' => 'BRI', 'account_number' => '8888999900', 'account_name' => 'PT sayabantu', 'enabled' => true],
+        ];
     }
 
     public function save()
@@ -66,7 +83,37 @@ class HelpSettings extends Component
         AppSetting::set('topup_tier3_percentage', (string) $this->tier3_percentage);
         AppSetting::set('topup_tier3_max', (string) $this->tier3_max);
 
+        // Save payment banks
+        $paymentMethods = [
+            'banks' => array_values(array_map(function($b) {
+                return [
+                    'code' => (string) ($b['code'] ?? ''),
+                    'name' => (string) ($b['name'] ?? ''),
+                    'account_number' => isset($b['account_number']) ? (string) $b['account_number'] : null,
+                    'account_name' => isset($b['account_name']) ? (string) $b['account_name'] : null,
+                    'enabled' => !empty($b['enabled']) ? true : false,
+                ];
+            }, $this->payment_banks ?? [])),
+        ];
+
+        AppSetting::set('topup_payment_methods', json_encode($paymentMethods));
         session()->flash('message', 'Pengaturan bantuan dan biaya top-up berhasil disimpan.');
+
+        // Notify frontend to show a transient confirmation modal using app's dispatch helper
+        $this->dispatch('settingsSaved', ['message' => 'Pengaturan bantuan dan biaya top-up berhasil disimpan.']);
+    }
+
+    public function addBank()
+    {
+        $this->payment_banks[] = ['code' => '', 'name' => '', 'account_number' => '', 'account_name' => '', 'enabled' => true];
+    }
+
+    public function removeBank($index)
+    {
+        if (isset($this->payment_banks[$index])) {
+            unset($this->payment_banks[$index]);
+            $this->payment_banks = array_values($this->payment_banks);
+        }
     }
 
     public function render()

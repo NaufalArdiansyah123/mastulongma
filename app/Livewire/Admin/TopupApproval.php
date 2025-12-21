@@ -50,95 +50,17 @@ class TopupApproval extends Component
 
     public function approve($transactionId)
     {
-        $transaction = BalanceTransaction::find($transactionId);
-
-        if (!$transaction || $transaction->status !== 'waiting_approval') {
-            session()->flash('error', 'Request tidak valid atau sudah diproses.');
-            return;
-        }
-
-        // Check authorization - admin harus di kota yang sama atau superadmin
-        $user = auth()->user();
-        if ($user->role === 'admin' && $user->city_id !== $transaction->user->city_id) {
-            session()->flash('error', 'Anda tidak memiliki akses untuk approve request ini.');
-            return;
-        }
-
-        try {
-            \DB::beginTransaction();
-
-            // Update transaction status to 'completed' (not just 'approved')
-            $transaction->update([
-                'status' => 'completed',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-                'processed_at' => now(),
-            ]);
-
-            // Update user balance
-            $userBalance = UserBalance::firstOrCreate(
-                ['user_id' => $transaction->user_id],
-                ['balance' => 0]
-            );
-
-            $userBalance->increment('balance', $transaction->amount);
-
-            \DB::commit();
-
-            // Send notification to customer
-            $transaction->user->notify(new TopupApproved($transaction));
-
-            session()->flash('success', 'Request top-up berhasil disetujui! Saldo customer telah ditambahkan.');
-
-            $this->closeModal();
-
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('Error approving topup: ' . $e->getMessage());
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
+        // Admin tidak memiliki akses untuk approve
+        session()->flash('error', 'Admin tidak memiliki akses untuk approve. Hubungi Super Admin.');
+        return;
     }
 
     public function reject()
     {
-        $this->validate([
-            'rejectionReason' => 'required|string|max:500',
-        ], [
-            'rejectionReason.required' => 'Alasan penolakan harus diisi',
-        ]);
-
-        if (!$this->selectedTransaction || $this->selectedTransaction->status !== 'waiting_approval') {
-            session()->flash('error', 'Request tidak valid atau sudah diproses.');
-            return;
-        }
-
-        // Check authorization
-        $user = auth()->user();
-        if ($user->role === 'admin' && $user->city_id !== $this->selectedTransaction->user->city_id) {
-            session()->flash('error', 'Anda tidak memiliki akses untuk reject request ini.');
-            return;
-        }
-
-        try {
-            // Update transaction status
-            $this->selectedTransaction->update([
-                'status' => 'rejected',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-                'rejection_reason' => $this->rejectionReason,
-            ]);
-
-            // Send notification to customer
-            $this->selectedTransaction->user->notify(new TopupRejected($this->selectedTransaction));
-
-            session()->flash('success', 'Request top-up telah ditolak.');
-
-            $this->closeModal();
-
-        } catch (\Exception $e) {
-            \Log::error('Error rejecting topup: ' . $e->getMessage());
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
+        // Admin tidak memiliki akses untuk reject
+        session()->flash('error', 'Admin tidak memiliki akses untuk reject. Hubungi Super Admin.');
+        $this->closeModal();
+        return;
     }
 
     public function render()

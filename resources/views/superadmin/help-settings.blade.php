@@ -243,86 +243,80 @@
             </div>
         </div>
 
-        <!-- Settings Form Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="border-b border-gray-200 px-4 sm:px-8 py-6 bg-gray-50">
-                <h2 class="text-lg sm:text-xl font-bold text-gray-900">Konfigurasi Bantuan</h2>
-                <p class="text-sm text-gray-600 mt-1">Atur nominal minimal dan biaya admin untuk sistem bantuan</p>
-            </div>
+        <!-- Settings Form Section (Combined Form) -->
+        <form wire:submit.prevent="save">
+            @if(session()->has('message'))
+                <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-green-800 font-medium text-sm">{{ session('message') }}</span>
+                    </div>
+                </div>
+            @endif
 
-            <div class="p-4 sm:p-8">
-                @if(session()->has('message'))
-                    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span class="text-green-800 font-medium text-sm">{{ session('message') }}</span>
+            <!-- Settings flash hook for JS (used to detect Livewire updates) -->
+            <div id="settingsFlash" data-message="{{ session('message') ?? '' }}" style="display:none"></div>
+
+            <!-- Konfigurasi Bantuan -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="border-b border-gray-200 px-4 sm:px-8 py-6 bg-gray-50">
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900">Konfigurasi Bantuan</h2>
+                    <p class="text-sm text-gray-600 mt-1">Atur nominal minimal dan biaya admin untuk sistem bantuan</p>
+                </div>
+
+                <div class="p-4 sm:p-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">Nominal Minimal (Rp)</label>
+                            <input type="number" wire:model.defer="min_help_nominal" placeholder="10000"
+                                class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all" />
+                            @error('min_help_nominal')
+                                <div class="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                            <p class="text-xs text-gray-500 mt-2">Customer tidak bisa membuat bantuan dengan nominal di
+                                bawah nilai ini</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">Biaya Admin (Rp)</label>
+                            <input type="number" wire:model.defer="admin_fee" placeholder="0"
+                                class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all" />
+                            @error('admin_fee')
+                                <div class="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                            <p class="text-xs text-gray-500 mt-2">Biaya tambahan yang dikenakan ke customer saat membuat
+                                bantuan</p>
                         </div>
                     </div>
-                @endif
-
-                <form wire:submit.prevent="save" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-900 mb-2">Nominal Minimal (Rp)</label>
-                        <input type="number" wire:model.defer="min_help_nominal" placeholder="10000"
-                            class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all" />
-                        @error('min_help_nominal')
-                            <div class="flex items-center gap-2 mt-2 text-red-600 text-sm">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                {{ $message }}
-                            </div>
-                        @enderror
-                        <p class="text-xs text-gray-500 mt-2">Customer tidak bisa membuat bantuan dengan nominal di
-                            bawah nilai ini</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-900 mb-2">Biaya Admin (Rp)</label>
-                        <input type="number" wire:model.defer="admin_fee" placeholder="0"
-                            class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all" />
-                        @error('admin_fee')
-                            <div class="flex items-center gap-2 mt-2 text-red-600 text-sm">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                {{ $message }}
-                            </div>
-                        @enderror
-                        <p class="text-xs text-gray-500 mt-2">Biaya tambahan yang dikenakan ke customer saat membuat
-                            bantuan</p>
-                    </div>
-
-                    <div class="lg:col-span-2 pt-2">
-                        <button type="submit"
-                            class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-all shadow-sm hover:shadow w-full sm:w-auto">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7" />
-                            </svg>
-                            Simpan Pengaturan
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Top-Up Fees Settings Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mt-8">
-            <div class="border-b border-gray-200 px-4 sm:px-8 py-6 bg-gray-50">
-                <h2 class="text-lg sm:text-xl font-bold text-gray-900">Konfigurasi Biaya Admin Top-Up</h2>
-                <p class="text-sm text-gray-600 mt-1">Atur biaya admin berdasarkan nominal top-up (3 tier)</p>
+                </div>
             </div>
 
-            <div class="p-4 sm:p-8">
+            <!-- Top-Up Fees Settings Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mt-8">
+                <div class="border-b border-gray-200 px-4 sm:px-8 py-6 bg-gray-50">
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900">Konfigurasi Biaya Admin Top-Up</h2>
+                    <p class="text-sm text-gray-600 mt-1">Atur biaya admin berdasarkan nominal top-up (3 tier)</p>
+                </div>
+
+                <div class="p-4 sm:p-8">
                 <!-- Info Box -->
                 {{-- <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div class="flex gap-3">
@@ -342,7 +336,7 @@
                     </div>
                 </div> --}}
 
-                <form wire:submit.prevent="save" class="space-y-6">
+                <div class="space-y-6">
                     <!-- Tier 1 Settings -->
                     <div class="border border-gray-200 rounded-lg p-4 sm:p-6 bg-gray-50">
                         <h3 class="text-md font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -472,6 +466,61 @@
                         </div>
                     </div>
                     <!-- Submit Button -->
+                    <!-- Payment Methods (Banks) -->
+                    <div class="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
+                        <h3 class="text-md font-bold text-gray-900 mb-4">Metode Pembayaran Top-Up (Transfer Bank)</h3>
+                        <p class="text-sm text-gray-600 mb-4">Atur daftar rekening bank yang akan ditampilkan pada proses top-up.</p>
+
+                        <div class="space-y-3">
+                            @foreach($payment_banks as $i => $bank)
+                                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                    <div class="grid grid-cols-1 lg:grid-cols-6 gap-3 items-center">
+                                        <div class="lg:col-span-1">
+                                            <label class="block text-xs font-semibold text-gray-700 mb-1">Kode</label>
+                                            <input type="text" wire:model.defer="payment_banks.{{ $i }}.code" placeholder="bca"
+                                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition" />
+                                        </div>
+
+                                        <div class="lg:col-span-3">
+                                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Bank</label>
+                                            <input type="text" wire:model.defer="payment_banks.{{ $i }}.name" placeholder="BCA"
+                                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition" />
+                                        </div>
+
+                                        <div class="lg:col-span-2">
+                                            <label class="block text-xs font-semibold text-gray-700 mb-1">No. Rekening</label>
+                                            <input type="text" wire:model.defer="payment_banks.{{ $i }}.account_number" placeholder="1234567890"
+                                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition" />
+                                        </div>
+
+                                        <div class="lg:col-span-6">
+                                            <label class="block text-xs font-semibold text-gray-700 mb-1 mt-2">Nama Pemilik (a.n.)</label>
+                                            <input type="text" wire:model.defer="payment_banks.{{ $i }}.account_name" placeholder="PT sayabantu"
+                                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition" />
+                                        </div>
+
+                                        <div class="lg:col-span-6 flex items-center justify-between mt-3">
+                                            <div class="flex items-center gap-3">
+                                                <label class="inline-flex items-center text-sm">
+                                                    <input type="checkbox" wire:model.defer="payment_banks.{{ $i }}.enabled" class="form-checkbox h-4 w-4 text-primary-600" />
+                                                    <span class="ml-2 text-sm text-gray-700">Aktifkan</span>
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <button type="button" wire:click.prevent="removeBank({{ $i }})" class="text-red-600 text-sm">Hapus</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <div>
+                                <button type="button" wire:click.prevent="addBank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm">
+                                    Tambah Bank
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="pt-2">
                         <button type="submit"
                             class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-all shadow-sm hover:shadow w-full sm:w-auto">
@@ -479,16 +528,63 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7" />
                             </svg>
-                            Simpan Semua Pengaturan
+                            Simpan Perubahan Semua
                         </button>
                     </div>
-                </form>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- Saved confirmation modal -->
+    <div id="settingsSavedModal" class="fixed inset-0 z-50 flex items-center justify-center hidden transition-opacity duration-300">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="settingsSavedContent">
+            <!-- Close Button -->
+            <button id="settingsSavedClose" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            <!-- Content -->
+            <div class="p-6 text-center">
+                <!-- Success Icon with animation -->
+                <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-bounce-once">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                
+                <!-- Title -->
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Berhasil Disimpan!</h3>
+                
+                <!-- Message -->
+                <p class="text-sm text-gray-600 leading-relaxed" id="settingsSavedMessage">
+                    Perubahan telah diterapkan dan tersimpan.
+                </p>
             </div>
         </div>
     </div>
+
+    <style>
+        @keyframes bounce-once {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .animate-bounce-once {
+            animation: bounce-once 0.5s ease-in-out;
+        }
+        #settingsSavedModal:not(.hidden) #settingsSavedContent {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
 </div>
 
-<!-- Chart.js -->
+    <!-- Chart.js -->
 @php
     $adminFeeChartJson = json_encode($adminFeeChart ?? ['daily' => ['labels' => [], 'data' => []], 'monthly' => ['labels' => [], 'data' => []], 'yearly' => ['labels' => [], 'data' => []]]);
 @endphp
@@ -611,6 +707,61 @@
             renderRange(initial);
         } else {
             renderRange('daily');
+        }
+    });
+</script>
+<script>
+    let modalTimeout = null;
+    
+    function showSettingsSaved(message) {
+        const modal = document.getElementById('settingsSavedModal');
+        const msgEl = document.getElementById('settingsSavedMessage');
+        if (!modal) return;
+        if (!message) return;
+        
+        // Update message
+        if (msgEl) msgEl.textContent = message;
+        
+        // Clear any existing timeout
+        if (modalTimeout) {
+            clearTimeout(modalTimeout);
+            modalTimeout = null;
+        }
+        
+        // Force hide first
+        modal.classList.add('hidden');
+        
+        // Then show with slight delay
+        setTimeout(() => {
+            modal.classList.remove('hidden');
+            // Auto hide after 3 seconds
+            modalTimeout = setTimeout(() => {
+                modal.classList.add('hidden');
+                modalTimeout = null;
+            }, 3000);
+        }, 50);
+    }
+
+    // Setup Livewire listener
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('settingsSaved', (event) => {
+            const message = event[0]?.message || event.message || 'Pengaturan berhasil disimpan';
+            showSettingsSaved(message);
+        });
+    });
+
+    // Close button handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const closeBtn = document.getElementById('settingsSavedClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                if (modalTimeout) {
+                    clearTimeout(modalTimeout);
+                    modalTimeout = null;
+                }
+                const modal = document.getElementById('settingsSavedModal');
+                if (modal) modal.classList.add('hidden');
+            });
         }
     });
 </script>

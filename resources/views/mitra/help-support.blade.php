@@ -97,7 +97,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
                 <h2 class="text-lg font-bold text-gray-900 mb-4">Hubungi Kami</h2>
                 <div class="space-y-3">
-                    <a href="mailto:support@mastulongmas.com" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <a href="mailto:support@sayabantu.com" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 flex-shrink-0">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -105,7 +105,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="font-bold text-gray-900 text-sm">Email</p>
-                            <p class="text-xs text-gray-600 truncate">support@mastulongmas.com</p>
+                            <p class="text-xs text-gray-600 truncate">support@sayabantu.com</p>
                         </div>
                         <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

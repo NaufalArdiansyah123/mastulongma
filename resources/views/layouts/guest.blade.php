@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Mastulongmas') }}</title>
+    <title>{{ config('app.name', 'sayabantu') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -35,7 +35,7 @@
                     </div>
 
                     <div class="text-center flex-1">
-                        <h1 class="text-lg font-bold">Mastulongmas</h1>
+                        <h1 class="text-lg font-bold">sayabantu</h1>
                         <p class="text-xs text-white/90 mt-0.5">Platform Bantuan Sosial</p>
                     </div>
 

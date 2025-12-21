@@ -3,7 +3,7 @@
     <aside class="w-64 bg-white shadow-lg fixed h-full overflow-y-auto">
         <!-- Logo/Brand -->
         <div class="p-6 border-b border-gray-200">
-            <h1 class="text-2xl font-bold text-primary-600">MastuLongmas</h1>
+            <h1 class="text-2xl font-bold text-primary-600">sayabantu</h1>
             <p class="text-xs text-gray-500 mt-1">
                 {{ auth()->user()->role === 'super_admin' ? 'Super Admin Panel' : 'Admin Panel' }}
             </p>

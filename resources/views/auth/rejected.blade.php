@@ -27,11 +27,11 @@
 
             <div class="mt-6 flex flex-col sm:flex-row items-center sm:items-center justify-end gap-3">
                 <a href="{{ route('home') }}" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-md shadow-sm">Kembali</a>
-                @if (Route::has('contact'))
+                {{-- @if (Route::has('contact'))
                     <a href="{{ route('contact') }}" class="px-4 py-2 bg-blue-600 text-white rounded-md shadow">Hubungi Admin</a>
                 @else
                     <a href="{{ url('/') }}" class="px-4 py-2 bg-blue-600 text-white rounded-md shadow">Hubungi Admin</a>
-                @endif
+                @endif --}}
             </div>
 
             <p class="mt-4 text-xs text-gray-500">Jika Anda merasa ini keliru, silakan hubungi admin untuk klarifikasi.</p>

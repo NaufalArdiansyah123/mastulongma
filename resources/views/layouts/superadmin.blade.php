@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Super Admin Panel' }} - MastuLongmas</title>
+    <title>{{ $title ?? 'Super Admin Panel' }} - sayabantu</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -15,7 +15,7 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-white shadow-lg fixed h-full overflow-y-auto">
             <div class="p-6 border-b border-gray-200">
-                <h1 class="text-2xl font-bold text-primary-600">MastuLongmas</h1>
+                <h1 class="text-2xl font-bold text-primary-600">sayabantu</h1>
                 <p class="text-xs text-gray-500 mt-1">Super Admin Panel</p>
             </div>
 
@@ -53,6 +53,15 @@
                     Manajemen Kota
                 </a>
 
+                <a href="{{ route('superadmin.admin.users') }}"
+                    class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('superadmin.admin.users*') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 11c1.657 0 3-1.343 3-3S17.657 5 16 5s-3 1.343-3 3 1.343 3 3 3zM6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+                    </svg>
+                    Manajemen Admin
+                </a>
+
                 <a href="{{ route('superadmin.settings.help') }}"
                     class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('superadmin.settings.help*') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,6 +94,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c.79 0 1.5.3 2.04.78L20 14v6a1 1 0 01-1 1h-6l-5.22-5.22A4 4 0 1112 8z" />
                     </svg>
                     Manajemen Withdraw
+                </a>
+
+                <a href="{{ route('superadmin.topup.approvals') }}"
+                    class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('superadmin.topup.approvals*') ? 'text-white bg-primary-600' : 'text-gray-700 hover:bg-gray-100' }} rounded-lg transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Approval Top-Up
                 </a>
 
                 <a href="{{ route('superadmin.activity.logs') }}"

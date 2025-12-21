@@ -7,15 +7,18 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\User;
 use App\Models\City;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 #[Layout('layouts.superadmin')]
-class Users extends Component
+class AdminUsers extends Component
 {
     use WithPagination;
 
     public $search = '';
-    public $roleFilter = '';
+    public $title = 'Manajemen Admin';
+    public $breadcrumb = 'Manajemen Admin';
+    public $roleFilter = 'admin';
     public $perPage = 10;
     public $selectedUser = null;
 
@@ -23,11 +26,11 @@ class Users extends Component
     public $name;
     public $email;
     public $phone;
-    public $role = 'customer';
+    public $role = 'admin';
     public $status = 'inactive';
     public $verified = false;
     public $city_id = null;
-    public $managed_city_ids = []; // Array for multiple cities
+    public $managed_city_ids = []; 
     public $address = null;
     public $nik = null;
     public $place_of_birth = null;
@@ -49,7 +52,6 @@ class Users extends Component
     public $showCreateModal = false;
     public $showConfirmDelete = false;
     public $confirmingDeleteId = null;
-
 
     public function updatedSearch()
     {
@@ -76,7 +78,6 @@ class Users extends Component
         $this->selectedUser = $user;
         $this->showViewModal = true;
     }
-
 
     public function editUser($id)
     {
@@ -128,7 +129,7 @@ class Users extends Component
         $this->name = '';
         $this->email = '';
         $this->phone = '';
-        $this->role = 'customer';
+        $this->role = 'admin';
         $this->status = 'inactive';
         $this->verified = false;
         $this->city_id = null;
@@ -176,7 +177,6 @@ class Users extends Component
             'occupation' => 'nullable|string|max:150',
         ];
 
-        // Password validation - required for new users, optional for update
         if ($this->selectedUser) {
             $rules['password'] = 'nullable|string|min:8';
         } else {
@@ -214,32 +214,28 @@ class Users extends Component
                 session()->flash('error', 'User not found');
                 return;
             }
-            // Only update password if provided
             if (!empty($this->password)) {
                 $data['password'] = bcrypt($this->password);
             } else {
                 unset($data['password']);
             }
             $user->update($data);
-            
-            // Sync managed cities for admin role
+
             if ($this->role === 'admin') {
                 $user->managedCities()->sync($this->managed_city_ids ?? []);
             } else {
                 $user->managedCities()->sync([]);
             }
-            
+
             session()->flash('message', 'User updated successfully');
         } else {
-            // create new user with provided password
             $data['password'] = bcrypt($this->password);
             $user = User::create($data);
-            
-            // Sync managed cities for admin role
+
             if ($this->role === 'admin') {
                 $user->managedCities()->sync($this->managed_city_ids ?? []);
             }
-            
+
             session()->flash('message', 'User created successfully');
         }
 
@@ -267,9 +263,6 @@ class Users extends Component
         $this->resetPage();
     }
 
-    /**
-     * Close any open modal and reset relevant state
-     */
     public function closeModal()
     {
         $this->resetForm();
@@ -283,6 +276,7 @@ class Users extends Component
     public function render()
     {
         $users = User::with(['city', 'managedCities'])
+            ->where('role', 'admin')
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -290,17 +284,22 @@ class Users extends Component
                         ->orWhere('phone', 'like', '%' . $this->search . '%');
                 });
             })
-            ->when($this->roleFilter, function ($query) {
-                $query->where('role', $this->roleFilter);
-            }, function ($query) {
-                // default: show only mitra and customer
-                $query->whereIn('role', ['mitra', 'customer']);
-            })
             ->latest()
             ->paginate($this->perPage);
 
         $cities = City::orderBy('name')->get();
 
-        return view('superadmin.users', compact('users', 'cities'));
+        // compute available cities for create modal: exclude cities already assigned to other admins
+        $assignedToOthers = DB::table('admin_city')
+            ->when($this->selectedUser, function ($q) {
+                // when editing, exclude cities assigned to this user so they remain selectable
+                $q->where('user_id', '!=', $this->selectedUser->id);
+            })
+            ->pluck('city_id')
+            ->toArray();
+
+        $availableCities = City::whereNotIn('id', $assignedToOthers)->orderBy('name')->get();
+
+        return view('superadmin.admin-users', compact('users', 'cities', 'availableCities'));
     }
 }

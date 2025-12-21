@@ -1,5 +1,5 @@
 @props([
-    'name' => null,
+    'name',
     'show' => false,
     'maxWidth' => '2xl'
 ])

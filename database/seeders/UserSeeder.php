@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
         // Super Admin
         User::create([
             'name' => 'Super Admin',
-            'email' => 'superadmin@mastulongmas.com',
+            'email' => 'superadmin@sayabantu.com',
             'password' => Hash::make('password'),
             'role' => 'super_admin',
             'verified' => true,
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
         // Admin Jakarta
         User::create([
             'name' => 'Admin Jakarta',
-            'email' => 'admin.jakarta@mastulongmas.com',
+            'email' => 'admin.jakarta@sayabantu.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
             'city_id' => 1,

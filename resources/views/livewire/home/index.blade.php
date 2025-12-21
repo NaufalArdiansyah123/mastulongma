@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mastulongmas - Platform Bantuan Sosial</title>
+    <title>sayabantu - Platform Bantuan Sosial</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -26,7 +26,7 @@
             </div>
 
             <!-- App Name -->
-            <h1 class="text-4xl font-bold text-primary-500 mb-3">Mastulongmas</h1>
+            <h1 class="text-4xl font-bold text-primary-500 mb-3">sayabantu</h1>
 
             <!-- Description -->
             <p class="text-center text-gray-600 text-sm max-w-xs px-4">

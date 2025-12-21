@@ -7,7 +7,7 @@
     <div class="bg-white shadow-sm border-b border-gray-200 mb-6">
         <div class="px-8 py-4">
             <div class="flex items-center justify-between">
-                <p class="text-sm text-gray-600">Kelola kota layanan MastuLongmas</p>
+                <p class="text-sm text-gray-600">Kelola kota layanan sayabantu</p>
                 <button wire:click="openCreateModal"
                     class="px-6 py-3 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700 transition shadow-md hover:shadow-lg">
                     <div class="flex items-center space-x-2">

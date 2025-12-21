@@ -219,6 +219,10 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('superadmin')->na
     Route::get('/settings/banners', \App\Livewire\SuperAdmin\Banners::class)->name('settings.banners');
     // Transactions / Logs (topup, withdraw, mutasi)
     Route::view('/settings/transactions', 'superadmin.transactions')->name('settings.transactions');
+    // Top-up approval management
+    Route::get('/topup/approvals', \App\Livewire\SuperAdmin\TopupApproval::class)->name('topup.approvals');
+    // Superadmin management page for admin-role users
+    Route::get('/admin-users', \App\Livewire\SuperAdmin\AdminUsers::class)->name('admin.users');
     // Withdraw management (moved to SuperAdmin for approvals)
     Route::get('/withdraws', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'index'])->name('withdraws.index');
     Route::get('/withdraws/{withdraw}/modal', [\App\Http\Controllers\Admin\AdminWithdrawController::class, 'modal'])->name('withdraws.modal');

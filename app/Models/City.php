@@ -22,6 +22,13 @@ class City extends Model
         return $this->belongsTo(User::class, 'admin_id');
     }
 
+    // Admins who manage this city (many-to-many)
+    public function admins()
+    {
+        return $this->belongsToMany(User::class, 'admin_city', 'city_id', 'user_id')
+                    ->withTimestamps();
+    }
+
     public function users()
     {
         return $this->hasMany(User::class);

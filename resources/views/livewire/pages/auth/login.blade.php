@@ -46,7 +46,7 @@ new #[Layout('layouts.guest')] class extends Component {
 
 <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
     <div class="px-6 pt-6 pb-4 border-b border-gray-100">
-        <h2 class="text-lg font-semibold text-gray-800">Masuk ke Mastulongmas</h2>
+        <h2 class="text-lg font-semibold text-gray-800">Masuk ke sayabantu</h2>
         <p class="text-xs text-gray-500 mt-1">Silakan masuk menggunakan akun Anda</p>
     </div>
 
