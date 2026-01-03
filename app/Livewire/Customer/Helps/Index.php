@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Rating;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+// (Schema/DB imports removed - restored original file state)
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -34,234 +35,130 @@ class Index extends Component
         'partner_cancel_requested',
     ];
     public $selectedHelpData = null;
-    // Rating flow
-    public $ratingComment = null;
-    public $pendingRating = null;
-    public $pendingHelpForRating = null;
-    // Confirmation modal for completion
-    public $showConfirmModal = false;
-    public $confirmingHelpId = null;
-    // Confirmation modal for deletion (cancel help)
+
+    // Edit modal properties (declare as public so Livewire can bind to them)
+    public $editingHelp = null;
+    public $editTitle = null;
+    public $editDescription = null;
+    public $editAmount = null;
+    public $editLocation = null;
+    public $editFullAddress = null;
+    public $editEquipmentProvided = null;
+    public $editCityId = null;
+    public $editLatitude = null;
+    public $editLongitude = null;
+    public $editPhoto = null;
+    public $editExistingPhoto = null;
+    public $editSearchResults = [];
+    public $editCityQuery = null;
+    public $cities = null;
+    // Delete confirmation modal state
     public $showDeleteConfirm = false;
     public $deletingHelpId = null;
-    // Edit modal state
-    public $editingHelp = null;
-    public $editTitle;
-    public $editDescription;
-    public $editAmount;
-    public $editLocation;
-    public $editFullAddress;
-    public $editEquipmentProvided;
-    public $editCityId;
-    public $editLatitude;
-    public $editLongitude;
-    public $editPhoto;
-    public $editExistingPhoto;
-    public $cities = [];
-
-    public function takeHelp($helpId)
-    {
-        $help = Help::findOrFail($helpId);
-
-        if ($help->mitra_id) {
-            session()->flash('error', 'Bantuan ini sudah diambil oleh mitra lain.');
-            return;
-        }
-
-        $help->update([
-            'mitra_id' => auth()->id(),
-            'status' => 'taken',
-            'taken_at' => now(),
-        ]);
-
-        session()->flash('message', 'Bantuan berhasil diambil! Segera hubungi yang membutuhkan.');
-    }
-
-    public function completeHelp($helpId)
-    {
-        $help = Help::where('id', $helpId)
-            ->where('mitra_id', auth()->id())
-            ->firstOrFail();
-
-        $help->update([
-            'status' => 'selesai',
-            'completed_at' => now(),
-        ]);
-
-        session()->flash('message', 'Bantuan berhasil diselesaikan! Terima kasih atas kebaikan Anda.');
-    }
 
     /**
-     * Confirm completion from the customer's side when the partner already finished the task.
+     * Trigger the delete confirmation modal for a given help id.
      */
-    /** Open confirmation modal for completion (customer) */
-    public function confirmCompletion($helpId)
+    public function confirmDelete($id)
     {
-        $help = Help::findOrFail($helpId);
-
-        // Only the owner (customer) can open confirmation
-        if ($help->user_id !== auth()->id()) {
-            session()->flash('error', 'Anda tidak memiliki izin untuk mengonfirmasi penyelesaian ini.');
+        $help = Help::find($id);
+        if (! $help || $help->user_id !== auth()->id()) {
+            session()->flash('error', 'Anda tidak memiliki izin untuk membatalkan bantuan ini.');
             return;
         }
 
-        // Require that a mitra was assigned and status is in progress
-        if (!$help->mitra_id || $help->status !== 'waiting_customer_confirmation') {
-            session()->flash('error', 'Permintaan belum dalam status yang dapat dikonfirmasi.');
-            return;
-        }
-
-        $this->confirmingHelpId = $helpId;
-        $this->showConfirmModal = true;
-    }
-
-    /** Called when customer confirms completion in modal */
-    public function completeConfirmed()
-    {
-        if (!$this->confirmingHelpId) {
-            $this->showConfirmModal = false;
-            return;
-        }
-
-        $help = Help::findOrFail($this->confirmingHelpId);
-
-        if ($help->user_id !== auth()->id()) {
-            session()->flash('error', 'Anda tidak memiliki izin untuk mengonfirmasi penyelesaian ini.');
-            $this->showConfirmModal = false;
-            $this->confirmingHelpId = null;
-            return;
-        }
-
-        if (!$help->mitra_id || $help->status !== 'waiting_customer_confirmation') {
-            session()->flash('error', 'Permintaan belum dalam status yang dapat dikonfirmasi.');
-            $this->showConfirmModal = false;
-            $this->confirmingHelpId = null;
-            return;
-        }
-
-        $help->update([
-            'status' => 'selesai',
-            'completed_at' => now(),
-        ]);
-
-        session()->flash('message', 'Terima kasih, permintaan telah ditandai sebagai selesai.');
-
-        // reset modal state
-        $this->showConfirmModal = false;
-        $this->confirmingHelpId = null;
-    }
-
-    public function deleteHelp($helpId)
-    {
-        $help = Help::findOrFail($helpId);
-
-        // Pastikan user adalah pemilik bantuan
-        if ($help->user_id !== auth()->id()) {
-            session()->flash('error', 'Anda tidak memiliki izin untuk menghapus bantuan ini.');
-            return;
-        }
-
-        $help->delete();
-        // Clear any open selection so modal closes if it was showing this help
-        if ($this->selectedHelpData && $this->selectedHelpData['id'] === $helpId) {
-            $this->selectedHelpData = null;
-        }
-
-        session()->flash('message', 'Bantuan berhasil dihapus.');
-    }
-
-    /**
-     * Open delete confirmation modal (so user must confirm before delete)
-     */
-    public function confirmDelete($helpId)
-    {
-        $help = Help::find($helpId);
-        if (!$help) {
-            session()->flash('error', 'Bantuan tidak ditemukan.');
-            return;
-        }
-
-        // Only owner can request deletion
-        if ($help->user_id !== auth()->id()) {
-            session()->flash('error', 'Anda tidak memiliki izin untuk menghapus bantuan ini.');
-            return;
-        }
-
-        $this->deletingHelpId = $helpId;
+        $this->deletingHelpId = $id;
         $this->showDeleteConfirm = true;
     }
 
     /**
-     * Called when user confirms deletion in the modal
+     * Cancel the delete flow and hide the confirmation modal.
      */
-    public function deleteConfirmed()
-    {
-        if (!$this->deletingHelpId) {
-            $this->showDeleteConfirm = false;
-            return;
-        }
-
-        // Reuse existing delete logic
-        $this->deleteHelp($this->deletingHelpId);
-
-        // reset modal state
-        $this->deletingHelpId = null;
-        $this->showDeleteConfirm = false;
-    }
-
     public function cancelDelete()
     {
         $this->deletingHelpId = null;
         $this->showDeleteConfirm = false;
     }
 
-    public function showHelp($id)
+    /**
+     * Perform the delete (or cancellation) action after confirmation.
+     */
+    public function deleteConfirmed()
     {
-        // Load help details into `selectedHelpData` so the index view can
-        // render a detail modal inline when a card is clicked.
-        $help = Help::with(['city', 'mitra', 'category'])->find($id);
-        if (!$help) {
-            session()->flash('error', 'Bantuan tidak ditemukan.');
+        if (! $this->deletingHelpId) {
+            $this->showDeleteConfirm = false;
             return;
         }
 
-        // Only the owner (customer) may open the detail modal here
-        if ($help->user_id !== auth()->id()) {
-            session()->flash('error', 'Anda tidak memiliki izin untuk melihat detail ini.');
+        $help = Help::find($this->deletingHelpId);
+        if (! $help || $help->user_id !== auth()->id()) {
+            session()->flash('error', 'Permintaan tidak ditemukan atau Anda tidak memiliki izin.');
+            $this->cancelDelete();
             return;
         }
 
-        $this->selectedHelpData = [
-            'id' => $help->id,
-            'title' => $help->title,
-            'description' => $help->description,
-            'amount' => $help->amount,
-            'photo' => $help->photo,
-            'location' => $help->location,
-            'user_name' => optional($help->user)->name ?? auth()->user()->name,
-            'city_name' => optional($help->city)->name,
-            'full_address' => $help->full_address,
-            'equipment_provided' => $help->equipment_provided,
-            'latitude' => $help->latitude,
-            'longitude' => $help->longitude,
-            'admin_notes' => $help->admin_notes,
-            'admin_fee' => $help->admin_fee,
-            'total_amount' => $help->total_amount,
-            'category_name' => optional($help->category)->name,
-            'mitra_name' => optional($help->mitra)->name,
-            'status' => $help->status,
-            'created_at_human' => optional($help->created_at)->diffForHumans(),
-            'updated_at' => optional($help->updated_at)->format('d M Y • H:i'),
-            'taken_at' => optional($help->taken_at)->format('d M Y • H:i'),
-        ];
-        // Dispatch browser event so client-side can initialize the detail map
-        $this->dispatch('open-detail', id: $help->id, latitude: $help->latitude, longitude: $help->longitude, full_address: $help->full_address);
+        try {
+            // Soft-delete or delete depending on model setup. Use delete() by default.
+            $help->delete();
+            session()->flash('message', 'Permintaan bantuan berhasil dibatalkan.');
+        } catch (\Throwable $e) {
+            session()->flash('error', 'Gagal membatalkan permintaan bantuan.');
+        }
+
+        $this->cancelDelete();
     }
 
-    public function closeHelp()
+    // --- Completion confirmation (from index list) ---
+    public $confirmingHelpId = null;
+
+    /**
+     * Prepare the confirmation modal for marking a help as completed.
+     */
+    public function confirmCompletion($id)
     {
-        $this->selectedHelpData = null;
+        $help = Help::find($id);
+        if (! $help || $help->user_id !== auth()->id()) {
+            session()->flash('error', 'Anda tidak memiliki izin untuk mengonfirmasi pesanan ini.');
+            return;
+        }
+
+        $this->confirmingHelpId = $id;
     }
+
+    /**
+     * Mark the help as completed after user confirmation.
+     */
+    public function completeConfirmed()
+    {
+        if (! $this->confirmingHelpId) {
+            return;
+        }
+
+        $help = Help::find($this->confirmingHelpId);
+        if (! $help || $help->user_id !== auth()->id()) {
+            session()->flash('error', 'Permintaan tidak ditemukan atau Anda tidak memiliki izin.');
+            $this->confirmingHelpId = null;
+            return;
+        }
+
+        try {
+            $help->update([
+                'status' => 'selesai',
+                'completed_at' => now(),
+            ]);
+
+            session()->flash('message', 'Permintaan telah ditandai selesai.');
+        } catch (\Throwable $e) {
+            session()->flash('error', 'Gagal menandai permintaan sebagai selesai.');
+        }
+
+        $this->confirmingHelpId = null;
+    }
+    // Rating flow
+    public $ratingComment = null;
+    public $pendingRating = null;
+    public $pendingHelpForRating = null;
+    
 
     // Temporary debug helper to confirm Livewire connectivity from browser
     public function testPing()
@@ -309,6 +206,230 @@ class Index extends Component
         $this->dispatch('open-edit', id: $help->id, title: $help->title, description: $help->description, amount: $help->amount, location: $help->location, city_id: $help->city_id, latitude: $help->latitude, longitude: $help->longitude);
     }
 
+    // Set city id from search result (used by the edit modal search)
+    public function setEditCityId($id)
+    {
+        $this->editCityId = $id;
+        $city = City::find($id);
+        if ($city) {
+            $this->editCityQuery = $city->name . ' — ' . $city->province;
+        }
+        $this->editSearchResults = [];
+    }
+
+    public function updatedEditCityQuery($value)
+    {
+        $q = trim($value);
+        if ($q === '') {
+            $this->editSearchResults = [];
+            return;
+        }
+
+        $limit = 10;
+
+        $results = City::where('is_active', true)
+            ->where(function ($builder) use ($q) {
+            \Illuminate\Support\Facades\Log::info('updatedEditCityQuery called', ['q' => $q, 'user_id' => optional(auth()->user())->id]);
+                $builder->where('name', 'like', "%{$q}%")
+                        ->orWhere('province', 'like', "%{$q}%")
+                        ->orWhere('code', 'like', "%{$q}%");
+            })
+            ->whereRaw("COALESCE(code,'') NOT LIKE 'reqd-%' AND COALESCE(code,'') NOT LIKE 'regd-%'")
+            ->select('id', 'name', 'province', 'code')
+            ->orderBy('name')
+            ->limit($limit)
+            ->get()
+            ->toArray();
+
+        if (count($results) < $limit) {
+            $remaining = $limit - count($results);
+            $regRows = collect();
+
+            if (Schema::hasTable('req_regencies') && Schema::hasTable('req_provinces')) {
+                $regRows = \Illuminate\Support\Facades\DB::table('req_regencies')
+                    ->join('req_provinces', 'req_regencies.province_id', '=', 'req_provinces.id')
+                    ->where(function ($builder) use ($q) {
+                        $builder->where('req_regencies.regency', 'like', "%{$q}%")
+                                ->orWhere('req_provinces.province', 'like', "%{$q}%");
+                    })
+                    ->select('req_regencies.id as regency_id', 'req_regencies.regency', 'req_regencies.type', 'req_provinces.province')
+                    ->orderBy('req_regencies.regency')
+                    ->limit($remaining)
+                    ->get();
+
+                \Illuminate\Support\Facades\Log::info('editCityQuery initial results', ['count' => count($results), 'remaining' => $remaining, 'q' => $q, 'regRows' => count($regRows)]);
+            }
+
+            if (count($regRows) < $remaining && Schema::hasTable('req_districts') && Schema::hasTable('req_regencies') && Schema::hasTable('req_provinces')) {
+                $remaining2 = $remaining - count($regRows);
+                $distRows = \Illuminate\Support\Facades\DB::table('req_districts')
+                    ->join('req_regencies', 'req_districts.regency_id', '=', 'req_regencies.id')
+                    ->join('req_provinces', 'req_regencies.province_id', '=', 'req_provinces.id')
+                    ->where(function ($builder) use ($q) {
+                        $builder->where('req_districts.district', 'like', "%{$q}%")
+                                ->orWhere('req_regencies.regency', 'like', "%{$q}%")
+                                ->orWhere('req_provinces.province', 'like', "%{$q}%");
+                    })
+                    ->select(\Illuminate\Support\Facades\DB::raw("CONCAT('reqd-', req_districts.id) as regency_id"), 'req_districts.district as regency', 'req_regencies.regency as parent_regency', \Illuminate\Support\Facades\DB::raw('null as type'), 'req_provinces.province')
+                    ->orderBy('req_districts.district')
+                    ->limit($remaining2)
+                    ->get();
+
+                foreach ($distRows as $r) { $regRows->push($r); }
+            }
+
+            if (count($regRows) < $remaining && Schema::hasTable('reg_districts') && Schema::hasTable('reg_regencies') && Schema::hasTable('reg_provinces')) {
+                $remaining3 = $remaining - count($regRows);
+                $rows = \Illuminate\Support\Facades\DB::table('reg_districts')
+                    ->join('reg_regencies', 'reg_districts.regency_id', '=', 'reg_regencies.id')
+                    ->join('reg_provinces', 'reg_regencies.province_id', '=', 'reg_provinces.id')
+                    ->where(function ($builder) use ($q) {
+                        $builder->where('reg_districts.name', 'like', "%{$q}%")
+                                ->orWhere('reg_regencies.name', 'like', "%{$q}%")
+                                ->orWhere('reg_provinces.name', 'like', "%{$q}%");
+                    })
+                    ->select(\Illuminate\Support\Facades\DB::raw("CONCAT('regd-', reg_districts.id) as regency_id"), 'reg_districts.name as regency', 'reg_regencies.name as parent_regency', \Illuminate\Support\Facades\DB::raw('null as type'), 'reg_provinces.name as province')
+                    ->orderBy('reg_districts.name')
+                    ->limit($remaining3)
+                    ->get();
+
+                foreach ($rows as $r) { $regRows->push($r); }
+            }
+
+            if (count($regRows) < $remaining && Schema::hasTable('reg_regencies') && Schema::hasTable('reg_provinces')) {
+                $remaining2 = $remaining - count($regRows);
+                $rows = \Illuminate\Support\Facades\DB::table('reg_regencies')
+                    ->join('reg_provinces', 'reg_regencies.province_id', '=', 'reg_provinces.id')
+                    ->where(function ($builder) use ($q) {
+                        $builder->where('reg_regencies.name', 'like', "%{$q}%")
+                                ->orWhere('reg_provinces.name', 'like', "%{$q}%");
+                    })
+                    ->select('reg_regencies.id as regency_id', 'reg_regencies.name as regency', \Illuminate\Support\Facades\DB::raw('null as type'), 'reg_provinces.name as province')
+                    ->orderBy('reg_regencies.name')
+                    ->limit($remaining2)
+                    ->get();
+
+                foreach ($rows as $r) { $regRows->push($r); }
+            }
+
+            if (count($regRows) < $remaining && Schema::hasTable('regencies') && Schema::hasTable('provinces')) {
+                $remaining3 = $remaining - count($regRows);
+                $rows = \Illuminate\Support\Facades\DB::table('regencies')
+                    ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
+                    ->where(function ($builder) use ($q) {
+                        $builder->where('regencies.regency', 'like', "%{$q}%")
+                                ->orWhere('provinces.province', 'like', "%{$q}%");
+                    })
+                    ->select('regencies.id as regency_id', 'regencies.regency', 'regencies.type', 'provinces.province')
+                    ->orderBy('regencies.regency')
+                    ->limit($remaining3)
+                    ->get();
+
+                foreach ($rows as $r) { $regRows->push($r); }
+            }
+
+            foreach ($regRows as $r) {
+                $regencyIdStr = is_string($r->regency_id) ? $r->regency_id : (string) $r->regency_id;
+                $display = null;
+                $targetCity = null;
+
+                if (strpos($regencyIdStr, 'reqd-') === 0) {
+                    try {
+                        $did = substr($regencyIdStr, 5);
+                        $parentRow = \Illuminate\Support\Facades\DB::table('req_districts')
+                            ->join('req_regencies','req_districts.regency_id','=','req_regencies.id')
+                            ->join('req_provinces','req_regencies.province_id','=','req_provinces.id')
+                            ->where('req_districts.id', $did)
+                            ->select('req_districts.district as district','req_regencies.id as parent_regency_id','req_regencies.regency as parent_regency','req_provinces.province')
+                            ->first();
+                        if ($parentRow) {
+                            $parentCode = 'reqr-' . $parentRow->parent_regency_id;
+                            $targetCity = City::firstOrCreate(
+                                ['code' => $parentCode],
+                                ['name' => $parentRow->parent_regency, 'province' => $parentRow->province, 'is_active' => true]
+                            );
+                            $display = $parentRow->district . ', ' . $parentRow->parent_regency . ', ' . $parentRow->province;
+                        }
+                    } catch (\Throwable $e) {}
+                } elseif (strpos($regencyIdStr, 'regd-') === 0) {
+                    try {
+                        $did = substr($regencyIdStr, 5);
+                        $parentRow = \Illuminate\Support\Facades\DB::table('reg_districts')
+                            ->join('reg_regencies','reg_districts.regency_id','=','reg_regencies.id')
+                            ->join('reg_provinces','reg_regencies.province_id','=','reg_provinces.id')
+                            ->where('reg_districts.id', $did)
+                            ->select('reg_districts.name as district','reg_regencies.id as parent_regency_id','reg_regencies.name as parent_regency','reg_provinces.name as province')
+                            ->first();
+                        if ($parentRow) {
+                            $parentCode = 'reqr-' . $parentRow->parent_regency_id;
+                            $targetCity = City::firstOrCreate(
+                                ['code' => $parentCode],
+                                ['name' => $parentRow->parent_regency, 'province' => $parentRow->province, 'is_active' => true]
+                            );
+                            $display = $parentRow->district . ', ' . $parentRow->parent_regency . ', ' . $parentRow->province;
+                        }
+                    } catch (\Throwable $e) {}
+                }
+
+                if (! $targetCity) {
+                    $targetCity = City::firstOrCreate(
+                        ['code' => $r->regency_id],
+                        ['name' => $r->regency, 'province' => $r->province, 'type' => $r->type ?? null, 'is_active' => true]
+                    );
+                    if (! $display && ! empty($r->parent_regency)) {
+                        $display = $r->regency . ', ' . $r->parent_regency . ', ' . $r->province;
+                    }
+                }
+
+                if (! $display) {
+                    $display = $targetCity->name . ', ' . $targetCity->province;
+                }
+
+                $exists = false;
+                foreach ($results as $res) { if ($res['id'] == $targetCity->id) { $exists = true; break; } }
+                if (! $exists) {
+                    $item = ['id' => $targetCity->id, 'name' => $targetCity->name, 'province' => $targetCity->province, 'code' => $targetCity->code];
+                    if ($display) $item['display'] = $display;
+                    $results[] = $item;
+                }
+            }
+        }
+
+        // try to enrich district-coded results with full display
+        foreach ($results as $idx => $res) {
+            if (! empty($res['code']) && is_string($res['code'])) {
+                $code = $res['code'];
+                try {
+                    if (strpos($code, 'reqd-') === 0 && Schema::hasTable('req_districts')) {
+                        $did = substr($code, 5);
+                        $row = DB::table('req_districts')
+                            ->join('req_regencies', 'req_districts.regency_id', '=', 'req_regencies.id')
+                            ->join('req_provinces', 'req_regencies.province_id', '=', 'req_provinces.id')
+                            ->where('req_districts.id', $did)
+                            ->select('req_districts.district as district', 'req_regencies.regency as regency', 'req_provinces.province as province')
+                            ->first();
+                        if ($row) {
+                            $results[$idx]['display'] = $row->district . ', ' . $row->regency . ', ' . $row->province;
+                        }
+                    } elseif (strpos($code, 'regd-') === 0 && Schema::hasTable('reg_districts')) {
+                        $did = substr($code, 5);
+                        $row = DB::table('reg_districts')
+                            ->join('reg_regencies', 'reg_districts.regency_id', '=', 'reg_regencies.id')
+                            ->join('reg_provinces', 'reg_regencies.province_id', '=', 'reg_provinces.id')
+                            ->where('reg_districts.id', $did)
+                            ->select('reg_districts.name as district', 'reg_regencies.name as regency', 'reg_provinces.name as province')
+                            ->first();
+                        if ($row) {
+                            $results[$idx]['display'] = $row->district . ', ' . $row->regency . ', ' . $row->province;
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        $this->editSearchResults = $results;
+    }
+
     /**
      * Called when a customer clicks a rating star.
      * Stores the pending rating value and which help is being rated.
@@ -320,6 +441,7 @@ class Index extends Component
     }
 
     /**
+            \Illuminate\Support\Facades\Log::info('updatedEditCityQuery finished', ['q' => $q, 'results_count' => count($results)]);
      * Submit rating and optional comment for a help.
      */
     public function submitRating($helpId)

@@ -172,6 +172,61 @@
             var overlay = modal.querySelector('#superadmin-withdraw-modal-overlay');
             var closeBtn = modal.querySelector('#close-superadmin-withdraw-modal');
             function removeModal() { container.innerHTML = ''; }
+            // Initialize Alpine for dynamically injected modal (if Alpine is present)
+            try {
+                if (window.Alpine && typeof Alpine.initTree === 'function') {
+                    Alpine.initTree(modal);
+                }
+            } catch (e) {
+                console.warn('Alpine initTree failed for injected modal', e);
+            }
+
+            // Attach fallback handlers for reject modal inside injected modal
+            try {
+                var openRejectBtn = modal.querySelector('#open-reject-local');
+                var fallback = modal.querySelector('#withdraw-reject-modal-fallback');
+                var closeFallback = modal.querySelector('#close-reject-fallback');
+                var cancelFallback = modal.querySelector('#cancel-reject-fallback');
+                var overlayFallback = modal.querySelector('#withdraw-reject-fallback-overlay');
+
+                console.log('initSuperadminWithdrawModal: openRejectBtn=', !!openRejectBtn, 'fallback=', !!fallback, 'overlay=', !!overlayFallback);
+
+                function showFallback() {
+                    if (!fallback) return;
+                    fallback.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                }
+                function hideFallback() {
+                    if (!fallback) return;
+                    fallback.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+
+                if (openRejectBtn) {
+                    openRejectBtn.addEventListener('click', function (e) {
+                        // always show fallback as a guarantee when button clicked
+                        try { console.log('open-reject-local clicked'); } catch (err) {}
+                        showFallback();
+                        try { window.dispatchEvent(new CustomEvent('open-reject')); } catch (err) {}
+                    });
+                } else {
+                    // if button not found inside modal, listen globally just in case
+                    window.addEventListener('click', function (ev) {
+                        var target = ev.target || ev.srcElement;
+                        if (target && target.id === 'open-reject-local') {
+                            showFallback();
+                            try { window.dispatchEvent(new CustomEvent('open-reject')); } catch (err) {}
+                        }
+                    });
+                }
+
+                if (closeFallback) closeFallback.addEventListener('click', hideFallback);
+                if (cancelFallback) cancelFallback.addEventListener('click', hideFallback);
+                if (overlayFallback) overlayFallback.addEventListener('click', hideFallback);
+            } catch (e) {
+                console.warn('Failed to attach reject fallback handlers', e);
+            }
+
             if (closeBtn) closeBtn.addEventListener('click', removeModal);
             if (overlay) overlay.addEventListener('click', removeModal);
             document.body.style.overflow = 'hidden';

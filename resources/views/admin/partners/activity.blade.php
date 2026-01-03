@@ -349,8 +349,56 @@
                 </div>
 
                 @if ($activities->hasPages())
+                    @php
+                        $p = $activities;
+                        $current = $p->currentPage();
+                        $last = $p->lastPage();
+                        $start = max(1, $current - 2);
+                        $end = min($last, $current + 2);
+                    @endphp
                     <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex justify-center">
-                        {{ $activities->links() }}
+                        <nav class="inline-flex items-center space-x-2" role="navigation" aria-label="Pagination">
+                            {{-- Previous --}}
+                            @if($current > 1)
+                                <a href="{{ $p->url($current - 1) }}" class="inline-flex items-center px-3 py-1.5 bg-white border rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                                    &larr; Prev
+                                </a>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1.5 bg-gray-100 border rounded-md text-sm text-gray-400">&larr; Prev</span>
+                            @endif
+
+                            {{-- First + ellipsis --}}
+                            @if($start > 1)
+                                <a href="{{ $p->url(1) }}" class="inline-flex items-center px-3 py-1.5 bg-white border rounded-md text-sm text-gray-700 hover:bg-gray-50">1</a>
+                                @if($start > 2)
+                                    <span class="px-2 text-sm text-gray-500">…</span>
+                                @endif
+                            @endif
+
+                            {{-- Page numbers --}}
+                            @for($i = $start; $i <= $end; $i++)
+                                @if($i == $current)
+                                    <span aria-current="page" class="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white border rounded-md text-sm">{{ $i }}</span>
+                                @else
+                                    <a href="{{ $p->url($i) }}" class="inline-flex items-center px-3 py-1.5 bg-white border rounded-md text-sm text-gray-700 hover:bg-gray-50">{{ $i }}</a>
+                                @endif
+                            @endfor
+
+                            {{-- Ellipsis + last --}}
+                            @if($end < $last)
+                                @if($end < $last - 1)
+                                    <span class="px-2 text-sm text-gray-500">…</span>
+                                @endif
+                                <a href="{{ $p->url($last) }}" class="inline-flex items-center px-3 py-1.5 bg-white border rounded-md text-sm text-gray-700 hover:bg-gray-50">{{ $last }}</a>
+                            @endif
+
+                            {{-- Next --}}
+                            @if($current < $last)
+                                <a href="{{ $p->url($current + 1) }}" class="inline-flex items-center px-3 py-1.5 bg-white border rounded-md text-sm text-gray-700 hover:bg-gray-50">Next &rarr;</a>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1.5 bg-gray-100 border rounded-md text-sm text-gray-400">Next &rarr;</span>
+                            @endif
+                        </nav>
                     </div>
                 @endif
             @endif

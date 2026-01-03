@@ -151,7 +151,6 @@
                 </div>
                 <div class="flex-1">
                     <h2 class="font-semibold text-base text-gray-900">{{ $help->title }}</h2>
-                    <p class="text-sm text-gray-600 mt-0.5">{{ $help->equipment_provided ?? 'Layanan 1 Unit' }}</p>
                     <p class="text-lg font-bold text-blue-600 mt-2">Rp {{ number_format($help->amount, 0, ',', '.') }}
                     </p>
                 </div>
@@ -239,7 +238,7 @@
                 {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->translatedFormat('l, d F Y') }}
                 (Jam {{ \Carbon\Carbon::parse($help->scheduled_at ?? $help->created_at)->format('H:i') }})
             </p>
-            <p class="text-xs text-gray-500 mt-1">Jadwal tertera dalam WIB</p>
+            <p class="text-xs text-gray-500 mt-1"></p>
         </div>
 
         {{-- Customer Info --}}
@@ -266,7 +265,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                @if ($help->user->phone)
+                {{-- @if ($help->user->phone)
                     <a href="tel:{{ $help->user->phone }}"
                         class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                         <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +274,7 @@
                         </svg>
                         <span class="text-sm font-semibold text-gray-700">Telepon</span>
                     </a>
-                @endif
+                @endif --}}
                 <a href="{{ route('mitra.chat', ['help' => $help->id]) }}"
                     class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                     <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -285,18 +284,6 @@
                     <span class="text-sm font-semibold text-gray-700">Chat</span>
                 </a>
             </div>
-        </div>
-
-        {{-- Description --}}
-        <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
-            <h3 class="font-semibold text-sm text-gray-900 mb-2 flex items-center gap-2">
-                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 6h16M4 12h16M4 18h7" />
-                </svg>
-                Deskripsi Bantuan
-            </h3>
-            <p class="text-sm text-gray-600 leading-relaxed">{{ $help->description }}</p>
         </div>
 
         {{-- Location --}}
@@ -331,6 +318,56 @@
             </div>
         </div>
 
+        {{-- Additional Details (equipment, coords, timestamps, voucher) --}}
+        <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+            <h3 class="font-semibold text-sm text-gray-900 mb-2">Deskripsi & Detail</h3>
+
+            @if(!empty($help->description))
+                <div class="mb-3 text-sm text-gray-700 whitespace-pre-line break-words break-all">{{ $help->description }}</div>
+            @endif
+
+            <div class="grid grid-cols-2 gap-3 text-sm text-gray-700">
+                @if(!empty($help->equipment_provided))
+                    <div>
+                        <div class="text-xs text-gray-500">Perlengkapan</div>
+                        <div class="font-semibold break-words break-all">{{ $help->equipment_provided }}</div>
+                    </div>
+                @endif
+
+                {{-- <div>
+                    <div class="text-xs text-gray-500">Koordinat</div>
+                    <div class="font-semibold">{{ $help->latitude ?? '-' }}, {{ $help->longitude ?? '-' }}</div>
+                </div> --}}
+
+                @if(!empty($help->voucher_code))
+                    <div>
+                        <div class="text-xs text-gray-500">Voucher</div>
+                        <div class="font-semibold text-red-600">{{ $help->voucher_code }} @if($help->discount_amount) ( -Rp{{ number_format($help->discount_amount,0,',','.') }})@endif</div>
+                    </div>
+                @endif
+
+                {{-- <div>
+                    <div class="text-xs text-gray-500">Biaya Admin</div>
+                    <div class="font-semibold">Rp{{ number_format($help->admin_fee ?? $help->booking_fee ?? 0, 0, ',', '.') }}</div>
+                </div> --}}
+            </div>
+
+            @if(!empty($help->photo))
+                <div class="mt-3">
+                    <div class="text-xs text-gray-500">Foto Pesanan</div>
+                    <img src="{{ asset('storage/' . $help->photo) }}" alt="Foto bantuan" class="w-full mt-2 rounded-lg object-cover">
+                </div>
+            @endif
+
+            <div class="mt-3 text-xs text-gray-500">
+                <div>Dibuat: {{ \Carbon\Carbon::parse($help->created_at)->translatedFormat('d F Y, H:i') }}</div>
+                <div>Terakhir diperbarui: {{ \Carbon\Carbon::parse($help->updated_at)->translatedFormat('d F Y, H:i') }}</div>
+                @if(!empty($help->scheduled_at))
+                    <div>Jadwal: {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d F Y, H:i') }}</div>
+                @endif
+            </div>
+        </div>
+
         {{-- GPS Simulator (toggle via GPS_SIMULATOR env) --}}
         @if (config('app.gps_simulator', true) &&
                 $help->mitra_id === auth()->id() &&
@@ -344,35 +381,7 @@
 
 
         {{-- Action Buttons --}}
-        @if (in_array($help->status, ['memperoleh_mitra', 'taken']) && $help->mitra_id === auth()->id())
-            <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
-                <button wire:click="markPartnerStarted"
-                    class="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                    </svg>
-                    Mulai Perjalanan
-                </button>
-                <p class="text-xs text-gray-500 text-center mt-2">Klik tombol ini saat Anda mulai berangkat menuju lokasi customer</p>
-            </div>
-        @endif
-
-        @if ($help->status === 'partner_on_the_way' && $help->mitra_id === auth()->id())
-            <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">
-                <button wire:click="markPartnerArrived"
-                    class="w-full py-3 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    Saya Sudah Tiba
-                </button>
-                <p class="text-xs text-gray-500 text-center mt-2">Klik tombol ini saat Anda sudah sampai di lokasi customer</p>
-            </div>
-        @endif
+        
 
         @if ($help->status === 'partner_arrived')
             <div class="bg-white px-4 py-4 rounded-xl shadow-sm border border-gray-100 mb-3">

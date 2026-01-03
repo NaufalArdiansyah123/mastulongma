@@ -9,9 +9,10 @@ class AddPartnerCancelFieldsToHelpsTable extends Migration
     public function up()
     {
         Schema::table('helps', function (Blueprint $table) {
-            $table->timestamp('partner_cancel_requested_at')->nullable()->after('partner_current_lng');
-            $table->text('partner_cancel_reason')->nullable()->after('partner_cancel_requested_at');
-            $table->string('partner_cancel_prev_status')->nullable()->after('partner_cancel_reason');
+            // Avoid using ->after() because the referenced column may not exist in all environments.
+            $table->timestamp('partner_cancel_requested_at')->nullable();
+            $table->text('partner_cancel_reason')->nullable();
+            $table->string('partner_cancel_prev_status')->nullable();
         });
     }
 

@@ -192,11 +192,11 @@
                                             Detail
                                         </a>
 
-                                        <form action="{{ route('admin.partners.toggle', $user->id) }}" method="POST" class="inline">
+                                        <form action="{{ route('admin.partners.toggle', $user->id) }}" method="POST" class="inline block-toggle-form" id="block-form-{{ $user->id }}" data-user-name="{{ $user->name }}" data-is-blocked="{{ $user->status === 'blocked' ? '1' : '0' }}">
                                             @csrf
                                             <button
-                                                class="px-3 py-1 rounded-full text-xs {{ $user->is_blocked ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700' }}">
-                                                {{ $user->is_blocked ? 'Buka Blokir' : 'Blokir' }}
+                                                class="px-3 py-1 rounded-full text-xs {{ $user->status === 'blocked' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700' }}">
+                                                {{ $user->status === 'blocked' ? 'Buka Blokir' : 'Blokir' }}
                                             </button>
                                         </form>
                                     </td>
@@ -215,6 +215,24 @@
         </div>
     </div>
 @endsection
+
+<!-- Confirm Block Modal -->
+<div id="confirm-block-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div id="confirm-block-backdrop" class="absolute inset-0 bg-black bg-opacity-40"></div>
+    <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md z-10">
+        <div class="p-4 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Konfirmasi</h3>
+            <button id="confirm-block-close" class="text-gray-500 hover:text-gray-700">&times;</button>
+        </div>
+        <div class="p-4">
+            <p id="confirm-block-message" class="text-sm text-gray-700">Apakah Anda yakin ingin memblokir pengguna ini?</p>
+        </div>
+        <div class="p-4 border-t flex justify-end gap-2">
+            <button id="confirm-block-cancel" class="px-4 py-2 bg-gray-100 rounded">Batal</button>
+            <button id="confirm-block-confirm" class="px-4 py-2 bg-red-600 text-white rounded">Konfirmasi</button>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
@@ -267,6 +285,78 @@
             e.preventDefault();
             var url = el.getAttribute('data-url');
             if (url) openUserDetail(url);
+        });
+
+        // Block/unblock confirmation modal handling
+        var blockModal = null;
+        var blockBackdrop = null;
+        var blockMsg = null;
+        var blockCancel = null;
+        var blockClose = null;
+        var blockConfirm = null;
+        var blockFormToSubmit = null;
+
+        function initBlockModalElements(){
+            blockModal = document.getElementById('confirm-block-modal');
+            if (!blockModal) return false;
+            blockBackdrop = document.getElementById('confirm-block-backdrop');
+            blockMsg = document.getElementById('confirm-block-message');
+            blockCancel = document.getElementById('confirm-block-cancel');
+            blockClose = document.getElementById('confirm-block-close');
+            blockConfirm = document.getElementById('confirm-block-confirm');
+            return true;
+        }
+
+        function showBlockModal(form){
+            if (!initBlockModalElements()) return;
+            blockFormToSubmit = form;
+            var name = form.dataset.userName || '';
+            var isBlocked = (form.dataset.isBlocked === '1');
+
+            if (isBlocked) {
+                blockMsg.textContent = 'Apakah Anda yakin ingin membuka blokir pengguna "' + name + '"?';
+                blockConfirm.textContent = 'Buka Blokir';
+                blockConfirm.classList.remove('bg-red-600');
+                blockConfirm.classList.add('bg-green-600');
+            } else {
+                blockMsg.textContent = 'Apakah Anda yakin ingin memblokir pengguna "' + name + '"?';
+                blockConfirm.textContent = 'Konfirmasi';
+                blockConfirm.classList.remove('bg-green-600');
+                blockConfirm.classList.add('bg-red-600');
+            }
+
+            blockModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideBlockModal(){
+            if (!initBlockModalElements()) return;
+            blockModal.classList.add('hidden');
+            document.body.style.overflow = '';
+            blockFormToSubmit = null;
+        }
+
+        // Intercept submit on block forms
+        document.addEventListener('submit', function(ev){
+            var f = ev.target.closest && ev.target.closest('.block-toggle-form');
+            if (!f) return;
+            ev.preventDefault();
+            showBlockModal(f);
+        }, true);
+
+        // Delegate clicks for modal buttons (in case init runs before modal exists)
+        document.addEventListener('click', function(ev){
+            var t = ev.target;
+            if (!t) return;
+            if (t.id === 'confirm-block-cancel' || t.id === 'confirm-block-close' || t.id === 'confirm-block-backdrop'){
+                hideBlockModal();
+            }
+            if (t.id === 'confirm-block-confirm'){
+                if (blockFormToSubmit) {
+                    // submit the original form
+                    blockFormToSubmit.submit();
+                }
+            }
         });
     })();
 </script>

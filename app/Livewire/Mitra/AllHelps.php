@@ -6,8 +6,10 @@ use App\Models\Help;
 use App\Models\User;
 use App\Notifications\HelpTakenNotification;
 use Livewire\Component;
+use App\Services\LocationTrackingService;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Illuminate\Support\Facades\Schema;
 
 #[Layout('layouts.mitra')]
 class AllHelps extends Component
@@ -37,9 +39,65 @@ class AllHelps extends Component
         $query = Help::query();
 
         // Default behavior: show helps from the same city as the authenticated mitra
-        // if the mitra has a city set. This narrows the list to relevant cards.
-        if ($user && !empty($user->city_id)) {
-            $query->where('city_id', $user->city_id);
+        // if the mitra has a city set. If mitra belum menetapkan kota, don't show any helps
+        // and instruct them to set their city in profile.
+        $needsCity = false;
+        if ($user) {
+            if (! empty($user->city_id)) {
+                // Match helps where city_id equals mitra city, or where the help's
+                // city is a district whose parent regency equals mitra's city.
+                $userCity = \App\Models\City::find($user->city_id);
+                $userCityCode = $userCity->code ?? null;
+
+                $query->where(function($q) use ($user, $userCityCode) {
+                    $q->where('city_id', $user->city_id);
+
+                    if (! $userCityCode) {
+                        return;
+                    }
+
+                    // direct code match (handles canonical city rows that store external ids or codes)
+                    $q->orWhereHas('city', function($cityQ) use ($userCityCode) {
+                        $cityQ->where('code', $userCityCode);
+                    });
+
+                    // Try to extract a numeric regency id from known prefixes or plain numeric codes.
+                    // Supported patterns: "reqr-123", "reqd-123", "regd-123", "reg-123", or just "123".
+                    $regencyId = null;
+                    if (preg_match('/(\d+)/', (string) $userCityCode, $m)) {
+                        $regencyId = (int) $m[1];
+                    }
+
+                    if (! $regencyId) {
+                        return;
+                    }
+
+                    // If we have a regency id, include helps whose city is a district belonging to that regency.
+                    // Use whichever district table exists in the environment (req_districts, reg_districts, req_districts legacy names).
+                    if (Schema::hasTable('req_districts')) {
+                        $q->orWhereRaw(
+                            "EXISTS (select 1 from cities c2 join req_districts rd on rd.id = CAST(SUBSTRING_INDEX(c2.code, '-', -1) as unsigned) where c2.id = helps.city_id and rd.regency_id = ?)",
+                            [$regencyId]
+                        );
+                    }
+
+                    if (Schema::hasTable('reg_districts')) {
+                        $q->orWhereRaw(
+                            "EXISTS (select 1 from cities c2 join reg_districts rd on rd.id = CAST(SUBSTRING_INDEX(c2.code, '-', -1) as unsigned) where c2.id = helps.city_id and rd.regency_id = ?)",
+                            [$regencyId]
+                        );
+                    }
+
+                    // Fallback: if there's a reg_regencies table, include helps where the help's city.code equals the regency numeric id
+                    // (some imports store regency rows directly as cities with code = '<id>').
+                    $q->orWhereHas('city', function($cityQ) use ($regencyId) {
+                        $cityQ->where('code', (string) $regencyId);
+                    });
+                });
+            } else {
+                // Mitra belum memilih kota — return empty result set and notify view
+                $needsCity = true;
+            }
         }
 
         // Filter berdasarkan status
@@ -84,15 +142,25 @@ class AllHelps extends Component
             $query->orderBy('estimated_price');
         }
 
+        if ($needsCity) {
+            // empty paginator
+            $helps = Help::whereRaw('0 = 1')->paginate(15);
+            return view('livewire.mitra.helps.all-helps', [
+                'helps' => $helps,
+                'needsCity' => true,
+            ]);
+        }
+
         $helps = $query->with(['user', 'city'])
             ->paginate(15);
 
         return view('livewire.mitra.helps.all-helps', [
             'helps' => $helps,
+            'needsCity' => false,
         ]);
     }
 
-    public function takeHelp($helpId)
+    public function takeHelp($helpId, $latitude = null, $longitude = null)
     {
         $help = Help::findOrFail($helpId);
 
@@ -106,6 +174,38 @@ class AllHelps extends Component
             'status' => 'taken',
             'taken_at' => now(),
         ]);
+
+        // Set lokasi awal mitra jika GPS tersedia dari parameter
+        if ($latitude && $longitude) {
+            try {
+                $locationService = app(LocationTrackingService::class);
+                $locationService->setInitialLocation($help, (float) $latitude, (float) $longitude);
+                \Log::info('Set initial partner location from GPS on takeHelp', [
+                    'help_id' => $help->id, 
+                    'mitra_id' => auth()->id(),
+                    'lat' => $latitude,
+                    'lng' => $longitude
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Failed to set initial location from GPS: ' . $e->getMessage(), ['help_id' => $help->id]);
+            }
+        } else {
+            // Fallback: Jika GPS tidak tersedia, coba gunakan koordinat yang tersimpan pada profil mitra
+            try {
+                $mitra = auth()->user();
+                if (!empty($mitra->latitude) && !empty($mitra->longitude)) {
+                    try {
+                        $locationService = app(LocationTrackingService::class);
+                        $locationService->setInitialLocation($help, (float) $mitra->latitude, (float) $mitra->longitude);
+                        \Log::info('Set initial partner location from profile on takeHelp', ['help_id' => $help->id, 'mitra_id' => $mitra->id]);
+                    } catch (\Throwable $e) {
+                        \Log::warning('Failed to set initial location from profile: ' . $e->getMessage(), ['help_id' => $help->id]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        }
 
         session()->flash('message', 'Bantuan berhasil diambil. Silakan hubungi pengguna.');
 

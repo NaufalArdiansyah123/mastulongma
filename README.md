@@ -1,280 +1,69 @@
-# sayabantu - Platform Bantuan Sosial<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Mastulongmas
 
-Platform bantuan sosial berbasis web dengan tampilan mobile-first (seperti aplikasi mobile) menggunakan Laravel 12, Livewire 3, dan Tailwind CSS.<p align="center">
+Project: Mastulongmas — platform bantuan sosial berbasis Laravel + Livewire.
 
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+This repository contains the application code used for managing help requests (customers) and volunteers/providers (mitra).
 
-## 🚀 Fitur Utama<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+---
 
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+## Quick Setup (local)
 
-### 💡 Tampilan Mobile-First<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+1. Install dependencies
 
--   Lebar konten dikunci di max-width 420px (seperti tampilan HP)</p>
+  composer install
+  npm install
 
--   Navigasi bawah (bottom navigation) seperti aplikasi mobile
+2. Copy `.env` and generate app key
 
--   Responsive dan user-friendly## About Laravel
+  cp .env.example .env
+  php artisan key:generate
 
--   Desain minimalis dan humanis dengan warna biru muda
+3. Configure `.env` (DB, mail, services)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+4. Run migrations & seeders
 
-### 👥 Sistem Role-Based
+  php artisan migrate --seed
 
--   **Super Admin**: Mengelola admin, kategori, kota, dan biaya langganan- [Simple, fast routing engine](https://laravel.com/docs/routing).
+5. Create storage link
 
--   **Admin Kota**: Verifikasi KTP, moderasi postingan bantuan- [Powerful dependency injection container](https://laravel.com/docs/container).
+  php artisan storage:link
 
--   **Kustomer**: Membuat permintaan bantuan- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+6. Build assets (dev)
 
--   **Mitra**: Mengambil dan menyelesaikan bantuan- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+  npm run dev
 
--   Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+7. Serve
 
-### 📋 Fitur Bantuan- [Robust background job processing](https://laravel.com/docs/queues).
+  php artisan serve
 
--   Posting permintaan bantuan dengan foto- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
--   Filter berdasarkan kategori dan kota
+## Useful Commands
 
--   Status tracking (pending → approved → taken → completed)Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Clear caches: `php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan route:clear`
+- Run tests: `php artisan test`
+- Create Livewire component: `php artisan make:livewire Name`
 
--   Rating dan review untuk mitra
+---
 
--   Notifikasi real-time## Learning Laravel
+## Important Paths
 
-## 📦 Teknologi yang DigunakanLaravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Livewire components (customer): `app/Livewire/Customer`
+- Views (customer helps): `resources/views/livewire/customer/helps`
+- Routes: `routes/web.php`
 
--   **Backend**: Laravel 12If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
--   **Frontend**: Livewire 3 + Tailwind CSS
+## Notes (recent changes)
 
--   **Database**: MySQL## Laravel Sponsors
+- A new **Selesai** tab was added to the customer helps index to display completed helps in history style.
+- A temporary experiment to make `location` and schedule fields required for mitra on the create form was added and then reverted — the customer create form is back to original behavior.
 
--   **Authentication**: Laravel Breeze (Livewire)
+If you want a separate create flow for mitra (with required fields) I can add a new Livewire component and route so both flows coexist.
 
--   **File Storage**: Laravel StorageWe would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-## 🛠️ Instalasi### Premium Partners
-
-### Prerequisites- **[Vehikl](https://vehikl.com)**
-
--   PHP >= 8.2- **[Tighten Co.](https://tighten.co)**
-
--   Composer- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-
--   Node.js & NPM- **[64 Robots](https://64robots.com)**
-
--   MySQL- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-
--   XAMPP (atau web server lain)- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-
--   **[Redberry](https://redberry.international/laravel-development)**
-
-### Langkah-langkah Instalasi- **[Active Logic](https://activelogic.com)**
-
-1. **Clone atau gunakan project yang sudah ada**## Contributing
-
-```bash
-
-cd c:\xampp\htdocs\mastulongmasThank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-```
-
-## Code of Conduct
-
-2. **Install Dependencies**
-
-```bashIn order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-composer install
-
-npm install## Security Vulnerabilities
-
-```
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-3. **Konfigurasi Environment**
-
-File `.env` sudah dikonfigurasi dengan:## License
-
--   Database: mastulongmas
-
--   DB_USERNAME: rootThe Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-
--   DB_PASSWORD: (kosong untuk XAMPP default)
-
-4. **Generate Application Key** (sudah dilakukan)
-
-```bash
-php artisan key:generate
-```
-
-5. **Jalankan Migrations dan Seeders**
-
-```bash
-php artisan migrate:fresh --seed
-```
-
-6. **Link Storage**
-
-```bash
-php artisan storage:link
-```
-
-7. **Build Assets**
-
-```bash
-npm run build
-# atau untuk development
-npm run dev
-```
-
-8. **Jalankan Server**
-
-```bash
-php artisan serve
-```
-
-Aplikasi akan berjalan di: `http://localhost:8000`
-
-## 👤 Akun Default untuk Testing
-
-### Super Admin
-
--   Email: `superadmin@sayabantu.com`
--   Password: `password`
-
-### Admin Jakarta
-
--   Email: `admin.jakarta@sayabantu.com`
--   Password: `password`
-
-### Kustomer (Pengguna yang Butuh Bantuan)
-
--   Email: `budi@example.com`
--   Password: `password`
-
-### Mitra (Relawan/Pemberi Bantuan)
-
--   Email: `ahmad@example.com`
--   Password: `password`
-
-## 📱 Cara Menggunakan Aplikasi
-
-### Sebagai Kustomer (Yang Butuh Bantuan)
-
-1. **Login** dengan akun kustomer
-2. Klik **Dashboard** di bottom navigation
-3. Klik tombol **"Buat Permintaan Bantuan"**
-4. Isi form:
-    - Judul bantuan
-    - Kategori (Rumah Tangga, Kesehatan, Pangan, dll)
-    - Kota
-    - Lokasi detail
-    - Deskripsi lengkap
-    - Foto (opsional)
-5. Klik **"Kirim Permintaan"**
-6. Menunggu admin memverifikasi (untuk demo, sudah auto-approved)
-7. Setelah disetujui, mitra bisa mengambil bantuan Anda
-8. Status berubah menjadi "Taken" ketika ada mitra yang mengambil
-9. Bisa memberikan rating setelah bantuan selesai
-
-### Sebagai Mitra (Relawan)
-
-1. **Login** dengan akun mitra
-2. Klik **"Home"** atau **"Bantuan"** untuk melihat daftar bantuan tersedia
-3. Filter berdasarkan kategori atau kota jika perlu
-4. Klik tombol **"Ambil Bantuan"** pada bantuan yang ingin Anda berikan
-5. Hubungi kustomer (kontak terlihat setelah mengambil bantuan)
-6. Setelah selesai membantu, klik **"Tandai Selesai"**
-7. Kustomer bisa memberikan rating untuk Anda
-
-### Sebagai Admin Kota
-
-1. **Login** dengan akun admin
-2. Verifikasi KTP pengguna baru
-3. Moderasi postingan bantuan (approve/reject)
-4. Monitor status bantuan di wilayahnya
-5. Lihat laporan dan aktivitas
-
-### Sebagai Super Admin
-
-1. **Login** dengan akun super admin
-2. Kelola admin kota (CRUD)
-3. Kelola kategori bantuan
-4. Set biaya langganan untuk mitra premium
-5. Lihat statistik keseluruhan
-
-## 📊 Struktur Database
-
-### Tabel Utama
-
--   `users` - Data pengguna dengan role (super_admin, admin, kustomer, mitra)
--   `cities` - Daftar kota
--   `categories` - Kategori bantuan
--   `helps` - Posting bantuan
--   `subscriptions` - Langganan premium mitra
--   `ratings` - Rating dan review
--   `logs` - Log aktivitas
-
-## 🎨 Customisasi Tampilan
-
-### Warna Utama (Tailwind Config)
-
-File: `tailwind.config.js`
-
-```javascript
-colors: {
-  primary: {
-    500: '#3b82f6', // Biru utama
-    600: '#2563eb', // Biru lebih gelap
-  }
-}
-```
-
-### Max Width Container
-
-```javascript
-maxWidth: {
-  'mobile': '420px', // Lebar maksimal seperti HP
-}
-```
-
-### Layout Mobile
-
-File: `resources/views/layouts/app.blade.php`
-
--   Fixed max-width 420px
--   Bottom navigation
--   Sticky header
-
-## 🔧 Development
-
-### Menjalankan Development Server
-
-```bash
-# Terminal 1: Laravel server
-php artisan serve
-
-# Terminal 2: Vite untuk hot reload
-npm run dev
-```
-
-### Membuat Livewire Component Baru
-
-```bash
-php artisan make:livewire NamaComponent
-```
-
-### Menambah Migration Baru
-
-```bash
-php artisan make:migration create_nama_table
-php artisan migrate
-```
+If you'd like the README expanded (developer guide, deployment, architecture diagram), tell me what sections to include and I'll update it.
 
 ## 🎯 Fitur yang Sudah Diimplementasikan
 

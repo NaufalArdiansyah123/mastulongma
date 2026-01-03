@@ -71,7 +71,7 @@
                 <p class="text-white/80 text-sm leading-relaxed">Kelola permintaan bantuan dan transaksi Anda dengan mudah</p>
                 
                 <!-- Quick Stats -->
-                <div class="flex items-center gap-4 mt-4">
+                {{-- <div class="flex items-center gap-4 mt-4">
                     <div class="flex items-center gap-2 text-white/90">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
@@ -94,7 +94,7 @@
                             <span class="text-xs font-medium">Chat</span>
                         </a>
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
     </div>
@@ -143,7 +143,7 @@
 
             <!-- Quick Actions Row -->
             <div class="border-t pt-3 mt-3">
-                <div class="grid grid-cols-5 gap-2">
+                <div class="flex items-center justify-between gap-2">
                     <a href="{{ route('customer.helps.create') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">
                             <svg class="w-5 h-5" style="color: #0098e7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +153,7 @@
                         <span class="text-[10px] font-medium text-gray-700 text-center">Buat</span>
                     </a>
                     
-                    <a href="{{ route('customer.helps.index') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
+                    <a href="{{ route('customer.helps.index', ['statusFilter' => 'selesai']) }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">
                             <svg class="w-5 h-5" style="color: #0098e7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -162,23 +162,16 @@
                         <span class="text-[10px] font-medium text-gray-700 text-center">Bantuan</span>
                     </a>
 
-                    <a href="{{ route('customer.transactions.index') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
+                    <a href="{{ route('customer.helps.history') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
                         <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
                             <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                         </div>
-                        <span class="text-[10px] font-medium text-gray-700 text-center">Transaksi</span>
+                        <span class="text-[10px] font-medium text-gray-700 text-center">Riwayat</span>
                     </a>
 
-                    <a href="{{ route('profile') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
-                        <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                        </div>
-                        <span class="text-[10px] font-medium text-gray-700 text-center">Profil</span>
-                    </a>
+                    {{-- Profil quick-action removed per request --}}
                     <a href="{{ route('customer.chat') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
                         <div class="relative">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">

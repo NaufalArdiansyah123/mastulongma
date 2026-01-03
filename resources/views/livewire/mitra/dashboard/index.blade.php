@@ -71,7 +71,7 @@
                 <p class="text-white/80 text-sm leading-relaxed">Kelola pekerjaan bantuan dan pendapatan Anda dengan mudah</p>
                 
                 <!-- Quick Stats -->
-                <div class="flex items-center gap-4 mt-4">
+                {{-- <div class="flex items-center gap-4 mt-4">
                     <div class="flex items-center gap-2 text-white/90">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
@@ -94,7 +94,7 @@
                             <span class="text-xs font-medium">Chat</span>
                         </a>
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
     </div>
@@ -143,7 +143,7 @@
 
             <!-- Quick Actions Row -->
             <div class="border-t pt-3 mt-3">
-                <div class="grid grid-cols-5 gap-2">
+                <div class="flex items-center justify-between gap-2">
                     <a href="{{ route('mitra.helps.all') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">
                             <svg class="w-5 h-5" style="color: #0098e7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,17 +168,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                         </div>
-                        <span class="text-[10px] font-medium text-gray-700 text-center">Transaksi</span>
+                        <span class="text-[10px] font-medium text-gray-700 text-center">Riwayat</span>
                     </a>
 
-                    <a href="{{ route('profile') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
-                        <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                        </div>
-                        <span class="text-[10px] font-medium text-gray-700 text-center">Profil</span>
-                    </a>
+                    {{-- Profil quick-action removed per request --}}
                     <a href="{{ route('mitra.chat') }}" class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition">
                         <div class="relative">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 152, 231, 0.1);">
@@ -525,6 +518,51 @@
         function takeHelpFromModal() {
             if (!currentHelpId) return;
 
+            // Fungsi untuk reset button
+            const resetButton = (btn, originalText) => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            };
+            
+            // Fungsi untuk ambil bantuan dengan/tanpa lokasi
+            const takeBantuanWithLocation = (lat = null, lng = null) => {
+                if (lat && lng) {
+                    console.log('📍 Mengambil bantuan dengan lokasi:', { lat, lng });
+                    @this.takeHelp(currentHelpId, lat, lng);
+                } else {
+                    console.log('📍 Mengambil bantuan tanpa lokasi GPS');
+                    @this.takeHelp(currentHelpId);
+                }
+                closePreviewModal();
+            };
+            
+            // Fungsi fallback: Coba gunakan IP-based location
+            const tryIPBasedLocation = (btn, originalText) => {
+                console.log('🌐 Mencoba IP-based location...');
+                btn.textContent = 'Mendeteksi lokasi dari IP...';
+                
+                // Gunakan ipapi.co untuk mendapatkan koordinat dari IP
+                fetch('https://ipapi.co/json/', { timeout: 3000 })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.latitude && data.longitude) {
+                            console.log('✅ IP-based location berhasil:', data);
+                            takeBantuanWithLocation(data.latitude, data.longitude);
+                            resetButton(btn, originalText);
+                        } else {
+                            throw new Error('Invalid location data');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ IP-based location gagal:', error);
+                        // Tetap tanyakan apakah mau ambil tanpa lokasi
+                        if (confirm('📍 Lokasi tidak dapat dideteksi.\n\n✅ Ambil bantuan tanpa GPS tracking?\n\n(Lokasi dapat diupdate nanti saat Anda mulai bergerak)')) {
+                            takeBantuanWithLocation();
+                        }
+                        resetButton(btn, originalText);
+                    });
+            };
+
             // Request GPS permission dan ambil lokasi
             if (navigator.geolocation) {
                 // Show loading on button
@@ -537,39 +575,70 @@
                     (position) => {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        
+                        console.log('✅ GPS Location obtained:', { lat, lng, accuracy: accuracy + 'm' });
                         
                         // Call Livewire method dengan GPS coordinates
-                        @this.takeHelp(currentHelpId, lat, lng);
-                        closePreviewModal();
+                        takeBantuanWithLocation(lat, lng);
                         
                         // Reset button
-                        btn.textContent = originalText;
-                        btn.disabled = false;
+                        resetButton(btn, originalText);
                     },
                     (error) => {
-                        console.error('GPS Error:', error);
+                        console.error('❌ GPS Error:', error);
                         
-                        // Tetap ambil bantuan meskipun GPS gagal
-                        if (confirm('GPS tidak tersedia. Ambil bantuan tanpa GPS tracking?')) {
-                            @this.takeHelp(currentHelpId);
-                            closePreviewModal();
+                        // Error codes:
+                        // 1 = PERMISSION_DENIED
+                        // 2 = POSITION_UNAVAILABLE (no GPS hardware atau signal)
+                        // 3 = TIMEOUT
+                        
+                        if (error.code === 2) {
+                            // GPS tidak tersedia (laptop/desktop tanpa GPS)
+                            console.log('💻 Device tidak memiliki GPS, mencoba IP-based location...');
+                            tryIPBasedLocation(btn, originalText);
+                        } else if (error.code === 1) {
+                            // User menolak permission
+                            if (confirm('📍 Akses lokasi ditolak.\n\n🌐 Coba deteksi lokasi dari IP address?\n\n(Akurasi lebih rendah tetapi cukup untuk tracking)')) {
+                                tryIPBasedLocation(btn, originalText);
+                            } else if (confirm('✅ Ambil bantuan tanpa GPS tracking?\n\n(Lokasi dapat diupdate nanti)')) {
+                                takeBantuanWithLocation();
+                                resetButton(btn, originalText);
+                            } else {
+                                resetButton(btn, originalText);
+                            }
+                        } else {
+                            // Timeout atau error lain
+                            if (confirm('⏱️ GPS timeout atau error.\n\n🌐 Coba deteksi lokasi dari IP address?')) {
+                                tryIPBasedLocation(btn, originalText);
+                            } else if (confirm('✅ Ambil bantuan tanpa GPS tracking?')) {
+                                takeBantuanWithLocation();
+                                resetButton(btn, originalText);
+                            } else {
+                                resetButton(btn, originalText);
+                            }
                         }
-                        
-                        // Reset button
-                        btn.textContent = originalText;
-                        btn.disabled = false;
                     },
                     {
                         enableHighAccuracy: true,
-                        timeout: 5000,
+                        timeout: 8000, // 8 detik timeout (lebih lama untuk laptop)
                         maximumAge: 0
                     }
                 );
             } else {
-                // Browser tidak support GPS
-                alert('Browser Anda tidak mendukung GPS');
-                @this.takeHelp(currentHelpId);
-                closePreviewModal();
+                // Browser tidak support GPS (browser lama)
+                const btn = document.getElementById('previewTakeBtn');
+                const originalText = btn.textContent;
+                console.warn('⚠️ Browser tidak support Geolocation API');
+                
+                if (confirm('🌐 Browser tidak mendukung GPS.\n\nCoba deteksi lokasi dari IP address?')) {
+                    btn.disabled = true;
+                    tryIPBasedLocation(btn, originalText);
+                } else if (confirm('✅ Ambil bantuan tanpa GPS tracking?')) {
+                    takeBantuanWithLocation();
+                } else {
+                    // User cancel
+                }
             }
         }
 

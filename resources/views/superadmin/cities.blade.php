@@ -22,6 +22,34 @@
     </div>
 
     <div class="p-12">
+        <!-- Provinces management card -->
+        <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-700">Provinsi</h4>
+                    <div class="text-xs text-gray-500">Kelola daftar provinsi layanan</div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button wire:click="openProvinceModal()"
+                        class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">Tambah Provinsi</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-3">
+                @foreach($provinces as $prov)
+                    <div wire:click.prevent="selectProvince({{ $prov->id }})" class="p-3 rounded-lg flex items-center justify-between cursor-pointer {{ $filterProvinceId === $prov->id ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50' }}">
+                        <div>
+                            <div class="text-sm font-medium">{{ $prov->name }}</div>
+                            <div class="text-xs text-gray-500">{{ $prov->created_at->format('d M Y') }}</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button wire:click.stop="openProvinceModal({{ $prov->id }})" class="text-primary-600 p-2 hover:bg-primary-50 rounded-lg">Edit</button>
+                            <button wire:click.stop="confirmDeleteProvince({{ $prov->id }})" class="text-red-600 p-2 hover:bg-red-50 rounded-lg">Hapus</button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
         <!-- Filter Cards -->
         <div class="grid grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
@@ -81,81 +109,70 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($cities as $city)
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    #{{ $city->id }}
-                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-900">#{{ $city->id }}</td>
                                 <td class="px-6 py-5">
                                     <div class="flex items-center">
-                                        <div
-                                            class="h-12 w-12 flex-shrink-0 bg-primary-100 rounded-full flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <div class="h-12 w-12 flex-shrink-0 bg-primary-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                             </svg>
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-semibold text-gray-900">{{ $city->name }}</div>
+                                            <div class="text-xs text-gray-500 mt-1">@if(!empty($loadDistricts) && $city->relationLoaded('districts')) {{ $city->districts->count() }} kecamatan @else - kecamatan @endif</div>
                                         </div>
                                     </div>
                                 </td>
+                                <td class="px-6 py-5 whitespace-nowrap"><div class="text-sm text-gray-900">{{ $city->province }}</div></td>
                                 <td class="px-6 py-5 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $city->province }}</div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <span
-                                        class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                        {{ number_format($city->users_count) }} User
-                                    </span>
+                                    <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{{ number_format($city->users_count) }} User</span>
                                 </td>
                                 <td class="px-6 py-5 whitespace-nowrap">
-                                    <button wire:click="toggleStatus({{ $city->id }})"
-                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $city->is_active ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200' }} transition">
-                                        {{ $city->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </button>
+                                    <button wire:click="toggleStatus({{ $city->id }})" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $city->is_active ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200' }} transition">{{ $city->is_active ? 'Aktif' : 'Nonaktif' }}</button>
                                 </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $city->created_at->format('d M Y') }}
-                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500">{{ $city->created_at->format('d M Y') }}</td>
                                 <td class="px-6 py-5 whitespace-nowrap text-center text-sm font-medium">
                                     <div class="flex items-center justify-center space-x-2">
-                                        <button wire:click="openDetailModal({{ $city->id }})"
-                                            class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition"
-                                            title="Detail">
+                                        <button wire:click="openDetailModal({{ $city->id }})" class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition" title="Detail">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
                                         </button>
-                                        <button wire:click="editCity({{ $city->id }})"
-                                            class="text-primary-600 hover:text-primary-900 p-2 hover:bg-primary-50 rounded-lg transition"
-                                            title="Edit">
+                                        <button wire:click="editCity({{ $city->id }})" class="text-primary-600 hover:text-primary-900 p-2 hover:bg-primary-50 rounded-lg transition" title="Edit">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                         </button>
-                                        <button wire:click="confirmDelete({{ $city->id }})"
-                                            class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition"
-                                            title="Hapus">
+                                        <button wire:click="confirmDelete({{ $city->id }})" class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition" title="Hapus">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
+
+                            {{-- District rows grouped under the city --}}
+                            @if(!empty($loadDistricts) && $city->relationLoaded('districts') && $city->districts->isNotEmpty())
+                                @foreach($city->districts as $district)
+                                    <tr class="bg-gray-50">
+                                        <td></td>
+                                        <td class="px-6 py-3 text-sm text-gray-700">&nbsp;&nbsp;&mdash; {{ $district->name }}</td>
+                                        <td class="px-6 py-3 text-xs text-gray-500">Kecamatan</td>
+                                        <td class="px-6 py-3 text-sm text-gray-500">&nbsp;</td>
+                                        <td class="px-6 py-3 text-sm text-gray-500">@if($district->is_active)<span class="text-green-600">Aktif</span>@else<span class="text-red-600">Nonaktif</span>@endif</td>
+                                        <td class="px-6 py-3 text-sm text-gray-400">{{ optional($district->created_at)->format('d M Y') }}</td>
+                                        <td class="px-6 py-3 text-center text-sm text-gray-500">&nbsp;</td>
+                                    </tr>
+                                @endforeach
+                            @endif
                         @empty
                             <tr>
                                 <td colspan="7" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center justify-center">
-                                        <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                        <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                                         </svg>
                                         <p class="text-gray-500 text-lg font-medium">Tidak ada data kota</p>
                                         <p class="text-gray-400 text-sm mt-1">Tambah kota baru untuk memulai</p>
@@ -256,6 +273,64 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Province Modals --}}
+    @if($showProvinceModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-700 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">{{ $provinceEditId ? 'Edit Provinsi' : 'Tambah Provinsi' }}</h3>
+                        <p class="text-sm text-white/90">{{ $provinceEditId ? 'Perbarui nama provinsi' : 'Masukkan nama provinsi baru' }}</p>
+                    </div>
+                    <div>
+                        <button type="button" wire:click="$set('showProvinceModal', false)" class="text-white/90 p-2">&times;</button>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <form wire:submit.prevent="saveProvince">
+                        <div>
+                            <label class="text-xs font-medium text-gray-700">Nama Provinsi</label>
+                            <input type="text" wire:model.defer="provinceName" class="w-full mt-2 px-4 py-3 border rounded-lg" />
+                            @error('provinceName') <div class="text-sm text-red-600 mt-1">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="mt-4 flex justify-end space-x-2">
+                            <button type="button" wire:click="$set('showProvinceModal', false)" class="px-4 py-2 bg-gray-100 rounded-lg">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($showProvinceDeleteModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Konfirmasi Hapus Provinsi</h3>
+                        <p class="text-sm text-gray-600 mt-1">Anda yakin ingin menghapus provinsi ini? Semua relasi provinsi akan dilepas dari kota.</p>
+                    </div>
+                    <div>
+                        <button type="button" wire:click="$set('showProvinceDeleteModal', false)" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <div class="text-sm text-gray-700">Provinsi yang akan dihapus:</div>
+                    <div class="mt-2 p-3 bg-gray-50 rounded-lg text-gray-900 font-medium">{{ $deletingProvinceName ?? '-' }}</div>
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" wire:click="$set('showProvinceDeleteModal', false)" class="px-4 py-2 bg-gray-100 rounded-lg">Batal</button>
+                    <button type="button" wire:click.prevent="deleteProvince" class="px-4 py-2 bg-red-600 text-white rounded-lg">Hapus</button>
                 </div>
             </div>
         </div>

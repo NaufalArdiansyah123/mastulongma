@@ -16,7 +16,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // If you have a complete Indonesia dataset, run IndonesiaRegionsSeeder
+            IndonesiaRegionsSeeder::class,
+            // Fallback small seeders (will still run; IndonesiaRegionsSeeder will skip if files missing)
             CitySeeder::class,
+            DistrictSeeder::class,
             CategorySeeder::class,
             UserSeeder::class,
             HelpSeeder::class,

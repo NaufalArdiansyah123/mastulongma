@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\RecalculateUserBalances::class,
         \App\Console\Commands\MidtransRecheck::class,
         \App\Console\Commands\BalanceSyncCheck::class,
+        \App\Console\Commands\AutoConfirmHelps::class,
         \App\Console\Commands\SyncTopupActivities::class,
     ];
 
@@ -31,6 +32,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('balances:sync-check --threshold=1000000')->everyFiveMinutes();
 
         // $schedule->command('userbalances:recalculate')->daily();
+
+        // Auto-confirm helps waiting for customer confirmation after 24 hours
+        $schedule->command('helps:auto-confirm')->hourly();
     }
 
     /**

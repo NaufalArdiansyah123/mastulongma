@@ -9,8 +9,14 @@ class City extends Model
     protected $fillable = [
         'name',
         'province',
+        'province_id',
         'admin_id',
         'is_active',
+        'code',
+        'type',
+        'postal_code',
+        'latitude',
+        'longitude',
     ];
 
     protected $casts = [
@@ -29,6 +35,11 @@ class City extends Model
                     ->withTimestamps();
     }
 
+    public function province()
+    {
+        return $this->belongsTo(Province::class, 'province_id');
+    }
+
     public function users()
     {
         return $this->hasMany(User::class);
@@ -38,4 +49,11 @@ class City extends Model
     {
         return $this->hasMany(Help::class);
     }
+
+    public function districts()
+    {
+        return $this->hasMany(District::class);
+    }
+
 }
+

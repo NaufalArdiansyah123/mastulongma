@@ -18,8 +18,13 @@ class AdminUserController extends Controller
         $query = User::with('city')
             ->withCount('helps')
             ->withCount('partnerReports')
-            ->withCount('ratings')
-            ->withAvg('ratings as average_rating', 'rating');
+            // load both mitra/customer rating aggregates so we can display correct values per role
+            ->withCount([
+                'mitraRatings as mitra_ratings_count',
+                'customerRatings as customer_ratings_count',
+            ])
+            ->withAvg('mitraRatings as mitra_average_rating', 'rating')
+            ->withAvg('customerRatings as customer_average_rating', 'rating');
 
         // Apply city scoping only when admin has linked cities
         if ($cityIds->isNotEmpty()) {
@@ -72,6 +77,15 @@ class AdminUserController extends Controller
         // Ensure we have a city_name property for display (fallback to lookup by city_id)
         foreach ($users as $user) {
             $user->city_name = optional($user->city)->name ?? optional(City::find($user->city_id))->name;
+
+            // Normalize rating/count fields for the view so the template can show rating for both Mitra and Customer
+            if ($user->isMitra()) {
+                $user->ratings_count = $user->mitra_ratings_count ?? 0;
+                $user->average_rating = $user->mitra_average_rating !== null ? round($user->mitra_average_rating, 2) : null;
+            } else {
+                $user->ratings_count = $user->customer_ratings_count ?? 0;
+                $user->average_rating = $user->customer_average_rating !== null ? round($user->customer_average_rating, 2) : null;
+            }
         }
 
         return view('admin.users.index', compact('users'));

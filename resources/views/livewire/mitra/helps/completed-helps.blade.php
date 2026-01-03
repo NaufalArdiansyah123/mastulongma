@@ -1,12 +1,61 @@
 <div class="min-h-screen bg-white">
+    <style>
+        :root{
+            --brand-500: #0ea5a4;
+            --brand-600: #08979a;
+            --muted-600: #6b7280;
+        }
+
+        .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card-shadow-hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(14,165,164,0.2); }
+        
+        /* BRImo-style decorative pattern */
+        .header-pattern {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-pattern::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .header-pattern::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+
     <div class="max-w-md mx-auto">
         <!-- Header - BRImo Style -->
-        <div class="px-5 pt-5 pb-8 relative overflow-hidden" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
+        <div class="px-5 pt-5 pb-8 relative overflow-hidden header-pattern" style="background: linear-gradient(to bottom right, #0098e7, #0077cc, #0060b0);">
             <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
             <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
             
             <div class="relative z-10">
-                <div class="flex items-center justify-between text-white mb-6">
+                <div class="flex items-center justify-between text-white mb-3">
                     <button onclick="window.history.back()" aria-label="Kembali" class="p-2 hover:bg-white/20 rounded-lg transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -18,7 +67,36 @@
                         <p class="text-xs text-white/90 mt-0.5">Bantuan yang telah selesai</p>
                     </div>
 
-                    <div class="w-9"></div>
+                    <div class="flex items-center gap-2">
+                        @include('components.notification-icon', ['route' => route('mitra.notifications.index')])
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs - BRImo Style -->
+                <div role="tablist" aria-label="Menu Bantuan" class="flex items-center gap-2 mb-4 overflow-x-auto hide-scrollbar py-2 px-1">
+                    <a href="{{ route('mitra.helps.all') }}" 
+                        class="inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold transition whitespace-nowrap bg-white/10 text-white/90 hover:bg-white/20">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        Tersedia
+                    </a>
+
+                    <a href="{{ route('mitra.helps.processing') }}" 
+                        class="inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold transition whitespace-nowrap bg-white/10 text-white/90 hover:bg-white/20">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Sedang Dikerjakan
+                    </a>
+
+                    <a href="{{ route('mitra.helps.completed') }}" 
+                        class="inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold transition whitespace-nowrap bg-white text-[#0098e7] shadow-md">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Selesai
+                    </a>
                 </div>
 
                 {{-- Stats Cards --}}

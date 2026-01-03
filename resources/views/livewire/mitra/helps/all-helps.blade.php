@@ -116,6 +116,15 @@
                 </select>
             </div> 
             <div class="space-y-4">
+                @if(!empty($needsCity))
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+                        <div class="font-semibold">Atur kota Anda terlebih dahulu</div>
+                        <div class="mt-1">Untuk melihat bantuan yang tersedia di daerah Anda, silakan tentukan Kota/Kabupaten Anda di halaman profil.</div>
+                        <div class="mt-3">
+                            <a href="{{ route('mitra.profile') }}" class="inline-block px-3 py-2 bg-yellow-600 text-white rounded-lg text-xs">Buka Profil</a>
+                        </div>
+                    </div>
+                @endif
                 {{-- Loading skeleton --}}
                 <div wire:loading class="space-y-3">
                     @for($i=0;$i<4;$i++)
@@ -235,7 +244,7 @@
                 <div class="mb-2">
                     <p class="text-xs text-gray-600 font-semibold mb-1">Nominal untuk Mitra</p>
                     <div id="previewAmount" class="inline-block bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm">
-                        💰 Rp 0
+                        Rp 0
                     </div>
                 </div>
 
@@ -246,7 +255,7 @@
 
                 <!-- Notice -->
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                    <p class="text-xs font-semibold text-blue-800 mb-1">🔒 Informasi Terbatas</p>
+                    <p class="text-xs font-semibold text-blue-800 mb-1">Informasi Terbatas</p>
                     <p class="text-xs text-blue-700">
                         Deskripsi, alamat lengkap, lokasi di peta, foto, dan kontak customer akan ditampilkan setelah Anda mengambil bantuan ini.
                     </p>
@@ -296,10 +305,121 @@
         }
 
         function takeHelpFromModal() {
-            if (currentHelpId) {
-                // Call Livewire method to take help
-                @this.takeHelp(currentHelpId);
+            if (!currentHelpId) return;
+            
+            const btn = document.querySelector('[onclick="takeHelpFromModal()"]');
+            const originalText = btn.textContent;
+            
+            // Fungsi untuk reset button
+            const resetButton = () => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            };
+            
+            // Fungsi untuk ambil bantuan dengan/tanpa lokasi
+            const takeBantuanWithLocation = (lat = null, lng = null) => {
+                if (lat && lng) {
+                    console.log('📍 Mengambil bantuan dengan lokasi:', { lat, lng });
+                    @this.takeHelp(currentHelpId, lat, lng);
+                } else {
+                    console.log('📍 Mengambil bantuan tanpa lokasi GPS');
+                    @this.takeHelp(currentHelpId);
+                }
                 closePreviewModal();
+                resetButton();
+            };
+            
+            // Fungsi fallback: Coba gunakan IP-based location
+            const tryIPBasedLocation = () => {
+                console.log('🌐 Mencoba IP-based location...');
+                btn.textContent = 'Mendeteksi lokasi dari IP...';
+                
+                // Gunakan ipapi.co untuk mendapatkan koordinat dari IP
+                fetch('https://ipapi.co/json/', { timeout: 3000 })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.latitude && data.longitude) {
+                            console.log('✅ IP-based location berhasil:', data);
+                            takeBantuanWithLocation(data.latitude, data.longitude);
+                        } else {
+                            throw new Error('Invalid location data');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ IP-based location gagal:', error);
+                        // Tetap tanyakan apakah mau ambil tanpa lokasi
+                        if (confirm('📍 Lokasi tidak dapat dideteksi.\n\n✅ Ambil bantuan tanpa GPS tracking?\n\n(Lokasi dapat diupdate nanti saat Anda mulai bergerak)')) {
+                            takeBantuanWithLocation();
+                        } else {
+                            resetButton();
+                        }
+                    });
+            };
+            
+            // Request GPS permission dan ambil lokasi
+            if (navigator.geolocation) {
+                btn.textContent = 'Mendapatkan lokasi GPS...';
+                btn.disabled = true;
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        
+                        console.log('✅ GPS Location obtained:', { lat, lng, accuracy: accuracy + 'm' });
+                        takeBantuanWithLocation(lat, lng);
+                    },
+                    (error) => {
+                        console.error('❌ GPS Error:', error);
+                        
+                        // Error codes:
+                        // 1 = PERMISSION_DENIED
+                        // 2 = POSITION_UNAVAILABLE (no GPS hardware atau signal)
+                        // 3 = TIMEOUT
+                        
+                        if (error.code === 2) {
+                            // GPS tidak tersedia (laptop/desktop tanpa GPS)
+                            console.log('💻 Device tidak memiliki GPS, mencoba IP-based location...');
+                            tryIPBasedLocation();
+                        } else if (error.code === 1) {
+                            // User menolak permission
+                            if (confirm('📍 Akses lokasi ditolak.\n\n🌐 Coba deteksi lokasi dari IP address?\n\n(Akurasi lebih rendah tetapi cukup untuk tracking)')) {
+                                tryIPBasedLocation();
+                            } else if (confirm('✅ Ambil bantuan tanpa GPS tracking?\n\n(Lokasi dapat diupdate nanti)')) {
+                                takeBantuanWithLocation();
+                            } else {
+                                resetButton();
+                            }
+                        } else {
+                            // Timeout atau error lain
+                            if (confirm('⏱️ GPS timeout atau error.\n\n🌐 Coba deteksi lokasi dari IP address?')) {
+                                tryIPBasedLocation();
+                            } else if (confirm('✅ Ambil bantuan tanpa GPS tracking?')) {
+                                takeBantuanWithLocation();
+                            } else {
+                                resetButton();
+                            }
+                        }
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 8000, // 8 detik timeout (lebih lama untuk laptop)
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                // Browser tidak support GPS (browser lama)
+                console.warn('⚠️ Browser tidak support Geolocation API');
+                btn.disabled = true;
+                
+                if (confirm('🌐 Browser tidak mendukung GPS.\n\nCoba deteksi lokasi dari IP address?')) {
+                    tryIPBasedLocation();
+                } else if (confirm('✅ Ambil bantuan tanpa GPS tracking?')) {
+                    takeBantuanWithLocation();
+                } else {
+                    resetButton();
+                }
             }
         }
 

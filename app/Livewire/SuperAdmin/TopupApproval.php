@@ -21,7 +21,10 @@ class TopupApproval extends Component
     public $showRejectModal = false;
     public $rejectionReason = '';
     
-    protected $listeners = ['topupRequestCreated' => '$refresh'];
+    protected $listeners = [
+        'topupRequestCreated' => '$refresh',
+        'confirmApprove' => 'approve',
+    ];
 
     public function mount()
     {

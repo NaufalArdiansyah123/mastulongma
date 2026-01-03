@@ -25,6 +25,9 @@ new #[Layout('layouts.guest')] class extends Component {
     public string $marital_status = '';
     public string $occupation = '';
     public $cities = [];
+    // realtime city search (for nicer UX)
+    public string $cityQuery = '';
+    public array $searchResults = [];
 
     // Auto-detect gender from NIK
     public function updatedNik($value)
@@ -129,6 +132,117 @@ new #[Layout('layouts.guest')] class extends Component {
         $this->dispatch('clear-registration-step1');
 
         $this->redirect(route('register.step2'), navigate: true);
+    }
+
+    public function updatedCityQuery($value)
+    {
+        $q = trim($value);
+        if ($q === '') {
+            $this->searchResults = [];
+            return;
+        }
+
+        $limit = 10;
+
+        $results = City::where('is_active', true)
+            ->where(function ($b) use ($q) {
+                $b->where('name', 'like', "%{$q}%")
+                  ->orWhere('province', 'like', "%{$q}%")
+                  ->orWhere('code', 'like', "%{$q}%");
+            })
+            ->whereRaw("COALESCE(code,'') NOT LIKE 'reqd-%' AND COALESCE(code,'') NOT LIKE 'regd-%'")
+            ->select('id','name','province','code')
+            ->orderBy('name')
+            ->limit($limit)
+            ->get()
+            ->toArray();
+
+            if (count($results) < $limit) {
+            $remaining = $limit - count($results);
+            $regRows = collect();
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('req_regencies') && \Illuminate\Support\Facades\Schema::hasTable('req_provinces')) {
+                $regRows = \Illuminate\Support\Facades\DB::table('req_regencies')
+                    ->join('req_provinces', 'req_regencies.province_id', '=', 'req_provinces.id')
+                    ->where('req_regencies.regency', 'like', "%{$q}%")
+                    ->select('req_regencies.id as regency_id', 'req_regencies.regency', 'req_provinces.province')
+                    ->orderBy('req_regencies.regency')
+                    ->limit($remaining)
+                    ->get();
+            }
+
+            if (count($regRows) < $remaining && \Illuminate\Support\Facades\Schema::hasTable('reg_regencies') && \Illuminate\Support\Facades\Schema::hasTable('reg_provinces')) {
+                $rem2 = $remaining - count($regRows);
+                $rows = \Illuminate\Support\Facades\DB::table('reg_regencies')
+                    ->join('reg_provinces','reg_regencies.province_id','=','reg_provinces.id')
+                    ->where('reg_regencies.name','like',"%{$q}%")
+                    ->select('reg_regencies.id as regency_id', 'reg_regencies.name as regency', 'reg_provinces.name as province')
+                    ->orderBy('reg_regencies.name')
+                    ->limit($rem2)
+                    ->get();
+                foreach ($rows as $r) $regRows->push($r);
+            }
+
+            // Also try kecamatan-level tables and map results to parent regency
+            if (count($regRows) < $remaining && \Illuminate\Support\Facades\Schema::hasTable('req_districts') && \Illuminate\Support\Facades\Schema::hasTable('req_regencies') && \Illuminate\Support\Facades\Schema::hasTable('req_provinces')) {
+                $remD = $remaining - count($regRows);
+                $dist = \Illuminate\Support\Facades\DB::table('req_districts')
+                    ->join('req_regencies', 'req_districts.regency_id', '=', 'req_regencies.id')
+                    ->join('req_provinces', 'req_regencies.province_id', '=', 'req_provinces.id')
+                    ->where(function($b) use ($q) {
+                        $b->where('req_districts.district', 'like', "%{$q}%")
+                          ->orWhere('req_regencies.regency', 'like', "%{$q}%")
+                          ->orWhere('req_provinces.province', 'like', "%{$q}%");
+                    })
+                    ->select(\Illuminate\Support\Facades\DB::raw("CONCAT('reqr-', req_regencies.id) as regency_id"), 'req_regencies.regency', \Illuminate\Support\Facades\DB::raw("req_districts.district as matched_district"), 'req_provinces.province')
+                    ->orderBy('req_districts.district')
+                    ->limit($remD)
+                    ->get();
+                foreach ($dist as $d) $regRows->push($d);
+            }
+
+            // legacy tables
+            if (count($regRows) < $remaining && \Illuminate\Support\Facades\Schema::hasTable('regencies') && \Illuminate\Support\Facades\Schema::hasTable('provinces')) {
+                $rem3 = $remaining - count($regRows);
+                $rows = \Illuminate\Support\Facades\DB::table('regencies')
+                    ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
+                    ->where('regencies.regency','like',"%{$q}%")
+                    ->select('regencies.id as regency_id','regencies.regency','provinces.province')
+                    ->orderBy('regencies.regency')
+                    ->limit($rem3)
+                    ->get();
+                foreach ($rows as $r) $regRows->push($r);
+            }
+
+            foreach ($regRows as $r) {
+                $city = City::firstOrCreate(
+                    ['code' => (string)($r->regency_id)],
+                    ['name' => $r->regency, 'province' => $r->province, 'is_active' => true]
+                );
+                $exists = false;
+                foreach ($results as $res) {
+                    if ($res['id'] == $city->id) { $exists = true; break; }
+                }
+                if (! $exists) {
+                    $results[] = ['id' => $city->id, 'name' => $city->name, 'province' => $city->province, 'code' => $city->code];
+                }
+            }
+        }
+
+        $this->searchResults = $results;
+    }
+
+    public function setCityId($id)
+    {
+        $this->city_id = $id;
+        $city = City::find($id);
+        if ($city) {
+            $this->city = $city->name;
+            $this->province = $city->province;
+            // show chosen city in the search input so user sees selection
+            $this->cityQuery = $city->name . ' — ' . $city->province;
+        }
+        $this->searchResults = [];
     }
 }; ?>
 
@@ -320,19 +434,40 @@ new #[Layout('layouts.guest')] class extends Component {
 
                 <!-- Kota/Kabupaten -->
 
-                <!-- Kota/Kabupaten (pilih dari daftar agar sesuai dengan data kota di sistem) -->
+                <!-- Kota/Kabupaten (realtime search) -->
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-2">Kota/Kabupaten *</label>
                     @if(isset($cities) && count($cities) > 0)
-                        <select wire:model="city_id" id="city_id"
-                            class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm focus:ring-2 focus:ring-primary-400 transition shadow-sm">
-                            <option value="">Pilih Kota/Kabupaten</option>
-                            @foreach($cities as $c)
-                                <option value="{{ $c->id }}" data-province="{{ $c->province }}">{{ $c->name }} —
-                                    {{ $c->province }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="relative">
+                            <input type="text" wire:model.live.debounce.300ms="cityQuery" id="city-search-input"
+                                placeholder="Ketik nama Kota/Kabupaten..."
+                                class="w-full px-4 py-3 bg-white border-0 rounded-xl text-gray-700 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary-400 transition shadow-sm" autocomplete="off">
+
+                            <input type="hidden" wire:model="city_id" id="city_id">
+
+                            @if (!empty($searchResults))
+                                <ul class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto z-50">
+                                    @foreach ($searchResults as $c)
+                                        <li wire:click="setCityId({{ $c['id'] }})"
+                                            class="px-4 py-3 text-sm hover:bg-blue-50 cursor-pointer transition border-b border-gray-100 last:border-b-0 flex items-start gap-2">
+                                            <div class="flex-1">
+                                                <div class="font-semibold text-gray-900">{{ $c['name'] }}</div>
+                                                <div class="text-xs text-gray-500">{{ $c['province'] }}</div>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @elseif (!empty($cityQuery) && strlen($cityQuery) >= 2 && empty($city_id))
+                                <div class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Kota tidak ditemukan
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
                         <x-input-error :messages="$errors->get('city_id')" class="mt-2" />
                     @else
                         <input wire:model="city" id="city" type="text" placeholder="Ketik nama Kota/Kabupaten"

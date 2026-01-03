@@ -146,7 +146,6 @@
                 </div>
                 <div class="flex-1">
                     <h2 class="font-semibold text-base text-gray-900">{{ $help->title }}</h2>
-                    <p class="text-sm text-gray-600 mt-0.5">Sesi Layanan: {{ $help->equipment_provided ?? 'Layanan 1 Unit' }}</p>
                 </div>
             </div>
 
@@ -180,11 +179,11 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="tel:{{ $help->mitra->phone ?? '' }}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition">
+                        {{-- <a href="tel:{{ $help->mitra->phone ?? '' }}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition">
                             <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                             </svg>
-                        </a>
+                        </a> --}}
                         <a href="{{ route('customer.chat', $help->id) }}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition">
                             <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -194,6 +193,60 @@
                 </div>
 
             @endif
+
+            {{-- Description & Additional Details --}}
+            <div class="bg-white mt-2 px-4 py-4 rounded-lg shadow-sm border border-gray-100">
+                <h3 class="font-bold text-sm text-gray-900 mb-3">Deskripsi & Detail</h3>
+
+                @if(!empty($help->description))
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-700 whitespace-pre-line break-words break-all">{{ $help->description }}</p>
+                    </div>
+                @endif
+
+                <div class="grid grid-cols-2 gap-3 text-sm text-gray-700">
+                    @if(!empty($help->equipment_provided))
+                        <div>
+                            <div class="text-xs text-gray-500">Perlengkapan</div>
+                            <div class="font-semibold break-words break-all">{{ $help->equipment_provided }}</div>
+                        </div>
+                    @endif
+
+                    @if($help->mitra && !empty($help->mitra->phone))
+                        <div>
+                            <div class="text-xs text-gray-500">Kontak Mitra</div>
+                            <div class="font-semibold"><a href="tel:{{ $help->mitra->phone }}" class="text-blue-600">{{ $help->mitra->phone }}</a></div>
+                        </div>
+                    @endif
+
+                    @if(!empty($help->city->name) || !empty($help->province->name))
+                        <div>
+                            <div class="text-xs text-gray-500">Kota / Provinsi</div>
+                            <div class="font-semibold">{{ $help->city->name ?? '-' }}{{ $help->province ? (', ' . $help->province->name) : '' }}</div>
+                        </div>
+                    @endif
+
+                    {{-- <div>
+                        <div class="text-xs text-gray-500">Koordinat</div>
+                        <div class="font-semibold">{{ $help->latitude ? $help->latitude : '-' }}, {{ $help->longitude ? $help->longitude : '-' }}</div>
+                    </div> --}}
+                </div>
+
+                @if(!empty($help->photo))
+                    <div class="mt-3">
+                        <div class="text-xs text-gray-500">Foto Pesanan</div>
+                        <img src="{{ asset('storage/' . $help->photo) }}" alt="Foto bantuan" class="w-full mt-2 rounded-lg object-cover">
+                    </div>
+                @endif
+
+                <div class="mt-3 text-xs text-gray-500">
+                    <div>Dibuat: {{ \Carbon\Carbon::parse($help->created_at)->translatedFormat('d F Y, H:i') }}</div>
+                    <div>Terakhir diperbarui: {{ \Carbon\Carbon::parse($help->updated_at)->translatedFormat('d F Y, H:i') }}</div>
+                    @if(!empty($help->scheduled_at))
+                        <div>Jadwal: {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d F Y, H:i') }}</div>
+                    @endif
+                </div>
+            </div>
 
             @php
                 $status = $help->status;
@@ -524,10 +577,7 @@
                     <span class="font-semibold text-gray-900">Rp{{ number_format($help->amount, 0, ',', '.') }}</span>
                 </div>
 
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-700">{{ $help->equipment_provided ?? 'Layanan 1 Unit' }}</span>
-                    <span class="font-semibold text-gray-900"></span>
-                </div>
+                {{-- Perlengkapan ditampilkan di bagian "Deskripsi & Detail" di atas --}}
 
                 <div class="flex items-center justify-between text-sm">
                     <span class="text-gray-700">Biaya Admin</span>
@@ -954,9 +1004,10 @@
             console.log('🎯 Center peta:', { lat: centerLat, lng: centerLng });
 
             try {
+                // Initialize map without the default Leaflet prefix in attribution
                 map = L.map('tracking-map', {
                     zoomControl: true,
-                    attributionControl: true
+                    attributionControl: false
                 }).setView([centerLat, centerLng], 14);
                 console.log('✓ Map object created');
             } catch (err) {
@@ -971,6 +1022,13 @@
                     attribution: '© OpenStreetMap contributors',
                     maxZoom: 19
                 }).addTo(map);
+
+                // Add attribution control explicitly without the default Leaflet prefix/link
+                try {
+                    L.control.attribution({ prefix: false }).addTo(map);
+                } catch (err) {
+                    console.warn('Unable to set attribution prefix:', err);
+                }
                 console.log('✓ Tiles loaded');
             } catch (err) {
                 console.error('❌ Error loading tiles:', err);

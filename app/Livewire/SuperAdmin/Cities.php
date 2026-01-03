@@ -7,6 +7,8 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\City;
 use App\Models\User;
+use App\Models\Province;
+use Illuminate\Support\Facades\Schema;
 
 #[Layout('layouts.superadmin')]
 class Cities extends Component
@@ -26,6 +28,7 @@ class Cities extends Component
     // form fields
     public $name = '';
     public $province = '';
+    public $province_id = null;
     public $admin_id = null;
     public $is_active = true;
     public $deleteId = null;
@@ -35,6 +38,16 @@ class Cities extends Component
     public $chartLabels = [];
     public $chartCustomerData = [];
     public $chartMitraData = [];
+
+    // provinces management
+    public $provinces = [];
+    public $showProvinceModal = false;
+    public $provinceName = '';
+    public $provinceEditId = null;
+    public $showProvinceDeleteModal = false;
+    public $deleteProvinceId = null;
+    public $deletingProvinceName = null;
+    public $filterProvinceId = null;
 
     public function updatedSearch()
     {
@@ -48,7 +61,7 @@ class Cities extends Component
 
     public function openCreateModal()
     {
-        $this->reset(['name', 'province', 'admin_id', 'is_active', 'cityId', 'editMode']);
+        $this->reset(['name', 'province', 'province_id', 'admin_id', 'is_active', 'cityId', 'editMode']);
         $this->is_active = true;
         $this->showModal = true;
     }
@@ -59,6 +72,7 @@ class Cities extends Component
         $this->cityId = $city->id;
         $this->name = $city->name;
         $this->province = $city->province;
+        $this->province_id = $city->province_id;
         $this->admin_id = $city->admin_id;
         $this->is_active = $city->is_active;
         $this->editMode = true;
@@ -82,12 +96,20 @@ class Cities extends Component
 
     public function save()
     {
-        $validated = $this->validate([
+        $rules = [
             'name' => 'required|string|max:255',
-            'province' => 'required|string|max:255',
             'admin_id' => 'required|exists:users,id',
             'is_active' => 'boolean',
-        ]);
+        ];
+
+        // if province_id chosen, validate it; otherwise require free-text province
+        if ($this->province_id) {
+            $rules['province_id'] = 'exists:provinces,id';
+        } else {
+            $rules['province'] = 'required|string|max:255';
+        }
+
+        $validated = $this->validate($rules);
 
         // Ensure selected user is actually an admin
         $admin = User::find($validated['admin_id']);
@@ -99,6 +121,13 @@ class Cities extends Component
         if ($this->editMode && $this->cityId) {
             $city = City::findOrFail($this->cityId);
             $oldAdminId = $city->admin_id;
+            // ensure province name is stored for backward compatibility
+            if ($this->province_id) {
+                $prov = Province::find($this->province_id);
+                if ($prov) $validated['province'] = $prov->name;
+                $validated['province_id'] = $this->province_id;
+            }
+
             $city->update($validated);
 
             // If admin changed, clear old admin's city_id
@@ -116,6 +145,12 @@ class Cities extends Component
 
             session()->flash('message', 'Kota berhasil diperbarui');
         } else {
+            if ($this->province_id) {
+                $prov = Province::find($this->province_id);
+                if ($prov) $validated['province'] = $prov->name;
+                $validated['province_id'] = $this->province_id;
+            }
+
             $city = City::create($validated);
 
             // assign admin to this new city
@@ -126,7 +161,79 @@ class Cities extends Component
         }
 
         $this->showModal = false;
-        $this->reset(['name', 'province', 'admin_id', 'is_active', 'cityId', 'editMode']);
+        $this->reset(['name', 'province', 'province_id', 'admin_id', 'is_active', 'cityId', 'editMode']);
+    }
+
+    /** Provinces management */
+    public function openProvinceModal($id = null)
+    {
+        if ($id) {
+            $prov = Province::findOrFail($id);
+            $this->provinceEditId = $prov->id;
+            $this->provinceName = $prov->name;
+        } else {
+            $this->provinceEditId = null;
+            $this->provinceName = '';
+        }
+        $this->showProvinceModal = true;
+    }
+
+    public function saveProvince()
+    {
+        $this->validate(['provinceName' => 'required|string|max:255']);
+
+        if ($this->provinceEditId) {
+            $prov = Province::findOrFail($this->provinceEditId);
+            $prov->update(['name' => $this->provinceName]);
+            session()->flash('message', 'Provinsi diperbarui');
+        } else {
+            Province::create(['name' => $this->provinceName]);
+            session()->flash('message', 'Provinsi dibuat');
+        }
+
+        $this->showProvinceModal = false;
+        $this->provinceEditId = null;
+        $this->provinceName = '';
+    }
+
+    public function confirmDeleteProvince($id)
+    {
+        $this->deleteProvinceId = $id;
+        $prov = Province::find($id);
+        $this->deletingProvinceName = $prov ? $prov->name : null;
+        $this->showProvinceDeleteModal = true;
+    }
+
+    public function deleteProvince()
+    {
+        if ($this->deleteProvinceId) {
+            $prov = Province::findOrFail($this->deleteProvinceId);
+            // detach province from cities (keep province name for compatibility)
+            City::where('province_id', $prov->id)->update(['province_id' => null]);
+            $prov->delete();
+            session()->flash('message', 'Provinsi dihapus');
+        }
+
+        $this->showProvinceDeleteModal = false;
+        $this->deleteProvinceId = null;
+        $this->deletingProvinceName = null;
+    }
+
+    public function toggleProvinceStatus($id)
+    {
+        $prov = Province::findOrFail($id);
+        $prov->update(['is_active' => !$prov->is_active]);
+        session()->flash('message', 'Status provinsi berhasil diubah');
+    }
+
+    public function selectProvince($id = null)
+    {
+        if ($this->filterProvinceId === $id) {
+            $this->filterProvinceId = null;
+        } else {
+            $this->filterProvinceId = $id;
+        }
+        $this->resetPage();
     }
 
     public function deleteCity()
@@ -206,20 +313,39 @@ class Cities extends Component
 
     public function render()
     {
-        $cities = City::query()
+        $loadDistricts = Schema::hasTable('districts');
+
+        $citiesQuery = City::query()
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
                         ->orWhere('province', 'like', '%' . $this->search . '%');
                 });
             })
+            ->when($this->filterProvinceId, function ($q) {
+                $q->where('province_id', $this->filterProvinceId);
+            })
             ->withCount('users')
-            ->latest()
-            ->paginate($this->perPage);
+            ->latest();
+
+        if ($loadDistricts) {
+            $citiesQuery->with(['districts' => function ($q) { $q->orderBy('name'); }]);
+        }
+
+        $cities = $citiesQuery->paginate($this->perPage);
 
         // Show all admins in dropdown (superadmin can reassign any admin)
         $admins = User::where('role', 'admin')->get();
 
-        return view('superadmin.cities', compact('cities', 'admins'));
+        // Load provinces for sidebar/dropdowns (guard table existence)
+        if (Schema::hasTable('provinces')) {
+            $provinces = Province::orderBy('name')->get();
+        } else {
+            $provinces = collect();
+        }
+
+        $this->provinces = $provinces;
+
+        return view('superadmin.cities', compact('cities', 'admins', 'provinces', 'loadDistricts'));
     }
 }

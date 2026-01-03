@@ -189,6 +189,12 @@
                             <span class="text-sm">Biaya Admin</span>
                             <span class="font-bold">Rp {{ number_format($adminFee, 0, ',', '.') }}</span>
                         </div>
+                        @if($uniqueCode)
+                            <div class="flex justify-between items-center mt-1 opacity-90">
+                                <span class="text-xs">Biaya Pengembangan</span>
+                                <span class="text-sm font-semibold">Rp {{ number_format(intval($uniqueCode), 0, ',', '.') }}</span>
+                            </div>
+                        @endif
                         <div class="border-t border-white/20 pt-3 mt-3">
                             <div class="flex justify-between items-center">
                                 <span class="font-semibold">Total Bayar </span>

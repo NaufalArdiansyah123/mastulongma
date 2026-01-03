@@ -6,6 +6,19 @@
             --muted-600: #6b7280;
         }
 
+        [x-cloak] { display: none !important; }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
         .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .card-shadow-hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(14,165,164,0.2); }
@@ -63,19 +76,23 @@
                     </div>
                 </div>
 
-                <!-- Filter Tabs - centered and symmetric -->
-                <div class="grid grid-cols-3 gap-3 mt-1">
+                <!-- Filter Tabs - horizontal scrollable -->
+                <div class="flex gap-2 mt-1 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
                     <button type="button" wire:click="$set('statusFilter', 'menunggu_mitra')" role="tab"
-                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'menunggu_mitra' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
+                        class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all {{ $statusFilter === 'menunggu_mitra' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Menunggu Mitra
                     </button>
                     <button type="button" wire:click="$set('statusFilter', 'diproses')" role="tab"
-                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'diproses' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
+                        class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all {{ $statusFilter === 'diproses' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Diproses
                     </button>
                     <button type="button" wire:click="$set('statusFilter', 'waiting_customer_confirmation')" role="tab"
-                        class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all {{ $statusFilter === 'waiting_customer_confirmation' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
+                        class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all {{ $statusFilter === 'waiting_customer_confirmation' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
                         Menunggu Konfirmasi
+                    </button>
+                    <button type="button" wire:click="$set('statusFilter', 'selesai')" role="tab"
+                        class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all {{ $statusFilter === 'selesai' ? 'bg-white text-[#0098e7] shadow-md' : 'bg-white/20 text-white' }}">
+                        Selesai
                     </button>
                 </div>
             </div>
@@ -175,26 +192,35 @@
                                         <span class="text-xs font-bold whitespace-nowrap" style="color: #0098e7;">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
                                     </div>
 
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(56,189,248,0.08); color:#0284c7; border:1px solid rgba(3,105,161,0.08);">
-                                            @if($help->status === 'memperoleh_mitra')
-                                                Mitra Ditemukan
-                                            @elseif($help->status === 'taken')
-                                                Diambil Mitra
-                                            @elseif($help->status === 'partner_on_the_way')
-                                                Rekan Jasa Menuju Lokasi
-                                            @elseif($help->status === 'partner_arrived')
-                                                Rekan Jasa Tiba di Lokasi
-                                            @elseif(in_array($help->status, ['in_progress', 'sedang_diproses']))
-                                                Sedang Dikerjakan
-                                            @elseif($help->status === 'waiting_customer_confirmation')
-                                                Menunggu Konfirmasi Anda
-                                            @else
-                                                Sedang Diproses
-                                            @endif
-                                        </span>
-                                        <span class="text-xs text-gray-400">{{ optional($help->created_at)->diffForHumans() }}</span>
-                                    </div>
+                                    @if($help->status === 'partner_cancel_requested')
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(250,204,21,0.08); color:#b45309; border:1px solid rgba(245,158,11,0.12);">
+                                                Menunggu Konfirmasi Pembatalan
+                                            </span>
+                                            <span class="text-xs text-gray-400">{{ optional($help->partner_cancel_requested_at ?? $help->created_at)->diffForHumans() }}</span>
+                                        </div>
+                                    @else
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(56,189,248,0.08); color:#0284c7; border:1px solid rgba(3,105,161,0.08);">
+                                                @if($help->status === 'memperoleh_mitra')
+                                                    Mitra Ditemukan
+                                                @elseif($help->status === 'taken')
+                                                    Diambil Mitra
+                                                @elseif($help->status === 'partner_on_the_way')
+                                                    Rekan Jasa Menuju Lokasi
+                                                @elseif($help->status === 'partner_arrived')
+                                                    Rekan Jasa Tiba di Lokasi
+                                                @elseif(in_array($help->status, ['in_progress', 'sedang_diproses']))
+                                                    Sedang Dikerjakan
+                                                @elseif($help->status === 'waiting_customer_confirmation')
+                                                    Menunggu Konfirmasi Anda
+                                                @else
+                                                    Sedang Diproses
+                                                @endif
+                                            </span>
+                                            <span class="text-xs text-gray-400">{{ optional($help->created_at)->diffForHumans() }}</span>
+                                        </div>
+                                    @endif
 
                                     <p class="text-xs text-gray-600 line-clamp-2 mb-3">{{ Str::limit($help->description, 100) }}</p>
                                     @if($help->scheduled_at)
@@ -310,103 +336,134 @@
                             </div>
                         </div>
                     @elseif($statusFilter === 'selesai')
-                        {{-- Completed (selesai) Card with Rating --}}
-                        <div class="bg-white rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all border border-gray-100">
-                            <div class="flex items-start gap-3">
-                                <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                                    @if($help->photo)
-                                        <img src="{{ asset('storage/' . $help->photo) }}" alt="{{ $help->title }}" class="w-full h-full object-cover">
-                                    @else
-                                        <div class="w-full h-full flex items-center justify-center text-lg">
-                                            {{ ['🩺', '🏠', '💡', '🔧', '🎯'][($loop->index) % 5] }}
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-start justify-between gap-2 mb-1">
-                                        <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $help->title }}</h3>
-                                        <span class="text-xs font-bold whitespace-nowrap text-green-600">Rp {{ number_format($help->amount, 0, ',', '.') }}</span>
-                                    </div>
-
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                            ✓ Selesai
-                                        </span>
-                                        <span class="text-xs text-gray-400">{{ optional($help->completed_at)->diffForHumans() ?? optional($help->created_at)->diffForHumans() }}</span>
-                                    </div>
-
-                                    <p class="text-xs text-gray-600 line-clamp-1 mb-2">{{ Str::limit($help->description, 100) }}</p>
-                                    @if($help->scheduled_at)
-                                        <div class="text-xs text-gray-500 mb-2">📅 {{ \Carbon\Carbon::parse($help->scheduled_at)->translatedFormat('d M Y, H:i') }}</div>
-                                    @endif
-
-                                    {{-- Mitra Info --}}
-                                    @if($help->mitra)
-                                        <div class="flex items-center gap-1.5 mb-2">
-                                            <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
-                                                <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                        {{-- Completed (selesai) Card - History Style with Expandable Detail --}}
+                        @php
+                            $hasRatedThis = \App\Models\Rating::hasRated($help->id, auth()->id(), 'customer_to_mitra');
+                        @endphp
+                        <div x-data="{ open: false }" class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                            <div class="p-4">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-50">
+                                        @if($help->photo)
+                                            <img src="{{ asset('storage/' . $help->photo) }}" alt="foto" class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center">
+                                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                 </svg>
                                             </div>
-                                            <span class="text-xs text-gray-700 font-medium">{{ $help->mitra->name }}</span>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="font-semibold text-gray-900 truncate">{{ $help->title ?? 'Permintaan Bantuan' }}</h3>
+                                        <p class="text-xs text-gray-500 truncate">{{ optional($help->city)->name }} • {{ optional($help->updated_at)->format('d M Y') }}</p>
+                                    </div>
+
+                                    <div class="text-right flex-shrink-0">
+                                        <div class="text-sm font-bold" style="color: #0098e7;">Rp {{ number_format($help->amount ?? 0, 0, ',', '.') }}</div>
+                                        <div class="flex flex-col gap-1 mt-1">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                                Selesai
+                                            </span>
+                                            @if($hasRatedThis)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    </svg>
+                                                    Sudah Rating
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                                    </svg>
+                                                    Belum Rating
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button @click="open = !open" class="w-full flex items-center justify-center gap-2 text-sm font-semibold py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition" style="color: #0098e7;">
+                                    <span x-text="open ? 'Sembunyikan Detail' : 'Lihat Detail'"></span>
+                                    <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div x-show="open" x-cloak x-transition class="px-4 pb-4 border-t border-gray-100 mt-3 pt-4">
+                                <div class="space-y-4">
+                                    @if($help->photo)
+                                        <img src="{{ asset('storage/' . $help->photo) }}" alt="foto bantuan" class="w-full h-48 object-cover rounded-xl">
+                                    @endif
+
+                                    @if($help->description)
+                                        <div>
+                                            <h4 class="text-sm font-semibold text-gray-900 mb-2">Deskripsi</h4>
+                                            <p class="text-sm text-gray-700 leading-relaxed">{{ $help->description }}</p>
                                         </div>
                                     @endif
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <div class="text-xs text-gray-500 mb-1">Lokasi</div>
+                                            <div class="text-sm text-gray-900">{{ $help->full_address ?? optional($help->city)->name ?? '-' }}</div>
+                                        </div>
+
+                                        @if($help->mitra)
+                                            <div>
+                                                <div class="text-xs text-gray-500 mb-1">Mitra</div>
+                                                <div class="text-sm text-gray-900">{{ $help->mitra->name }}</div>
+                                                @if($help->mitra->phone)
+                                                    <a href="tel:{{ $help->mitra->phone }}" class="text-xs font-semibold" style="color: #0098e7;">{{ $help->mitra->phone }}</a>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="text-xs text-gray-500">
+                                        Selesai pada: <span class="text-gray-700 font-medium">{{ optional($help->updated_at)->format('d M Y H:i') }}</span>
+                                    </div>
 
                                     {{-- Rating Section --}}
                                     @php
-                                        $userRating = $help->rating ?? null;
-                                        $hasRated = $userRating && $userRating->rating > 0;
+                                        $hasRated = \App\Models\Rating::hasRated($help->id, auth()->id(), 'customer_to_mitra');
                                     @endphp
 
-                                    @if($hasRated)
-                                        {{-- Show existing rating --}}
-                                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <span class="text-sm font-semibold text-gray-700">Rating Anda:</span>
-                                                <div class="flex items-center gap-1">
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                        <svg class="w-5 h-5 {{ $i <= $userRating->rating ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                        </svg>
-                                                    @endfor
+                                    @if($help->mitra && !$hasRated)
+                                        <div class="pt-3 border-t border-gray-100">
+                                            @livewire('customer.rate-mitra', ['helpId' => $help->id], key('rate-mitra-'.$help->id))
+                                        </div>
+                                    @elseif($hasRated)
+                                        @php
+                                            $userRating = \App\Models\Rating::where('help_id', $help->id)
+                                                ->where('rater_id', auth()->id())
+                                                ->where('type', 'customer_to_mitra')
+                                                ->first();
+                                        @endphp
+                                        @if($userRating)
+                                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="text-sm font-semibold text-gray-700">Rating Anda:</span>
+                                                    <div class="flex items-center gap-1">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <svg class="w-4 h-4 {{ $i <= $userRating->rating ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                            </svg>
+                                                        @endfor
+                                                    </div>
                                                 </div>
+                                                @if($userRating->review)
+                                                    <p class="text-sm text-gray-600 italic mt-1">"{{ $userRating->review }}"</p>
+                                                @endif
                                             </div>
-                                            @if($userRating->review)
-                                                <p class="text-sm text-gray-600 italic">"{{ $userRating->review }}"</p>
-                                            @endif
-                                        </div>
-                                    @else
-                                        {{-- Rating form --}}
-                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                                            <p class="text-sm font-semibold text-gray-700 mb-2">Beri Rating:</p>
-                                            <div class="flex items-center gap-2 mb-3">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <button type="button" wire:click="setRating({{ $help->id }}, {{ $i }})" class="focus:outline-none transition transform hover:scale-110">
-                                                        <svg class="w-6 h-6 {{ ($pendingHelpForRating === $help->id && $pendingRating >= $i) ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                        </svg>
-                                                    </button>
-                                                @endfor
-                                            </div>
-
-                                            @if($pendingHelpForRating === $help->id && $pendingRating)
-                                                <textarea wire:model.defer="ratingComment" rows="3" placeholder="Tulis ulasan Anda (opsional)" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none mb-3"></textarea>
-                                                <button type="button" wire:click="submitRating({{ $help->id }})" class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition">
-                                                    Kirim Rating
-                                                </button>
-                                            @endif
-                                        </div>
+                                        @endif
                                     @endif
-
-                                    {{-- Footer Actions --}}
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs text-gray-500">📍 {{ $help->city->name ?? '-' }}</span>
-                                        <div class="flex-1"></div>
-                                        <a href="{{ route('customer.helps.detail', $help->id) }}" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
-                                            Detail
-                                        </a>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -644,7 +701,7 @@
     </style>
 
     <!-- Edit Modal (Bottom Sheet) -->
-    @if($editingHelp)
+    @if(isset($editingHelp) && $editingHelp)
         <div class="fixed inset-0 z-50 flex items-end justify-center" style="background: rgba(0,0,0,0.5);" wire:click="closeEdit">
             <div class="bg-white rounded-t-3xl w-full max-w-md shadow-2xl max-h-[85vh] overflow-y-auto hide-scrollbar" wire:click.stop>
                 <!-- Modal Header -->
@@ -665,7 +722,7 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1.5">
                             
-                    </div>
+                    </div> 
 
                     <!-- Location (Short Address) -->
                     <div>
@@ -724,6 +781,30 @@
                                 </svg>
                                 {{ $message }}
                             </span>
+                        @enderror
+                    </div>
+
+                    <!-- City select -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                            <span class="flex items-center">
+                                <svg class="w-3.5 h-3.5 mr-1.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5z" />
+                                </svg>
+                                Kota
+                                <span class="text-gray-400 text-xs ml-1">(Wajib)</span>
+                            </span>
+                        </label>
+                        <div>
+                            <select wire:model.defer="editCityId" class="w-full px-3.5 py-2.5 text-sm rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 transition bg-white shadow-sm">
+                                <option value="">Pilih kota atau kabupaten</option>
+                                @foreach($cities as $city)
+                                    <option value="{{ $city->id }}">{{ $city->name }}@if($city->province), {{ $city->province }}@endif</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @error('editCityId')
+                            <span class="text-red-500 text-xs mt-1.5 block">{{ $message }}</span>
                         @enderror
                     </div>
 

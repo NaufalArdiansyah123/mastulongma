@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/chat/start', [\App\Http\Controllers\ChatController::class, 'start'])->name('chat.start');
     Route::get('/chat/{help}', [\App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
 
+    // Lightweight AJAX endpoints for authenticated users
+    Route::get('/ajax/cities', [\App\Http\Controllers\Api\CityController::class, 'search'])->name('ajax.cities');
+
     // ========================================
     // CUSTOMER ROUTES (Customer/Penerima Bantuan)
     // ========================================
